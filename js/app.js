@@ -11,9 +11,115 @@
  * - Система прав доступа: edit/view для L1 и L2
  */
 
-let GRAPH_HOOK_URL = "https://jolikcisout.beget.app/webhook/pyrus/graph";
+let GRAPH_HOOK_URL = "https://quumahienot.beget.app/webhook/pyrus/graph";
 const MAX_DAYS_IN_MONTH = 31;
+
+// Pyrus: IDs форм/справочников берём из config.json
+let SHIFT_CATALOG_ID = 281369;   // catalogs.shifts
+let FORM_OTPUSK_ID = 2348174;    // forms.otpusk
+let FORM_SMENI_ID = 2375272;     // forms.smeni
+
+// Pyrus: ID полей форм (берём из config.json)
+let PYRUS_FIELDS_OTPUSK = { person: 1, period: 2 };
+let PYRUS_FIELDS_SMENI = { line: 1, template: 10, person: 8, due: 4, amount: 5 };
+
+
 let LOCAL_TZ_OFFSET_MIN = 4 * 60; // GMT+4
+// -------------------------------
+// Загрузка конфигурации из config.json (с фолбеком на дефолты)
+// -------------------------------
+const DEFAULT_APP_CONFIG = {
+};
+
+let APP_CONFIG = DEFAULT_APP_CONFIG;
+
+function deepMerge(target, src) {
+  if (!src || typeof src !== "object") return target;
+  for (const key of Object.keys(src)) {
+    const v = src[key];
+    if (v && typeof v === "object" && !Array.isArray(v)) {
+      if (!target[key] || typeof target[key] !== "object") target[key] = {};
+      deepMerge(target[key], v);
+    } else {
+      target[key] = v;
+    }
+  }
+  return target;
+}
+
+async function loadAppConfig() {
+  try {
+    const res = await fetch("config.json", { cache: "no-store" });
+    if (!res.ok) throw new Error(`config.json HTTP ${res.status}`);
+    const cfg = await res.json();
+    APP_CONFIG = deepMerge(JSON.parse(JSON.stringify(DEFAULT_APP_CONFIG)), cfg);
+  } catch (e) {
+    console.warn("Не удалось загрузить config.json, используем дефолты.", e);
+    APP_CONFIG = DEFAULT_APP_CONFIG;
+  }
+  // Экспортируем для дебага
+  window.APP_CONFIG = APP_CONFIG;
+  applyAppConfig(APP_CONFIG);
+  return APP_CONFIG;
+}
+
+// Применяем конфиг к переменным/маппингам, используемым в коде
+function applyAppConfig(cfg) {
+  GRAPH_HOOK_URL = cfg.graphHookUrl || GRAPH_HOOK_URL;
+  LOCAL_TZ_OFFSET_MIN =
+    (cfg.timezone && Number(cfg.timezone.localOffsetMin)) || LOCAL_TZ_OFFSET_MIN;
+
+  // department_id
+  LINE_DEPT_IDS = (cfg.departments && cfg.departments.byLine) || LINE_DEPT_IDS;
+  DEPT_ORDER_BY_LINE =
+    (cfg.departments && cfg.departments.orderByLine) || DEPT_ORDER_BY_LINE;
+
+  // Pyrus IDs
+  SHIFT_CATALOG_ID =
+    (cfg.pyrus && cfg.pyrus.catalogs && cfg.pyrus.catalogs.shifts) || SHIFT_CATALOG_ID;
+  FORM_OTPUSK_ID =
+    (cfg.pyrus && cfg.pyrus.forms && cfg.pyrus.forms.otpusk) || FORM_OTPUSK_ID;
+  FORM_SMENI_ID =
+    (cfg.pyrus && cfg.pyrus.forms && cfg.pyrus.forms.smeni) || FORM_SMENI_ID;
+
+  PYRUS_FIELDS_OTPUSK =
+    (cfg.pyrus && cfg.pyrus.fields && cfg.pyrus.fields.otpusk) || PYRUS_FIELDS_OTPUSK;
+  PYRUS_FIELDS_SMENI =
+    (cfg.pyrus && cfg.pyrus.fields && cfg.pyrus.fields.smeni) || PYRUS_FIELDS_SMENI;
+
+  // UI: порядок вкладок/лейблы
+  LINE_KEYS_IN_UI_ORDER =
+    (cfg.ui && cfg.ui.lines && Array.isArray(cfg.ui.lines.order) && cfg.ui.lines.order.length)
+      ? cfg.ui.lines.order
+      : LINE_KEYS_IN_UI_ORDER;
+  LINE_LABELS =
+    (cfg.ui && cfg.ui.lines && cfg.ui.lines.labels) || LINE_LABELS;
+
+  // Руководители/учредители
+  TOP_MANAGEMENT_IDS =
+    (cfg.management && Array.isArray(cfg.management.topManagementIds))
+      ? cfg.management.topManagementIds
+      : TOP_MANAGEMENT_IDS;
+
+  // Pyrus line item_id mapping
+  PYRUS_LINE_ITEM_ID = cfg.pyrusLineItemIdByLine || PYRUS_LINE_ITEM_ID;
+
+  // Storage keys
+  STORAGE_KEYS = (cfg.storage && cfg.storage.keys) || STORAGE_KEYS;
+  if (cfg.storage && cfg.storage.auth) {
+    AUTH_STORAGE_KEY = cfg.storage.auth.key || AUTH_STORAGE_KEY;
+    AUTH_TTL_MS = Number(cfg.storage.auth.ttlMs) || AUTH_TTL_MS;
+    AUTH_COOKIE_DAYS = Number(cfg.storage.auth.cookieDays) || AUTH_COOKIE_DAYS;
+  }
+
+  // Производственный календарь
+  if (cfg.calendar && cfg.calendar.prodCal) {
+    PROD_CAL_TTL_MS = Number(cfg.calendar.prodCal.ttlMs) || PROD_CAL_TTL_MS;
+    PROD_CAL_URL_TMPL = cfg.calendar.prodCal.urlTemplate || PROD_CAL_URL_TMPL;
+    PROD_CAL_CACHE_PREFIX = cfg.calendar.prodCal.cacheKeyPrefix || PROD_CAL_CACHE_PREFIX;
+  }
+}
+
 
 // -----------------------------
 // Конфиг вкладок (линий)
@@ -95,7 +201,6 @@ const state = {
   ui: {
     currentLine: "ALL",
     theme: "dark",
-    isScheduleCached: false,
   },
   quickMode: {
     enabled: false,
@@ -142,15 +247,6 @@ const state = {
     monthIndex: null,
   },
   vacationsByEmployee: {},
-  employeeFiltersByLine: {
-    ALL: [],
-    OP: [],
-    OV: [],
-    L1: [],
-    L2: [],
-    AI: [],
-    OU: [],
-  },
 };
 
 const scheduleCacheByLine = {
@@ -162,11 +258,6 @@ let STORAGE_KEYS = {
   localChanges: "sm1_local_changes",
   changeHistory: "sm1_change_history",
   theme: "sm1_theme_preference",
-  currentLine: "sm1_current_line",
-  employeeFilters: "sm1_employee_filters",
-  cachedEmployees: "sm1_cached_employees",
-  cachedShiftTemplates: "sm1_cached_shift_templates",
-  cachedSchedulePrefix: "sm1_cached_schedule_",
 };
 
 function deepClone(obj) {
