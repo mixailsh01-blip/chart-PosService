@@ -2,9 +2,11 @@
 // Система динамического назначения цветов для шаблонов смен
 
 const SHIFT_COLORS_STYLE_ID = 'dynamic-shift-colors';
+const LINE_KEYS = ['L1', 'L2'];
+
 const colorState = {
   theme: 'dark',
-  templatesByLine: {},
+  templatesByLine: { L1: [], L2: [] },
   templateMetaById: new Map(),
 };
 
@@ -50,9 +52,7 @@ function rebuildColors() {
   const isDark = colorState.theme === 'dark';
   const cssRules = [];
 
-  const lineKeys = Object.keys(colorState.templatesByLine || {});
-
-  lineKeys.forEach((line) => {
+  LINE_KEYS.forEach((line) => {
     const templates = colorState.templatesByLine[line] || [];
     let colorIndex = 0;
 
@@ -92,13 +92,12 @@ function applyColorToPill(pillEl, templateId, fallbackLine) {
   if (!pillEl || templateId == null) return;
 
   const meta = colorState.templateMetaById.get(templateId);
+  const className = meta?.className || (fallbackLine ? getTemplateClass(fallbackLine, templateId) : '');
 
   if (meta?.isSpecial) {
     pillEl.classList.add('special');
     return;
   }
-
-  const className = fallbackLine ? getTemplateClass(fallbackLine, templateId) : meta?.className;
 
   if (className) {
     pillEl.classList.add(className);
@@ -162,7 +161,7 @@ function renderColorLegend(currentLine) {
 }
 
 function initialize(templatesByLine, theme = 'dark') {
-  colorState.templatesByLine = templatesByLine || {};
+  colorState.templatesByLine = templatesByLine || { L1: [], L2: [] };
   colorState.theme = theme === 'light' ? 'light' : 'dark';
   rebuildColors();
 }

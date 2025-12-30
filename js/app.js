@@ -11,18 +11,124 @@
  * - Система прав доступа: edit/view для L1 и L2
  */
 
-const GRAPH_HOOK_URL = "https://jolikcisout.beget.app/webhook/pyrus/graph";
+let GRAPH_HOOK_URL = "https://jolikcisout.beget.app/webhook/pyrus/graph";
 const MAX_DAYS_IN_MONTH = 31;
-const LOCAL_TZ_OFFSET_MIN = 4 * 60; // GMT+4
+
+// Pyrus: IDs форм/справочников берём из config.json
+let SHIFT_CATALOG_ID = 281369;   // catalogs.shifts
+let FORM_OTPUSK_ID = 2348174;    // forms.otpusk
+let FORM_SMENI_ID = 2375272;     // forms.smeni
+
+// Pyrus: ID полей форм (берём из config.json)
+let PYRUS_FIELDS_OTPUSK = { person: 1, period: 2 };
+let PYRUS_FIELDS_SMENI = { line: 1, template: 10, person: 8, due: 4, amount: 5 };
+
+
+let LOCAL_TZ_OFFSET_MIN = 4 * 60; // GMT+4
+// -------------------------------
+// Загрузка конфигурации из config.json (с фолбеком на дефолты)
+// -------------------------------
+const DEFAULT_APP_CONFIG = {
+};
+
+let APP_CONFIG = DEFAULT_APP_CONFIG;
+
+function deepMerge(target, src) {
+  if (!src || typeof src !== "object") return target;
+  for (const key of Object.keys(src)) {
+    const v = src[key];
+    if (v && typeof v === "object" && !Array.isArray(v)) {
+      if (!target[key] || typeof target[key] !== "object") target[key] = {};
+      deepMerge(target[key], v);
+    } else {
+      target[key] = v;
+    }
+  }
+  return target;
+}
+
+async function loadAppConfig() {
+  try {
+    const res = await fetch("config.json", { cache: "no-store" });
+    if (!res.ok) throw new Error(`config.json HTTP ${res.status}`);
+    const cfg = await res.json();
+    APP_CONFIG = deepMerge(JSON.parse(JSON.stringify(DEFAULT_APP_CONFIG)), cfg);
+  } catch (e) {
+    console.warn("Не удалось загрузить config.json, используем дефолты.", e);
+    APP_CONFIG = DEFAULT_APP_CONFIG;
+  }
+  // Экспортируем для дебага
+  window.APP_CONFIG = APP_CONFIG;
+  applyAppConfig(APP_CONFIG);
+  return APP_CONFIG;
+}
+
+// Применяем конфиг к переменным/маппингам, используемым в коде
+function applyAppConfig(cfg) {
+  GRAPH_HOOK_URL = cfg.graphHookUrl || GRAPH_HOOK_URL;
+  LOCAL_TZ_OFFSET_MIN =
+    (cfg.timezone && Number(cfg.timezone.localOffsetMin)) || LOCAL_TZ_OFFSET_MIN;
+
+  // department_id
+  LINE_DEPT_IDS = (cfg.departments && cfg.departments.byLine) || LINE_DEPT_IDS;
+  DEPT_ORDER_BY_LINE =
+    (cfg.departments && cfg.departments.orderByLine) || DEPT_ORDER_BY_LINE;
+
+  // Pyrus IDs
+  SHIFT_CATALOG_ID =
+    (cfg.pyrus && cfg.pyrus.catalogs && cfg.pyrus.catalogs.shifts) || SHIFT_CATALOG_ID;
+  FORM_OTPUSK_ID =
+    (cfg.pyrus && cfg.pyrus.forms && cfg.pyrus.forms.otpusk) || FORM_OTPUSK_ID;
+  FORM_SMENI_ID =
+    (cfg.pyrus && cfg.pyrus.forms && cfg.pyrus.forms.smeni) || FORM_SMENI_ID;
+
+  PYRUS_FIELDS_OTPUSK =
+    (cfg.pyrus && cfg.pyrus.fields && cfg.pyrus.fields.otpusk) || PYRUS_FIELDS_OTPUSK;
+  PYRUS_FIELDS_SMENI =
+    (cfg.pyrus && cfg.pyrus.fields && cfg.pyrus.fields.smeni) || PYRUS_FIELDS_SMENI;
+
+  // UI: порядок вкладок/лейблы
+  LINE_KEYS_IN_UI_ORDER =
+    (cfg.ui && cfg.ui.lines && Array.isArray(cfg.ui.lines.order) && cfg.ui.lines.order.length)
+      ? cfg.ui.lines.order
+      : LINE_KEYS_IN_UI_ORDER;
+  LINE_LABELS =
+    (cfg.ui && cfg.ui.lines && cfg.ui.lines.labels) || LINE_LABELS;
+
+  // Руководители/учредители
+  TOP_MANAGEMENT_IDS =
+    (cfg.management && Array.isArray(cfg.management.topManagementIds))
+      ? cfg.management.topManagementIds
+      : TOP_MANAGEMENT_IDS;
+
+  // Pyrus line item_id mapping
+  PYRUS_LINE_ITEM_ID = cfg.pyrusLineItemIdByLine || PYRUS_LINE_ITEM_ID;
+
+  // Storage keys
+  STORAGE_KEYS = (cfg.storage && cfg.storage.keys) || STORAGE_KEYS;
+  if (cfg.storage && cfg.storage.auth) {
+    AUTH_STORAGE_KEY = cfg.storage.auth.key || AUTH_STORAGE_KEY;
+    AUTH_TTL_MS = Number(cfg.storage.auth.ttlMs) || AUTH_TTL_MS;
+    AUTH_COOKIE_DAYS = Number(cfg.storage.auth.cookieDays) || AUTH_COOKIE_DAYS;
+  }
+
+  // Производственный календарь
+  if (cfg.calendar && cfg.calendar.prodCal) {
+    PROD_CAL_TTL_MS = Number(cfg.calendar.prodCal.ttlMs) || PROD_CAL_TTL_MS;
+    PROD_CAL_URL_TMPL = cfg.calendar.prodCal.urlTemplate || PROD_CAL_URL_TMPL;
+    PROD_CAL_CACHE_PREFIX = cfg.calendar.prodCal.cacheKeyPrefix || PROD_CAL_CACHE_PREFIX;
+  }
+}
+
 
 // -----------------------------
 // Конфиг вкладок (линий)
 // -----------------------------
-const LINE_KEYS_IN_UI_ORDER = ["ALL", "OP", "OV", "L1", "L2", "AI", "OU"];
-const LINE_LABELS = { ALL: "ВСЕ", OP: "OP", OV: "OV", L1: "L1", L2: "L2", AI: "AI", OU: "OU" };
+let LINE_KEYS_IN_UI_ORDER = ["ALL", "OP", "OV", "L1", "L2", "AI", "OU"];
+let LINE_LABELS = { ALL: "ВСЕ", OP: "OP", OV: "OV", L1: "L1", L2: "L2", AI: "AI", OU: "OU" };
 
 // Жёсткая привязка department_id -> вкладка
-const LINE_DEPT_IDS = {
+let LINE_DEPT_IDS = {
   L1: [108368027],
   L2: [108368026, 171248779, 171248780],
   OV: [80208117],
@@ -32,10 +138,10 @@ const LINE_DEPT_IDS = {
 };
 
 // Руководители/учредители (всегда сверху во "ВСЕ")
-const TOP_MANAGEMENT_IDS = [1167305, 314287]; // Лузин, Сухачев
+let TOP_MANAGEMENT_IDS = [1167305, 314287]; // Лузин, Сухачев
 
 // Pyrus: значение каталога "Линия/Отдел" (field id=1) в форме явок
-const PYRUS_LINE_ITEM_ID = {
+let PYRUS_LINE_ITEM_ID = {
   L2: 157816613,
   L1: 165474029,
   OV: 157816614,
@@ -56,7 +162,7 @@ function resolvePyrusLineItemIdByDepartmentId(deptId) {
 }
 
 // Порядок групп (department_id) для сортировки внутри вкладок
-const DEPT_ORDER_BY_LINE = {
+let DEPT_ORDER_BY_LINE = {
   L2: LINE_DEPT_IDS.L2.slice(),
   OP: LINE_DEPT_IDS.OP.slice(),
 };
@@ -95,7 +201,6 @@ const state = {
   ui: {
     currentLine: "ALL",
     theme: "dark",
-    isScheduleCached: false,
   },
   quickMode: {
     enabled: false,
@@ -142,15 +247,6 @@ const state = {
     monthIndex: null,
   },
   vacationsByEmployee: {},
-  employeeFiltersByLine: {
-    ALL: [],
-    OP: [],
-    OV: [],
-    L1: [],
-    L2: [],
-    AI: [],
-    OU: [],
-  },
 };
 
 const scheduleCacheByLine = {
@@ -158,15 +254,10 @@ const scheduleCacheByLine = {
   L2: Object.create(null),
 };
 
-const STORAGE_KEYS = {
+let STORAGE_KEYS = {
   localChanges: "sm1_local_changes",
   changeHistory: "sm1_change_history",
   theme: "sm1_theme_preference",
-  currentLine: "sm1_current_line",
-  employeeFilters: "sm1_employee_filters",
-  cachedEmployees: "sm1_cached_employees",
-  cachedShiftTemplates: "sm1_cached_shift_templates",
-  cachedSchedulePrefix: "sm1_cached_schedule_",
 };
 
 function deepClone(obj) {
@@ -178,7 +269,6 @@ function deepClone(obj) {
 // -----------------------------
 
 function canEditLine(line) {
-  if (state.ui.isScheduleCached) return false;
   const permission = state.auth.permissions[line] || state.auth.permissions.ALL;
   return permission === "edit";
 }
@@ -193,8 +283,9 @@ function canViewLine(line) {
 // Персистентная авторизация (localStorage + cookie)
 // -----------------------------
 
-const AUTH_STORAGE_KEY = "sm_graph_auth_v1";
-const AUTH_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 дней
+let AUTH_STORAGE_KEY = "sm_graph_auth_v1";
+let AUTH_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 дней
+let AUTH_COOKIE_DAYS = 7;
 
 function setCookie(name, value, days) {
   try {
@@ -230,7 +321,7 @@ function saveAuthCache(login) {
     localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload));
   } catch (_) {}
   // Дублируем в cookie (минимальный объём) — на случай очистки localStorage
-  setCookie(AUTH_STORAGE_KEY, JSON.stringify(payload), 7);
+  setCookie(AUTH_STORAGE_KEY, JSON.stringify(payload), AUTH_COOKIE_DAYS);
 }
 
 function loadAuthCache() {
@@ -495,11 +586,13 @@ async function pyrusApi(path, method = "GET", body = null) {
 // -----------------------------
 // Производственный календарь РФ (isdayoff.ru) — помесячно, с кэшем и фолбеком на СБ/ВС
 // -----------------------------
-const PROD_CAL_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 дней
+let PROD_CAL_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 дней
+let PROD_CAL_URL_TMPL = "https://isdayoff.ru/api/getdata?year={year}&month={month}&day1=1&day2={lastDay}";
+let PROD_CAL_CACHE_PREFIX = "prodcal_ru_";
 
 function prodCalCacheKey(year, monthIndex) {
   const mm = String(monthIndex + 1).padStart(2, "0");
-  return `prodcal_ru_${year}-${mm}_pre1`;
+  return `${PROD_CAL_CACHE_PREFIX}${year}-${mm}_pre1`;
 }
 
 function formatYmdForKey(year, monthIndex, day) {
@@ -604,13 +697,6 @@ const btnClearHistoryEl = $("#btn-clear-history");
 let shiftPopoverEl = null;
 let shiftPopoverBackdropEl = null;
 let shiftPopoverKeydownHandler = null;
-let employeeFilterPopoverEl = null;
-let employeeFilterPopoverBackdropEl = null;
-let employeeFilterPopoverKeydownHandler = null;
-let employeeFilterPopoverTitleEl = null;
-let employeeFilterPopoverMetaEl = null;
-let employeeFilterPopoverListEl = null;
-let employeeFilterPopoverControlsEl = null;
 
 // -----------------------------
 // Инициализация
@@ -619,8 +705,6 @@ let employeeFilterPopoverControlsEl = null;
 function init() {
   resetLocalEditingState();
   initTheme();
-  loadCurrentLinePreference();
-  loadEmployeeFilters();
   initMonthMetaToToday();
   bindLoginForm();
 
@@ -634,7 +718,6 @@ function init() {
   bindTopBarButtons();
   bindHistoryControls();
   createShiftPopover();
-  createEmployeeFilterPopover();
   renderChangeLog();
 
   // Если восстановили сессию — загружаем данные как после логина
@@ -745,353 +828,6 @@ function updateThemeToggleUI() {
   );
 }
 
-function loadCurrentLinePreference() {
-  try {
-    const storedLine = localStorage.getItem(STORAGE_KEYS.currentLine);
-    if (storedLine && LINE_KEYS_IN_UI_ORDER.includes(storedLine)) {
-      state.ui.currentLine = storedLine;
-    }
-  } catch (_) {
-    // ignore storage quota / privacy mode
-  }
-}
-
-function persistCurrentLinePreference() {
-  try {
-    localStorage.setItem(STORAGE_KEYS.currentLine, state.ui.currentLine);
-  } catch (_) {
-    // ignore storage quota / privacy mode
-  }
-}
-
-function getMonthKey(year, monthIndex) {
-  return `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
-}
-
-function loadCachedEmployees() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.cachedEmployees);
-    if (!raw) return false;
-    const cached = JSON.parse(raw);
-    if (!cached || typeof cached !== "object") return false;
-
-    const employeesByLine = cached.employeesByLine;
-    if (!employeesByLine || typeof employeesByLine !== "object") return false;
-
-    for (const key of Object.keys(state.employeesByLine)) {
-      const list = employeesByLine[key];
-      state.employeesByLine[key] = Array.isArray(list) ? list : [];
-    }
-    return true;
-  } catch (err) {
-    console.warn("Не удалось загрузить кэш сотрудников", err);
-    return false;
-  }
-}
-
-function persistCachedEmployees() {
-  try {
-    localStorage.setItem(
-      STORAGE_KEYS.cachedEmployees,
-      JSON.stringify({
-        fetchedAt: Date.now(),
-        employeesByLine: state.employeesByLine,
-      })
-    );
-  } catch (err) {
-    console.warn("Не удалось сохранить кэш сотрудников", err);
-  }
-}
-
-function loadCachedShiftTemplates() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.cachedShiftTemplates);
-    if (!raw) return false;
-    const cached = JSON.parse(raw);
-    if (!cached || typeof cached !== "object") return false;
-
-    const templatesByLine = cached.shiftTemplatesByLine;
-    if (!templatesByLine || typeof templatesByLine !== "object") return false;
-
-    for (const key of Object.keys(state.shiftTemplatesByLine)) {
-      const list = templatesByLine[key];
-      state.shiftTemplatesByLine[key] = Array.isArray(list) ? list : [];
-    }
-
-    if (typeof ShiftColors !== "undefined" && ShiftColors.initialize) {
-      ShiftColors.initialize(state.shiftTemplatesByLine, state.ui.theme);
-    }
-    return true;
-  } catch (err) {
-    console.warn("Не удалось загрузить кэш шаблонов смен", err);
-    return false;
-  }
-}
-
-function persistCachedShiftTemplates() {
-  try {
-    localStorage.setItem(
-      STORAGE_KEYS.cachedShiftTemplates,
-      JSON.stringify({
-        fetchedAt: Date.now(),
-        shiftTemplatesByLine: state.shiftTemplatesByLine,
-      })
-    );
-  } catch (err) {
-    console.warn("Не удалось сохранить кэш шаблонов смен", err);
-  }
-}
-
-function loadCachedScheduleForMonth(year, monthIndex) {
-  try {
-    const monthKey = getMonthKey(year, monthIndex);
-    const raw = localStorage.getItem(`${STORAGE_KEYS.cachedSchedulePrefix}${monthKey}`);
-    if (!raw) return false;
-    const cached = JSON.parse(raw);
-    if (!cached || typeof cached !== "object") return false;
-    if (!cached.scheduleByLine || typeof cached.scheduleByLine !== "object") return false;
-
-    state.scheduleByLine = cached.scheduleByLine;
-    state.originalScheduleByLine = deepClone(cached.scheduleByLine);
-    state.vacationsByEmployee = cached.vacationsByEmployee || {};
-    state.ui.isScheduleCached = true;
-
-    applyLocalChangesToSchedule();
-    renderScheduleCurrentLine();
-    return true;
-  } catch (err) {
-    console.warn("Не удалось загрузить кэш графика", err);
-    return false;
-  }
-}
-
-function persistCachedScheduleForMonth(year, monthIndex) {
-  try {
-    const monthKey = getMonthKey(year, monthIndex);
-    localStorage.setItem(
-      `${STORAGE_KEYS.cachedSchedulePrefix}${monthKey}`,
-      JSON.stringify({
-        fetchedAt: Date.now(),
-        scheduleByLine: state.scheduleByLine,
-        vacationsByEmployee: state.vacationsByEmployee,
-      })
-    );
-  } catch (err) {
-    console.warn("Не удалось сохранить кэш графика", err);
-  }
-}
-
-function loadEmployeeFilters() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.employeeFilters);
-    if (!raw) return;
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") return;
-
-    for (const key of Object.keys(state.employeeFiltersByLine)) {
-      const list = parsed[key];
-      if (Array.isArray(list)) {
-        state.employeeFiltersByLine[key] = list
-          .map((id) => Number(id))
-          .filter((id) => Number.isFinite(id));
-      }
-    }
-  } catch (err) {
-    console.warn("Не удалось загрузить фильтры сотрудников", err);
-  }
-}
-
-function persistEmployeeFilters() {
-  try {
-    localStorage.setItem(
-      STORAGE_KEYS.employeeFilters,
-      JSON.stringify(state.employeeFiltersByLine)
-    );
-  } catch (err) {
-    console.warn("Не удалось сохранить фильтры сотрудников", err);
-  }
-}
-
-function normalizeHiddenEmployeeIds(line, rows) {
-  const validIds = new Set(rows.map((row) => row.employeeId));
-  const current = state.employeeFiltersByLine[line] || [];
-  const next = current.filter((id) => validIds.has(id));
-  if (next.length !== current.length) {
-    state.employeeFiltersByLine[line] = next;
-    persistEmployeeFilters();
-  }
-  return new Set(next);
-}
-
-function setHiddenEmployeeIds(line, ids) {
-  state.employeeFiltersByLine[line] = Array.from(ids);
-  persistEmployeeFilters();
-}
-
-function createEmployeeFilterPopover() {
-  if (employeeFilterPopoverEl) return;
-
-  employeeFilterPopoverBackdropEl = document.createElement("div");
-  employeeFilterPopoverBackdropEl.className = "employee-filter-popover-backdrop hidden";
-
-  employeeFilterPopoverEl = document.createElement("div");
-  employeeFilterPopoverEl.className = "employee-filter-popover hidden";
-
-  const header = document.createElement("div");
-  header.className = "employee-filter-popover-header";
-
-  employeeFilterPopoverTitleEl = document.createElement("div");
-  employeeFilterPopoverTitleEl.className = "employee-filter-header";
-  employeeFilterPopoverTitleEl.textContent = "Фильтр сотрудников";
-
-  const closeBtn = document.createElement("button");
-  closeBtn.type = "button";
-  closeBtn.className = "employee-filter-close";
-  closeBtn.textContent = "✕";
-  closeBtn.setAttribute("aria-label", "Закрыть фильтр сотрудников");
-
-  header.appendChild(employeeFilterPopoverTitleEl);
-  header.appendChild(closeBtn);
-
-  employeeFilterPopoverMetaEl = document.createElement("div");
-  employeeFilterPopoverMetaEl.className = "employee-filter-meta";
-
-  employeeFilterPopoverListEl = document.createElement("div");
-  employeeFilterPopoverListEl.className = "employee-filter-list";
-
-  employeeFilterPopoverControlsEl = document.createElement("div");
-  employeeFilterPopoverControlsEl.className = "employee-filter-controls";
-
-  employeeFilterPopoverEl.appendChild(header);
-  employeeFilterPopoverEl.appendChild(employeeFilterPopoverMetaEl);
-  employeeFilterPopoverEl.appendChild(employeeFilterPopoverListEl);
-  employeeFilterPopoverEl.appendChild(employeeFilterPopoverControlsEl);
-
-  employeeFilterPopoverBackdropEl.appendChild(employeeFilterPopoverEl);
-  document.body.appendChild(employeeFilterPopoverBackdropEl);
-
-  const closeHandler = () => closeEmployeeFilterPopover();
-  employeeFilterPopoverBackdropEl.addEventListener("click", (event) => {
-    if (event.target === employeeFilterPopoverBackdropEl) {
-      closeHandler();
-    }
-  });
-  closeBtn.addEventListener("click", closeHandler);
-}
-
-function closeEmployeeFilterPopover() {
-  if (!employeeFilterPopoverEl || !employeeFilterPopoverBackdropEl) return;
-  employeeFilterPopoverBackdropEl.classList.add("hidden");
-  employeeFilterPopoverEl.classList.add("hidden");
-  if (employeeFilterPopoverKeydownHandler) {
-    document.removeEventListener("keydown", employeeFilterPopoverKeydownHandler);
-    employeeFilterPopoverKeydownHandler = null;
-  }
-}
-
-function openEmployeeFilterPopover({
-  line,
-  rows,
-  hiddenEmployeeIds,
-  table,
-  emptyRow,
-  onUpdateButton,
-}) {
-  if (!employeeFilterPopoverEl || !employeeFilterPopoverBackdropEl) return;
-
-  employeeFilterPopoverListEl.innerHTML = "";
-  employeeFilterPopoverControlsEl.innerHTML = "";
-
-  const masterLabel = document.createElement("label");
-  masterLabel.className = "employee-filter-item employee-filter-master";
-  const masterCheckbox = document.createElement("input");
-  masterCheckbox.type = "checkbox";
-  const masterText = document.createElement("span");
-  masterText.textContent = "Все сотрудники";
-  masterLabel.appendChild(masterCheckbox);
-  masterLabel.appendChild(masterText);
-  employeeFilterPopoverListEl.appendChild(masterLabel);
-
-  const itemCheckboxes = [];
-
-  for (const row of rows) {
-    const itemLabel = document.createElement("label");
-    itemLabel.className = "employee-filter-item";
-
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = !hiddenEmployeeIds.has(row.employeeId);
-    checkbox.dataset.employeeId = String(row.employeeId);
-
-    const name = document.createElement("span");
-    name.textContent = row.employeeName;
-
-    itemLabel.appendChild(checkbox);
-    itemLabel.appendChild(name);
-    employeeFilterPopoverListEl.appendChild(itemLabel);
-    itemCheckboxes.push(checkbox);
-  }
-
-  const updateFilterUI = () => {
-    const total = rows.length;
-    const hiddenCount = hiddenEmployeeIds.size;
-    const visibleCount = total - hiddenCount;
-    masterCheckbox.checked = hiddenCount === 0;
-    masterCheckbox.indeterminate = hiddenCount > 0 && hiddenCount < total;
-    employeeFilterPopoverMetaEl.textContent = `Показано: ${visibleCount} из ${total}`;
-    if (onUpdateButton) onUpdateButton();
-  };
-
-  masterCheckbox.addEventListener("change", () => {
-    if (masterCheckbox.checked) {
-      hiddenEmployeeIds.clear();
-    } else {
-      for (const row of rows) {
-        hiddenEmployeeIds.add(row.employeeId);
-      }
-    }
-    for (const checkbox of itemCheckboxes) {
-      const id = Number(checkbox.dataset.employeeId);
-      checkbox.checked = !hiddenEmployeeIds.has(id);
-    }
-    setHiddenEmployeeIds(line, hiddenEmployeeIds);
-    updateFilterUI();
-    applyEmployeeFilterToTable(table, hiddenEmployeeIds, emptyRow);
-  });
-
-  for (const checkbox of itemCheckboxes) {
-    checkbox.addEventListener("change", () => {
-      const id = Number(checkbox.dataset.employeeId);
-      if (checkbox.checked) {
-        hiddenEmployeeIds.delete(id);
-      } else {
-        hiddenEmployeeIds.add(id);
-      }
-      setHiddenEmployeeIds(line, hiddenEmployeeIds);
-      updateFilterUI();
-      applyEmployeeFilterToTable(table, hiddenEmployeeIds, emptyRow);
-    });
-  }
-
-  const closeControl = document.createElement("button");
-  closeControl.type = "button";
-  closeControl.className = "employee-filter-close-action";
-  closeControl.textContent = "Закрыть";
-  closeControl.addEventListener("click", closeEmployeeFilterPopover);
-  employeeFilterPopoverControlsEl.appendChild(closeControl);
-
-  updateFilterUI();
-
-  employeeFilterPopoverBackdropEl.classList.remove("hidden");
-  employeeFilterPopoverEl.classList.remove("hidden");
-  employeeFilterPopoverKeydownHandler = (event) => {
-    if (event.key === "Escape") {
-      closeEmployeeFilterPopover();
-    }
-  };
-  document.addEventListener("keydown", employeeFilterPopoverKeydownHandler);
-}
-
 // -----------------------------
 // События
 // -----------------------------
@@ -1125,7 +861,6 @@ function bindLoginForm() {
         const first = LINE_KEYS_IN_UI_ORDER.find((k) => canViewLine(k));
         if (first) state.ui.currentLine = first;
       }
-      persistCurrentLinePreference();
       loginScreenEl.classList.add("hidden");
       mainScreenEl.classList.remove("hidden");
 
@@ -1145,7 +880,6 @@ function bindLoginForm() {
 function setCurrentLine(lineKey) {
   if (!canViewLine(lineKey)) return;
   state.ui.currentLine = lineKey;
-  persistCurrentLinePreference();
   updateLineToggleUI();
   updateSaveButtonState();
   updateQuickModeForLine();
@@ -1284,11 +1018,6 @@ function initQuickAssignPanel() {
   quickModeToggleEl?.addEventListener("click", () => {
     const currentLine = state.ui.currentLine;
     
-    if (state.ui.isScheduleCached) {
-      alert("Данные загружаются, редактирование временно недоступно.");
-      return;
-    }
-
     if (!canEditLine(currentLine)) {
       alert(`У вас нет прав на редактирование линии ${currentLine}`);
       return;
@@ -1352,7 +1081,6 @@ function updateQuickModeToggleUI() {
 function updateQuickModeForLine() {
   const currentLine = state.ui.currentLine;
   const canEdit = canEditLine(currentLine);
-  const isCached = state.ui.isScheduleCached;
   
   if (!canEdit && state.quickMode.enabled) {
     state.quickMode.enabled = false;
@@ -1363,8 +1091,6 @@ function updateQuickModeForLine() {
     quickModeToggleEl.disabled = !canEdit;
     quickModeToggleEl.title = canEdit 
       ? "Включить быстрое назначение смен"
-      : isCached
-      ? "Данные загружаются, редактирование временно недоступно"
       : `Нет прав на редактирование ${currentLine}`;
   }
   
@@ -1405,16 +1131,11 @@ function updateSaveButtonState() {
   const currentLine = state.ui.currentLine;
   const canEdit = canEditLine(currentLine);
   const changesCount = countChangesForLine(currentLine);
-  const isCached = state.ui.isScheduleCached;
   
   if (!canEdit) {
-    btnSavePyrusEl.textContent = isCached
-      ? `Данные загружаются (${currentLine})`
-      : `Нет прав на ${currentLine}`;
+    btnSavePyrusEl.textContent = `Нет прав на ${currentLine}`;
     btnSavePyrusEl.disabled = true;
-    btnSavePyrusEl.title = isCached
-      ? "Сейчас отображается кэш, редактирование временно отключено."
-      : `У вас только просмотр для линии ${currentLine}`;
+    btnSavePyrusEl.title = `У вас только просмотр для линии ${currentLine}`;
   } else if (changesCount === 0) {
     btnSavePyrusEl.textContent = `Нет изменений (${currentLine})`;
     btnSavePyrusEl.disabled = true;
@@ -1851,23 +1572,6 @@ function handleShiftCellClick({ line, row, day, dayIndex, shift, cellEl }) {
 
 async function loadInitialData() {
   try {
-    const { year, monthIndex } = state.monthMeta;
-    const hadCachedEmployees = loadCachedEmployees();
-    const hadCachedTemplates = loadCachedShiftTemplates();
-    const hadCachedSchedule = loadCachedScheduleForMonth(year, monthIndex);
-
-    if (hadCachedTemplates) {
-      initQuickAssignPanel();
-    }
-
-    if (hadCachedSchedule) {
-      updateSaveButtonState();
-      updateQuickModeForLine();
-      if (typeof ShiftColors !== "undefined" && ShiftColors.renderColorLegend) {
-        ShiftColors.renderColorLegend(state.ui.currentLine);
-      }
-    }
-
     await loadEmployees();
     await loadShiftsCatalog();
     initQuickAssignPanel();
@@ -1996,12 +1700,10 @@ state.employeesByLine.L1 = sortEmployeesByName(employeesByLine.L1);
 state.employeesByLine.L2 = sortEmployeesByDeptOrder(employeesByLine.L2, DEPT_ORDER_BY_LINE.L2);
 state.employeesByLine.AI = sortEmployeesByName(employeesByLine.AI);
 state.employeesByLine.OU = sortEmployeesByName(employeesByLine.OU);
-
-persistCachedEmployees();
 }
 
 async function loadShiftsCatalog() {
-  const raw = await pyrusApi("/v4/catalogs/281369", "GET");
+  const raw = await pyrusApi("/v4/catalogs/" + SHIFT_CATALOG_ID + "", "GET");
   const data = unwrapPyrusData(raw);
 
   const catalog = Array.isArray(data) ? data[0] : data;
@@ -2098,14 +1800,12 @@ async function loadShiftsCatalog() {
   if (typeof ShiftColors !== 'undefined' && ShiftColors.initialize) {
     ShiftColors.initialize(state.shiftTemplatesByLine, state.ui.theme);
   }
-
-  persistCachedShiftTemplates();
 }
 
 
 
 async function loadVacationsForMonth(year, monthIndex) {
-  const raw = await pyrusApi("/v4/forms/2348174/register", "GET");
+  const raw = await pyrusApi("/v4/forms/" + FORM_OTPUSK_ID + "/register", "GET");
   const data = unwrapPyrusData(raw);
   const wrapper = Array.isArray(data) ? data[0] : data;
   const tasks = (wrapper && wrapper.tasks) || [];
@@ -2137,8 +1837,8 @@ async function loadVacationsForMonth(year, monthIndex) {
 
   for (const task of tasks) {
     const fields = task.fields || [];
-    const personField = fields.find((f) => f && f.id === 1 && f.type === "person");
-    const periodField = fields.find((f) => f && f.id === 2 && f.type === "due_date_time");
+    const personField = fields.find((f) => f && f.id === PYRUS_FIELDS_OTPUSK.person && f.type === "person");
+    const periodField = fields.find((f) => f && f.id === PYRUS_FIELDS_OTPUSK.period && f.type === "due_date_time");
     if (!personField || !periodField) continue;
 
     const empId = personField.value && personField.value.id;
@@ -2197,7 +1897,7 @@ async function loadVacationsForMonth(year, monthIndex) {
 async function reloadScheduleForCurrentMonth() {
   const { year, monthIndex } = state.monthMeta;
 
-  const raw = await pyrusApi("/v4/forms/2375272/register", "GET");
+  const raw = await pyrusApi("/v4/forms/" + FORM_SMENI_ID + "/register", "GET");
   const data = unwrapPyrusData(raw);
 
   // Отпуска: внешняя система, только отображение
@@ -2228,7 +1928,7 @@ async function reloadScheduleForCurrentMonth() {
     AI: { days: [], rows: [], monthKey: null },
     OU: { days: [], rows: [], monthKey: null },
   };
-  const monthKey = getMonthKey(year, monthIndex);
+  const monthKey = `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
 
   const shiftMapByLine = { ALL: Object.create(null), OP: Object.create(null), OV: Object.create(null), L1: Object.create(null), L2: Object.create(null), AI: Object.create(null), OU: Object.create(null) };
 
@@ -2263,10 +1963,10 @@ async function reloadScheduleForCurrentMonth() {
 
   for (const task of tasks) {
     const fields = task.fields || [];
-    const dueField = findField(fields, 4);
-    const moneyField = findField(fields, 5);
-    const personField = findField(fields, 8);
-    const shiftField = findField(fields, 10);
+    const dueField = findField(fields, PYRUS_FIELDS_SMENI.due);
+    const moneyField = findField(fields, PYRUS_FIELDS_SMENI.amount);
+    const personField = findField(fields, PYRUS_FIELDS_SMENI.person);
+    const shiftField = findField(fields, PYRUS_FIELDS_SMENI.template);
 
     if (!dueField || !personField || !shiftField) continue;
 
@@ -2391,8 +2091,6 @@ async function reloadScheduleForCurrentMonth() {
 
   state.originalScheduleByLine = deepClone(scheduleByLine);
   state.scheduleByLine = scheduleByLine;
-  state.ui.isScheduleCached = false;
-  persistCachedScheduleForMonth(year, monthIndex);
   applyLocalChangesToSchedule();
   renderScheduleCurrentLine();
 }
@@ -2401,26 +2099,7 @@ async function reloadScheduleForCurrentMonth() {
 // Рендер таблицы
 // -----------------------------
 
-function applyEmployeeFilterToTable(table, hiddenIds, emptyRowEl) {
-  const tbody = table.querySelector("tbody");
-  if (!tbody) return;
-  const dataRows = Array.from(tbody.querySelectorAll("tr")).filter(
-    (row) => !row.classList.contains("employee-filter-empty")
-  );
-  let visibleCount = 0;
-  for (const row of dataRows) {
-    const id = Number(row.dataset.employeeId);
-    const shouldHide = hiddenIds.has(id);
-    row.classList.toggle("employee-row-hidden", shouldHide);
-    if (!shouldHide) visibleCount += 1;
-  }
-  if (emptyRowEl) {
-    emptyRowEl.classList.toggle("hidden", visibleCount > 0);
-  }
-}
-
 function renderScheduleCurrentLine() {
-  closeEmployeeFilterPopover();
   const line = state.ui.currentLine;
   const sched = state.scheduleByLine[line];
 
@@ -2432,7 +2111,6 @@ function renderScheduleCurrentLine() {
 
   const canEdit = canEditLine(line);
   const { days, rows } = sched;
-  const hiddenEmployeeIds = normalizeHiddenEmployeeIds(line, rows);
 
   const table = document.createElement("table");
   table.className = "schedule-table";
@@ -2446,43 +2124,8 @@ function renderScheduleCurrentLine() {
   const headRow2 = document.createElement("tr");
 
   const thName = document.createElement("th");
-  thName.className = "sticky-col employee-header-cell";
-
-  const thNameWrap = document.createElement("div");
-  thNameWrap.className = "employee-header";
-
-  const thNameLabel = document.createElement("span");
-  thNameLabel.textContent = "Сотрудник";
-
-  const filterBtn = document.createElement("button");
-  filterBtn.type = "button";
-  filterBtn.className = "employee-filter-btn";
-  filterBtn.setAttribute("aria-label", "Фильтр сотрудников");
-  filterBtn.innerHTML =
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8v5l-4 2v-7z"></path></svg>';
-  if (hiddenEmployeeIds.size > 0) filterBtn.classList.add("active");
-
-  const updateFilterButtonState = () => {
-    filterBtn.classList.toggle("active", hiddenEmployeeIds.size > 0);
-  };
-
-  let emptyRow = null;
-
-  filterBtn.addEventListener("click", (event) => {
-    event.stopPropagation();
-    openEmployeeFilterPopover({
-      line,
-      rows,
-      hiddenEmployeeIds,
-      table,
-      emptyRow,
-      onUpdateButton: updateFilterButtonState,
-    });
-  });
-
-  thNameWrap.appendChild(thNameLabel);
-  thNameWrap.appendChild(filterBtn);
-  thName.appendChild(thNameWrap);
+  thName.className = "sticky-col";
+  thName.textContent = "Сотрудник";
   headRow1.appendChild(thName);
 
   const thName2 = document.createElement("th");
@@ -2542,7 +2185,6 @@ function renderScheduleCurrentLine() {
 
   rows.forEach((row) => {
     const tr = document.createElement("tr");
-    tr.dataset.employeeId = String(row.employeeId);
 
     const tdName = document.createElement("td");
     tdName.className = "sticky-col employee-name";
@@ -2735,19 +2377,9 @@ function renderScheduleCurrentLine() {
     tbody.appendChild(tr);
   });
 
-  emptyRow = document.createElement("tr");
-  emptyRow.className = "employee-filter-empty hidden";
-  const emptyCell = document.createElement("td");
-  emptyCell.colSpan = days.length + 2;
-  emptyCell.textContent = "Нет сотрудников для отображения по фильтру.";
-  emptyRow.appendChild(emptyCell);
-  tbody.appendChild(emptyRow);
-
   table.appendChild(tbody);
   scheduleRootEl.innerHTML = "";
   scheduleRootEl.appendChild(table);
-  updateFilterButtonState();
-  applyEmployeeFilterToTable(table, hiddenEmployeeIds, emptyRow);
 }
 
 // -----------------------------
@@ -2767,66 +2399,6 @@ function createShiftPopover() {
 
   document.body.appendChild(shiftPopoverBackdropEl);
   document.body.appendChild(shiftPopoverEl);
-}
-
-function resolveTemplateName(line, templateId) {
-  if (!line || templateId == null) return null;
-  const templates = state.shiftTemplatesByLine[line] || [];
-  const template = templates.find((tmpl) => tmpl.id === templateId);
-  return template ? template.name : null;
-}
-
-function resolveShiftDisplayName(line, templateId, specialShortLabel) {
-  const templateName = resolveTemplateName(line, templateId);
-  if (templateName) return templateName;
-  if (specialShortLabel) return specialShortLabel;
-  if (templateId != null) return `Шаблон #${templateId}`;
-  return "Ручная смена";
-}
-
-function updateShiftPopoverName(line, templateId, specialShortLabel, showManual = false) {
-  const nameEl = shiftPopoverEl?.querySelector("#shift-popover-shift-name");
-  if (!nameEl) return;
-  if (templateId == null && !specialShortLabel && !showManual) {
-    nameEl.textContent = "";
-    return;
-  }
-  nameEl.textContent = resolveShiftDisplayName(line, templateId, specialShortLabel);
-}
-
-function positionShiftPopover(anchorEl) {
-  if (!shiftPopoverEl || !anchorEl) return;
-
-  const rect = anchorEl.getBoundingClientRect();
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-
-  shiftPopoverEl.style.left = "0px";
-  shiftPopoverEl.style.top = "0px";
-
-  const popoverRect = shiftPopoverEl.getBoundingClientRect();
-  const popoverWidth = popoverRect.width || 420;
-  const popoverHeight = popoverRect.height || 260;
-
-  let left = rect.left + 8;
-  let top = rect.bottom + 8;
-
-  if (left + popoverWidth > viewportWidth - 16) {
-    left = viewportWidth - popoverWidth - 16;
-  }
-
-  const fitsBelow = top + popoverHeight <= viewportHeight - 16;
-  const fitsAbove = rect.top - popoverHeight - 8 >= 16;
-
-  if (!fitsBelow && fitsAbove) {
-    top = rect.top - popoverHeight - 8;
-  }
-
-  left = Math.max(16, Math.min(left, viewportWidth - popoverWidth - 16));
-  top = Math.max(16, Math.min(top, viewportHeight - popoverHeight - 16));
-
-  shiftPopoverEl.style.left = `${left}px`;
-  shiftPopoverEl.style.top = `${top}px`;
 }
 
 function closeShiftPopover() {
@@ -2879,7 +2451,29 @@ function openBirthdayPopover(context, anchorEl) {
 
   shiftPopoverBackdropEl.classList.remove("hidden");
   shiftPopoverEl.classList.remove("hidden");
-  positionShiftPopover(anchorEl);
+
+  const rect = anchorEl.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  const estimatedWidth = 420;
+  const estimatedHeight = 220;
+
+  let left = rect.left + 8;
+  let top = rect.bottom + 8;
+
+  if (left + estimatedWidth > viewportWidth - 16) {
+    left = viewportWidth - estimatedWidth - 16;
+  }
+  if (top + estimatedHeight > viewportHeight - 16) {
+    top = rect.top - estimatedHeight - 8;
+  }
+
+  left = Math.max(left, 16);
+  top = Math.max(top, 16);
+
+  shiftPopoverEl.style.left = `${left}px`;
+  shiftPopoverEl.style.top = `${top}px`;
 
   const closeBtn = shiftPopoverEl.querySelector(".shift-popover-close");
   const closeBtn2 = shiftPopoverEl.querySelector("#shift-btn-close-birthday");
@@ -2927,7 +2521,29 @@ function openVacationPopover(context, anchorEl) {
 
   shiftPopoverBackdropEl.classList.remove("hidden");
   shiftPopoverEl.classList.remove("hidden");
-  positionShiftPopover(anchorEl);
+
+  const rect = anchorEl.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  const estimatedWidth = 420;
+  const estimatedHeight = 240;
+
+  let left = rect.left + 8;
+  let top = rect.bottom + 8;
+
+  if (left + estimatedWidth > viewportWidth - 16) {
+    left = viewportWidth - estimatedWidth - 16;
+  }
+  if (top + estimatedHeight > viewportHeight - 16) {
+    top = rect.top - estimatedHeight - 8;
+  }
+
+  left = Math.max(left, 16);
+  top = Math.max(top, 16);
+
+  shiftPopoverEl.style.left = `${left}px`;
+  shiftPopoverEl.style.top = `${top}px`;
 
   const closeBtn = shiftPopoverEl.querySelector(".shift-popover-close");
   const closeBtn2 = shiftPopoverEl.querySelector("#shift-btn-close-vacation");
@@ -2958,7 +2574,6 @@ function openShiftPopoverReadOnly(context, anchorEl) {
       <div>
         <div class="shift-popover-title">${employeeName}</div>
         <div class="shift-popover-subtitle">${dateLabel} • Линия ${line} (только просмотр)</div>
-        <div class="shift-popover-shift-name" id="shift-popover-shift-name"></div>
       </div>
       <button class="shift-popover-close" type="button">✕</button>
     </div>
@@ -2997,13 +2612,29 @@ function openShiftPopoverReadOnly(context, anchorEl) {
 
   shiftPopoverBackdropEl.classList.remove("hidden");
   shiftPopoverEl.classList.remove("hidden");
-  updateShiftPopoverName(
-    line,
-    shift?.templateId ?? null,
-    shift?.specialShortLabel,
-    Boolean(shift)
-  );
-  positionShiftPopover(anchorEl);
+
+  const rect = anchorEl.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  const estimatedWidth = 420;
+  const estimatedHeight = 260;
+
+  let left = rect.left + 8;
+  let top = rect.bottom + 8;
+
+  if (left + estimatedWidth > viewportWidth - 16) {
+    left = viewportWidth - estimatedWidth - 16;
+  }
+  if (top + estimatedHeight > viewportHeight - 16) {
+    top = rect.top - estimatedHeight - 8;
+  }
+
+  left = Math.max(left, 16);
+  top = Math.max(top, 16);
+
+  shiftPopoverEl.style.left = `${left}px`;
+  shiftPopoverEl.style.top = `${top}px`;
 
   requestAnimationFrame(() => {
     shiftPopoverEl.classList.add("open");
@@ -3040,7 +2671,6 @@ function openShiftPopover(context, anchorEl) {
       <div>
         <div class="shift-popover-title">${employeeName}</div>
         <div class="shift-popover-subtitle">${dateLabel} • Линия ${line}</div>
-        <div class="shift-popover-shift-name" id="shift-popover-shift-name"></div>
       </div>
       <button class="shift-popover-close" type="button">✕</button>
     </div>
@@ -3107,13 +2737,29 @@ function openShiftPopover(context, anchorEl) {
 
   shiftPopoverBackdropEl.classList.remove("hidden");
   shiftPopoverEl.classList.remove("hidden");
-  updateShiftPopoverName(
-    line,
-    selectedTemplateId ?? shift?.templateId,
-    shift?.specialShortLabel,
-    hasShift
-  );
-  positionShiftPopover(anchorEl);
+
+  const rect = anchorEl.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  const estimatedWidth = 420;
+  const estimatedHeight = 260;
+
+  let left = rect.left + 8;
+  let top = rect.bottom + 8;
+
+  if (left + estimatedWidth > viewportWidth - 16) {
+    left = viewportWidth - estimatedWidth - 16;
+  }
+  if (top + estimatedHeight > viewportHeight - 16) {
+    top = rect.top - estimatedHeight - 8;
+  }
+
+  left = Math.max(left, 16);
+  top = Math.max(top, 16);
+
+  shiftPopoverEl.style.left = `${left}px`;
+  shiftPopoverEl.style.top = `${top}px`;
 
   requestAnimationFrame(() => {
     shiftPopoverEl.classList.add("open");
@@ -3157,7 +2803,6 @@ function openShiftPopover(context, anchorEl) {
         if (!tmpl) return;
 
         selectedTemplateId = id;
-        updateShiftPopoverName(line, id, tmpl.specialShortLabel);
 
         if (tmpl.timeRange) {
           const startInput = document.getElementById("shift-start-input");
@@ -3287,4 +2932,7 @@ function applyLocalChangesToSchedule() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", init);
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadAppConfig();
+  init();
+});
