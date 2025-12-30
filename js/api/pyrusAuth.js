@@ -1,5 +1,5 @@
 // /js/api/pyrusAuth.js
-const N8N_GRAPH_URL = (window.APP_CONFIG && window.APP_CONFIG.graphHookUrl) || "https://jolikcisout.beget.app/webhook/pyrus/graph";
+const N8N_GRAPH_URL = "https://jolikcisout.beget.app/webhook/pyrus/graph";
 
 /**
  * Универсальный вызов Pyrus через n8n-хук /graph с type="pyrus-api".

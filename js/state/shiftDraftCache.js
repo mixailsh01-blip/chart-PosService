@@ -1,8 +1,6 @@
 // js/state/shiftDraftCache.js
 
-function getStorageKey(){
-  return (window.APP_CONFIG && window.APP_CONFIG.storage && window.APP_CONFIG.storage.keys && window.APP_CONFIG.storage.keys.localChanges) || "sm1_local_changes";
-}
+const STORAGE_KEY = "graph_l1l2_shift_drafts_v1";
 
 /**
  * key = `${employeeId}:${year}-${monthIndex}-${dayNumber}`
@@ -13,7 +11,7 @@ export function makeDraftKey(employeeId, year, monthIndex, dayNumber) {
 
 export function loadDrafts() {
   try {
-    const raw = localStorage.getItem(getStorageKey());
+    const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw);
     if (typeof parsed !== "object" || !parsed) return {};
@@ -26,7 +24,7 @@ export function loadDrafts() {
 
 export function saveDrafts(drafts) {
   try {
-    localStorage.setItem(getStorageKey(), JSON.stringify(drafts));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(drafts));
   } catch (e) {
     console.warn("Не удалось сохранить драфты смен в localStorage", e);
   }
