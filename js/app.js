@@ -15,9 +15,9 @@ let GRAPH_HOOK_URL = "https://quumahienot.beget.app/webhook/pyrus/graph";
 const MAX_DAYS_IN_MONTH = 31;
 
 // Pyrus: IDs форм/справочников берём из config.json
-let SHIFT_CATALOG_ID = 281369;   // catalogs.shifts
-let FORM_OTPUSK_ID = 2348174;    // forms.otpusk
-let FORM_SMENI_ID = 2375272;     // forms.smeni
+let SHIFT_CATALOG_ID = 283386;   // catalogs.shifts
+let FORM_OTPUSK_ID = 2383799;    // forms.otpusk
+let FORM_SMENI_ID = 2383802;     // forms.smeni
 
 // Pyrus: ID полей форм (берём из config.json)
 let PYRUS_FIELDS_OTPUSK = { person: 1, period: 2 };
