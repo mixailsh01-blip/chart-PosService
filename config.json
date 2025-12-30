@@ -1,0 +1,107 @@
+{
+  "graphHookUrl": "https://quumahienot.beget.app/webhook/pyrus/graph",
+  "pyrus": {
+    "catalogs": {
+      "shifts": 283386
+    },
+    "forms": {
+      "otpusk": 2383799,
+      "smeni": 2383802
+    },
+    "fields": {
+      "otpusk": {
+        "person": 2,
+        "period": 1
+      },
+      "smeni": {
+        "line": 1,
+        "template": 7,
+        "person": 8,
+        "due": 5,
+        "amount": 6
+      }
+    }
+  },
+  "departments": {
+    "byLine": {
+      "L1": [
+        
+      ],
+      "L2": [
+        167976424
+      ],
+      "OV": [
+        174349984
+      ],
+      "OP": [
+        170374055
+      ],
+      "OU": [
+        168659098
+      ],
+      "AI": [
+        
+      ]
+    },
+    "orderByLine": {
+      "L2": [
+        167976424
+      ],
+      "OP": [
+        170374055
+      ]
+    }
+  },
+  "timezone": {
+    "localOffsetMin": 180
+  },
+  "ui": {
+    "lines": {
+      "order": [
+        "ALL",
+        "OP",
+        "OV",
+        "L2"
+      ],
+      "labels": {
+        "ALL": "ВСЕ",
+        "OP": "ОП",
+        "OV": "ПНР",
+        "L2": "ТП"
+      }
+    }
+  },
+  "management": {
+    "topManagementIds": [
+      1194300,
+      1194304
+    ]
+  },
+  "pyrusLineItemIdByLine": {
+    "L2": 174347209,
+    "L1": 174347208,
+    "OV": 174347211,
+    "OU": 174347216,
+    "AI": 174347217,
+    "OP": 174347212
+  },
+  "storage": {
+    "keys": {
+      "localChanges": "sm1_local_changes",
+      "changeHistory": "sm1_change_history",
+      "theme": "sm1_theme_preference"
+    },
+    "auth": {
+      "key": "sm_graph_auth_v1",
+      "ttlMs": 604800000,
+      "cookieDays": 7
+    }
+  },
+  "calendar": {
+    "prodCal": {
+      "ttlMs": 2592000000,
+      "urlTemplate": "https://isdayoff.ru/api/getdata?year={year}&month={month}&day1=1&day2={lastDay}",
+      "cacheKeyPrefix": "prodcal_ru_"
+    }
+  }
+}
