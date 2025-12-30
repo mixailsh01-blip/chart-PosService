@@ -1,7 +1,13 @@
 // js/api/scheduleFromPyrus.js
 import { pyrusFetch } from "./pyrusAuth.js";
 
-// Жёстко задаём бизнес-часовой пояс: GMT+4
+function getLocalOffsetMin(){
+  return (window.APP_CONFIG && window.APP_CONFIG.timezone && typeof window.APP_CONFIG.timezone.localOffsetMin === "number")
+    ? window.APP_CONFIG.timezone.localOffsetMin
+    : 4 * 60;
+}
+
+// Бизнес-часовой пояс (по умолчанию GMT+4)
 const LOCAL_TZ_OFFSET_MS = getLocalOffsetMin() * 60 * 1000;
 
 /**

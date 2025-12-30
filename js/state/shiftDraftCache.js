@@ -1,7 +1,7 @@
 // js/state/shiftDraftCache.js
 
 function getStorageKey(){
-  return (window.APP_CONFIG && window.APP_CONFIG.storage && window.APP_CONFIG.storage.keys && window.APP_CONFIG.storage.keys.localChanges) || "sm1_local_changes";
+  return (window.APP_CONFIG && window.APP_CONFIG.storage && window.APP_CONFIG.storage.keys && window.APP_CONFIG.storage.keys.localChanges) || "graph_l1l2_shift_drafts_v1";
 }
 
 /**
