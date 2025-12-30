@@ -2,7 +2,8 @@
 import { pyrusFetch } from "./pyrusAuth.js";
 
 // Жёстко задаём бизнес-часовой пояс: GMT+4
-const LOCAL_TZ_OFFSET_MS = getLocalOffsetMin() * 60 * 1000;
+const LOCAL_TZ_OFFSET_MIN = 4 * 60;
+const LOCAL_TZ_OFFSET_MS = LOCAL_TZ_OFFSET_MIN * 60 * 1000;
 
 /**
  * Загружаем реестр задач формы 2375272 и строим карту графика на месяц.
@@ -86,9 +87,9 @@ export async function loadScheduleForMonth(year, month0, employees, shifts) {
 
       // Локальное время = UTC + 4 часа
       startMinutesLocal =
-        (startUtcMinutes + getLocalOffsetMin() + 24 * 60) % (24 * 60);
+        (startUtcMinutes + LOCAL_TZ_OFFSET_MIN + 24 * 60) % (24 * 60);
       endMinutesLocal =
-        (endUtcMinutes + getLocalOffsetMin() + 24 * 60) % (24 * 60);
+        (endUtcMinutes + LOCAL_TZ_OFFSET_MIN + 24 * 60) % (24 * 60);
     } else if (
       shiftDef &&
       shiftDef.startMinutes != null &&
@@ -103,17 +104,17 @@ export async function loadScheduleForMonth(year, month0, employees, shifts) {
         (shiftDef.startMinutes + shiftDef.durationMinutes) % (24 * 60);
 
       startUtcMinutes =
-        (startMinutesLocal - getLocalOffsetMin() + 24 * 60) % (24 * 60);
+        (startMinutesLocal - LOCAL_TZ_OFFSET_MIN + 24 * 60) % (24 * 60);
       endUtcMinutes =
-        (endMinutesLocal - getLocalOffsetMin() + 24 * 60) % (24 * 60);
+        (endMinutesLocal - LOCAL_TZ_OFFSET_MIN + 24 * 60) % (24 * 60);
     } else {
       // 3) Нет информации о времени → считаем 00:00–00:00
       startUtcMinutes = 0;
       endUtcMinutes = 0;
       startMinutesLocal =
-        (startUtcMinutes + getLocalOffsetMin() + 24 * 60) % (24 * 60);
+        (startUtcMinutes + LOCAL_TZ_OFFSET_MIN + 24 * 60) % (24 * 60);
       endMinutesLocal =
-        (endUtcMinutes + getLocalOffsetMin() + 24 * 60) % (24 * 60);
+        (endUtcMinutes + LOCAL_TZ_OFFSET_MIN + 24 * 60) % (24 * 60);
     }
 
     // ---------- ДЕНЬГИ ----------
