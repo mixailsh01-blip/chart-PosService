@@ -1081,7 +1081,16 @@ function positionClientsPopover(anchorEl) {
 
   const popoverRect = clientsPopoverEl.getBoundingClientRect();
   const popoverWidth = popoverRect.width || 420;
-  const popoverHeight = popoverRect.height || 260;
+  let popoverHeight = popoverRect.height || 260;
+  const maxHeight = Math.max(200, viewportHeight - 32);
+  if (popoverHeight > maxHeight) {
+    clientsPopoverEl.style.maxHeight = `${maxHeight}px`;
+    clientsPopoverEl.style.overflowY = "auto";
+    popoverHeight = maxHeight;
+  } else {
+    clientsPopoverEl.style.maxHeight = "";
+    clientsPopoverEl.style.overflowY = "";
+  }
 
   let left = rect.left + 8;
   let top = rect.bottom + 8;
@@ -1785,9 +1794,11 @@ function openClientsSumPopover(sourceRow, anchorEl) {
     activeYear = value;
     if (yearLabelEl) yearLabelEl.textContent = String(activeYear);
     renderCalendar(activeYear);
+    positionClientsPopover(anchorEl || clientsPopoverEl);
   };
 
   renderCalendar(activeYear);
+  positionClientsPopover(anchorEl || clientsPopoverEl);
   yearPrevBtn?.addEventListener("click", () => setYear(activeYear - 1));
   yearNextBtn?.addEventListener("click", () => setYear(activeYear + 1));
 }
