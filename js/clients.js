@@ -78,13 +78,12 @@ let clientsManagerFilterPopoverEl = null;
 let clientsManagerFilterKeydownHandler = null;
 
 const CLIENTS_MANAGER_FILTER_KEY = "clients_manager_filter_v1";
-let clientsClientSearchQuery = "";
-let clientsOrgSearchQuery = "";
-let clientsClientSearchButton = null;
-let clientsOrgSearchButton = null;
+let clientsSearchQuery = "";
+let clientsSearchButton = null;
 let clientsSearchBackdropEl = null;
 let clientsSearchPopoverEl = null;
 let clientsSearchKeydownHandler = null;
+let clientsSearchMouseDownInside = false;
 
 let clientsPopoverEl = null;
 let clientsPopoverBackdropEl = null;
@@ -401,6 +400,32 @@ function matchesSearch(value, query) {
   return normalizedValue.includes(query);
 }
 
+function rowMatchesUnifiedSearch(row, query) {
+  const normalizedQuery = normalizeSearchValue(query);
+  if (!normalizedQuery) return true;
+  if (!row || typeof row !== "object") return false;
+  const source = row.__source || row;
+  const flat = flattenClientRow(source);
+  const values = [];
+  Object.entries(flat).forEach(([key, value]) => {
+    if (String(key).startsWith("__")) return;
+    if (value == null) return;
+    if (typeof value === "object") {
+      try {
+        values.push(JSON.stringify(value));
+      } catch (_) {}
+      return;
+    }
+    values.push(String(value));
+  });
+  const normalizedRow = normalizeSearchValue(values.join(" "));
+  if (normalizedRow.includes(normalizedQuery)) return true;
+  const compactRow = normalizedRow.replace(/[^a-z0-9\u0430-\u044fё]/gi, "");
+  const compactQuery = normalizedQuery.replace(/[^a-z0-9\u0430-\u044fё]/gi, "");
+  if (!compactQuery) return true;
+  return compactRow.includes(compactQuery);
+}
+
 function setRowFieldValue(row, keys, value) {
   if (!row || typeof row !== "object") return;
   let updated = false;
@@ -638,15 +663,22 @@ function buildPayToPayload(row) {
   const sumStatusMap = getSumStatusMap(row);
   const hasSumStatus = Object.keys(sumStatusMap || {}).length > 0;
   if (!hasSumStatus) return null;
-  if (
-    row.__sumStatusSnapshotInitialized &&
-    JSON.stringify(sumStatusMap || {}) === String(row.__sumStatusSnapshot || "")
-  ) {
-    return null;
+  let snapshotMap = {};
+  if (row.__sumStatusSnapshotInitialized) {
+    try {
+      snapshotMap = JSON.parse(String(row.__sumStatusSnapshot || "")) || {};
+    } catch (_) {
+      snapshotMap = {};
+    }
   }
+  const changedEntries = Object.entries(sumStatusMap).filter(([month, status]) => {
+    const prev = snapshotMap ? snapshotMap[month] : undefined;
+    return String(prev ?? "") !== String(status ?? "");
+  });
+  if (!changedEntries.length) return null;
   const externalId = pickValue(row, "ID");
   const sumTo = getSumToValue(row);
-  return Object.entries(sumStatusMap).map(([month, status]) => ({
+  return changedEntries.map(([month, status]) => ({
     externalId,
     sumTo,
     month: String(month).replace("-", ""),
@@ -757,7 +789,14 @@ function openClientsSearchPopover({ title, value, onChange }) {
   if (!clientsSearchBackdropEl) {
     clientsSearchBackdropEl = document.createElement("div");
     clientsSearchBackdropEl.className = "clients-search-backdrop";
-    clientsSearchBackdropEl.addEventListener("click", closeClientsSearchPopover);
+    clientsSearchBackdropEl.addEventListener("click", (event) => {
+      if (clientsSearchMouseDownInside) {
+        clientsSearchMouseDownInside = false;
+        return;
+      }
+      if (event.target !== clientsSearchBackdropEl) return;
+      closeClientsSearchPopover();
+    });
     document.body.appendChild(clientsSearchBackdropEl);
   }
 
@@ -784,6 +823,10 @@ function openClientsSearchPopover({ title, value, onChange }) {
   `;
 
   popover.addEventListener("click", (event) => event.stopPropagation());
+  popover.addEventListener("pointerdown", (event) => {
+    clientsSearchMouseDownInside = true;
+    event.stopPropagation();
+  });
   popover.querySelector(".clients-search-close")?.addEventListener("click", closeClientsSearchPopover);
   const input = popover.querySelector(".clients-search-input");
   const applyBtn = popover.querySelector(".clients-search-apply");
@@ -795,6 +838,16 @@ function openClientsSearchPopover({ title, value, onChange }) {
     if (clientsLastData) renderClientsTable(clientsLastData);
   };
 
+  input?.addEventListener("pointerdown", (event) => {
+    clientsSearchMouseDownInside = true;
+    event.stopPropagation();
+  });
+  input?.addEventListener("focus", () => {
+    const len = input.value.length;
+    try {
+      input.setSelectionRange(len, len);
+    } catch (_) {}
+  });
   input?.addEventListener("input", () => {
     applyValue();
   });
@@ -817,7 +870,14 @@ function openClientsSearchPopover({ title, value, onChange }) {
     if (event.key === "Escape") closeClientsSearchPopover();
   };
   document.addEventListener("keydown", clientsSearchKeydownHandler);
-  setTimeout(() => input?.focus(), 0);
+  setTimeout(() => {
+    if (!input) return;
+    input.focus();
+    const len = input.value.length;
+    try {
+      input.setSelectionRange(len, len);
+    } catch (_) {}
+  }, 0);
 }
 
 function openManagerFilterPopover(anchorEl, rows) {
@@ -1589,8 +1649,11 @@ function openClientsSumPopover(sourceRow, anchorEl) {
   const now = new Date();
   const monthNames = getMonthShortOptions();
   const year = now.getFullYear();
+  const initialMonthKey = formatYearMonth(year, now.getMonth());
   const statusMap = getSumStatusMap(sourceRow);
   const statusOptions = ["Не оплачено", "Счет отправлен", "Оплачено"];
+
+  let activeMonthKey = initialMonthKey;
 
   openClientsPopover(
     `
@@ -1645,11 +1708,20 @@ function openClientsSumPopover(sourceRow, anchorEl) {
         const nextValue = input ? input.value.trim() : "";
         setRowFieldValue(sourceRow, ["SumTO", "Сумма ТО", "СуммаТО"], nextValue);
         sourceRow.__sumToDirty = true;
+        const amountMap = getSumAmountMap(sourceRow);
+        if (activeMonthKey) {
+          if (nextValue) amountMap[activeMonthKey] = nextValue;
+          else delete amountMap[activeMonthKey];
+        }
+        if (typeof renderCalendar === "function") {
+          renderCalendar(activeYear);
+        }
         if (clientsLastData) {
           markClientDirty(sourceRow);
           writeClientsCache(clientsLastData);
           renderClientsTable(clientsLastData);
         }
+        return false;
       },
     }
   );
@@ -1698,6 +1770,7 @@ function openClientsSumPopover(sourceRow, anchorEl) {
         const nextStatus = cycleStatus(btn.dataset.status || "Не оплачено");
         btn.dataset.status = nextStatus;
         const nextKey = formatYearMonth(targetYear, idx);
+        activeMonthKey = nextKey;
         statusMap[nextKey] = nextStatus;
         btn.classList.remove("status-unpaid", "status-sent", "status-paid");
         btn.classList.add(getStatusClass(nextStatus));
@@ -1734,13 +1807,7 @@ function renderClientsTable(raw) {
     if (!managerValue) return false;
     return clientsManagerSelected.has(managerValue);
   });
-  const searchedRows = filteredRows.filter((row) => {
-    const clientValue = getClientNameValue(row);
-    const orgValue = pickValue(row, "Org", "org", "Орг");
-    if (!matchesSearch(clientValue, clientsClientSearchQuery)) return false;
-    if (!matchesSearch(orgValue, clientsOrgSearchQuery)) return false;
-    return true;
-  });
+  const searchedRows = filteredRows.filter((row) => rowMatchesUnifiedSearch(row, clientsSearchQuery));
   const fullSortedRows = [...rows].sort((a, b) => {
     const nameA = normalizeName(getClientNameValue(a));
     const nameB = normalizeName(getClientNameValue(b));
@@ -1965,14 +2032,14 @@ function renderClientsTable(raw) {
       searchBtn.setAttribute("aria-label", "Поиск по клиенту");
       searchBtn.innerHTML =
         '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.8l-.3-.3a6 6 0 1 0-.9.9l.3.3v.8l5 5 1.5-1.5-5-5zm-5.5 0a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"></path></svg>';
-      clientsClientSearchButton = searchBtn;
+      clientsSearchButton = searchBtn;
       searchBtn.addEventListener("click", (event) => {
         event.stopPropagation();
         openClientsSearchPopover({
           title: "Поиск по клиенту",
-          value: clientsClientSearchQuery,
+          value: clientsSearchQuery,
           onChange: (nextValue) => {
-            clientsClientSearchQuery = nextValue;
+            clientsSearchQuery = nextValue;
           },
         });
       });
@@ -1980,33 +2047,10 @@ function renderClientsTable(raw) {
       headerWrap.append(name, searchBtn);
       th.append(headerWrap);
     } else if (colKey === "org" || colKey === "орг") {
-      const headerWrap = document.createElement("div");
-      headerWrap.className = "clients-search-header";
-
-      const name = document.createElement("span");
-      name.className = "header-text";
+      const name = document.createElement("div");
+      name.className = "clients-col-name";
       name.textContent = displayLabel;
-
-      const searchBtn = document.createElement("button");
-      searchBtn.type = "button";
-      searchBtn.className = "clients-search-btn";
-      searchBtn.setAttribute("aria-label", "Поиск по организации");
-      searchBtn.innerHTML =
-        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.8l-.3-.3a6 6 0 1 0-.9.9l.3.3v.8l5 5 1.5-1.5-5-5zm-5.5 0a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"></path></svg>';
-      clientsOrgSearchButton = searchBtn;
-      searchBtn.addEventListener("click", (event) => {
-        event.stopPropagation();
-        openClientsSearchPopover({
-          title: "Поиск по организации",
-          value: clientsOrgSearchQuery,
-          onChange: (nextValue) => {
-            clientsOrgSearchQuery = nextValue;
-          },
-        });
-      });
-
-      headerWrap.append(name, searchBtn);
-      th.append(headerWrap);
+      th.append(name);
     } else {
       const name = document.createElement("div");
       name.className = "clients-col-name";
@@ -2567,6 +2611,9 @@ async function saveClientsToWebhook() {
         row.__nonSumDirty = false;
       });
     }
+    if ((sumSentOk || paySentOk || clientsSentOk) && clientsLastData) {
+      writeClientsCache(clientsLastData);
+    }
     if (!hasError) {
       clientsDirtyKeys.clear();
       updateClientsSaveButton();
@@ -2588,9 +2635,6 @@ async function saveClientsToWebhook() {
 
 function setActiveSection(section) {
   if (!section) return;
-  if (section === "clients" && !hasClientsAccess()) {
-    section = "schedule";
-  }
   try {
     localStorage.setItem(ACTIVE_SECTION_STORAGE_KEY, section);
   } catch (e) {
@@ -2647,3 +2691,7 @@ if (savedSection) {
 }
 clientsRefreshEl?.addEventListener("click", () => loadClients({ force: true }));
 clientsSaveEl?.addEventListener("click", saveClientsToWebhook);
+
+
+
+
