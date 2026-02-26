@@ -1,0 +1,200 @@
+{
+  "graphHookUrl": "https://quumahienot.beget.app/webhook/pyrus/graph",
+  "clients": {
+    "webhookUrl": "https://quumahienot.beget.app/webhook/client",
+    "editWebhookUrl": "https://quumahienot.beget.app/webhook/Client/Edit",
+    "saveUrl": "https://quumahienot.beget.app/webhook/Client/Edit",
+    "payToUrl": "https://quumahienot.beget.app/webhook/PayTO",
+    "sumToUrl": "https://quumahienot.beget.app/webhook/SumPayPyrus",
+    "payTo2Url": "https://quumahienot.beget.app/webhook/PayTO2"
+  },
+  "auth": {
+    "methods": {
+      "loginPassword": {
+        "enabled": true
+      },
+      "emailOtp": {
+        "enabled": true
+      }
+    },
+    "devBypass": false,
+    "ttlMs": 600000,
+    "codeLength": 6,
+    "resendTimerSec": 60,
+    "uiTexts": {
+      "title": "Вход",
+      "subtitle": "Подтвердите доступ",
+      "loginLabel": "Логин",
+      "passwordLabel": "Пароль",
+      "emailLabel": "Email",
+      "otpLabel": "Код из письма",
+      "submitLabel": "Продолжить",
+      "resendLabel": "Отправить код ещё раз",
+      "loadingLabel": "Проверяем данные...",
+      "errorGeneric": "Не удалось войти. Попробуйте ещё раз."
+    },
+    "webhooks": {
+      "emailInit": "https://example.com/webhook/auth/email/init",
+      "emailVerify": "https://example.com/webhook/auth/email/verify"
+    },
+    "rolePermissions": {
+      "ALL": [1271289],
+      "L1": [],
+      "L2": [1271289],
+      "OV": [1271290],
+      "OP": [1271291],
+      "OU": [],
+      "AI": []
+    }
+  },
+  "pyrus": {
+    "catalogs": {
+      "shifts": 283386
+    },
+    "forms": {
+      "otpusk": 2383799,
+      "smeni": 2383802
+    },
+    "fields": {
+      "otpusk": {
+        "person": 2,
+        "period": 1
+      },
+      "smeni": {
+        "person": 8,
+        "due": 5,
+        "amount": 6,
+        "template": 7
+      }
+    }
+  },
+  "departments": {
+    "byLine": {
+      "L1": [],
+      "L2": [167976424],
+      "OV": [174349984],
+      "OP": [170374055],
+      "OU": [168659098],
+      "AI": []
+    },
+    "orderByLine": {
+      "L2": [167976424],
+      "OP": [170374055]
+    },
+    "byName": {
+      "L1": ["Операторы"],
+      "L2": ["Инженера 5/2", "Инженера 2/2", "Инженеры"]
+    }
+  },
+  "timezone": {
+    "localOffsetMin": 180
+  },
+  "ui": {
+    "lines": {
+      "order": ["ALL", "OP", "OV", "L2"],
+      "labels": {
+        "ALL": "ВСЕ",
+        "OP": "ОП",
+        "OV": "ПНР",
+        "L2": "ТП"
+      }
+    }
+  },
+  "management": {
+    "topManagementIds": [1194300, 1194304]
+  },
+  "pyrusLineItemIdByLine": {
+    "L2": 174347209,
+    "L1": 174347208,
+    "OV": 174347211,
+    "OU": 174347216,
+    "AI": 174347217,
+    "OP": 174347212
+  },
+  "storage": {
+    "keys": {
+      "localChanges": "sm1_local_changes",
+      "changeHistory": "sm1_change_history",
+      "theme": "sm1_theme_preference",
+      "currentLine": "sm1_current_line",
+      "employeeFilters": "sm1_employee_filters",
+      "cachedEmployees": "sm1_cached_employees",
+      "cachedShiftTemplates": "sm1_cached_shift_templates",
+      "cachedSchedulePrefix": "sm1_cached_schedule_",
+      "shiftDrafts": "graph_l1l2_shift_drafts_v1"
+    },
+    "auth": {
+      "key": "sm_graph_auth_v1",
+      "sessionTtlMs": 604800000,
+      "ttlMs": 604800000,
+      "cookieDays": 7
+    }
+  },
+  "calendar": {
+    "prodCal": {
+      "ttlMs": 2592000000,
+      "urlTemplate": "https://isdayoff.ru/api/getdata?year={year}&month={month}&day1=1&day2={lastDay}&pre=1&holiday=1",
+      "cacheKeyPrefix": "prodcal_ru_"
+    },
+    "ui": {
+      "light": {
+        "workday": {
+          "background": "#242c3b",
+          "border": "#303a4d",
+          "dash": "transparent"
+        },
+        "weekend": {
+          "background": "#2b1638",
+          "border": "#5b2a7a",
+          "dash": "transparent"
+        },
+        "holiday": {
+          "background": "#12344a",
+          "border": "#1f5f8a",
+          "dash": "transparent"
+        },
+        "preholiday": {
+          "background": "#e6c65c",
+          "border": "var(--table-border-strong)",
+          "dash": "#d1b84d"
+        },
+        "microIndicators": {
+          "weekend": "#b96cff",
+          "holiday": "#00c6ff",
+          "preholiday": "#d1b84d"
+        }
+      },
+      "dark": {
+        "workday": {
+          "background": "#242c3b",
+          "border": "#303a4d",
+          "dash": "transparent"
+        },
+        "weekend": {
+          "background": "#2b1638",
+          "border": "#5b2a7a",
+          "dash": "transparent"
+        },
+        "holiday": {
+          "background": "#12344a",
+          "border": "#1f5f8a",
+          "dash": "transparent"
+        },
+        "preholiday": {
+          "background": "#e6c65c",
+          "border": "var(--table-border-strong)",
+          "dash": "#d1b84d"
+        },
+        "microIndicators": {
+          "weekend": "#b96cff",
+          "holiday": "#00c6ff",
+          "preholiday": "#d1b84d"
+        }
+      }
+    },
+    "indicators": {
+      "birthdayBg": "#ff2b2b",
+      "birthdayText": "#000000"
+    }
+  }
+}
