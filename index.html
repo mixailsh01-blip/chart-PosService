@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <!-- ==================== МЕТА-ДАННЫЕ ==================== -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Пос Сервис</title>
+  
+  <!-- ==================== ВНЕШНИЕ РЕСУРСЫ ==================== -->
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js  "></script>
+  <!-- Библиотека для сканирования QR-кодов -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css  " />
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com  ">
+  <link rel="preconnect" href="https://fonts.gstatic.com  " crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=PT+Root+UI:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- ==================== СТИЛИ ==================== -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+  <!-- ==================== ПРИВЕТСТВЕННЫЙ ЭКРАН ==================== -->
+  <div id="welcome-screen">
+    <img id="welcome-logo" src="assets/icons/Logo_Welcome_v2.png" alt="Логотип приложения" />
+    <p>Здравствуйте, <span id="user-name">Гость</span></p>
+  </div>
+
+  <!-- ==================== ОСНОВНОЕ ПРИЛОЖЕНИЕ ==================== -->
+  <div id="main-app">
+    
+    <!-- Логотип приложения -->
+    <div class="main-logo-container">
+      <img id="main-logo" src="assets/icons/Logo_Main_v2.png" alt="Основной логотип" />
+    </div>
+    
+    <!-- ==================== СТРАНИЦЫ ПРИЛОЖЕНИЯ ==================== -->
+    
+    <!-- Главная страница -->
+    <div id="home" class="page active">
+      <!-- Выпадающий список заведений -->
+      <div class="dropdown-container">
+        <select id="main-dropdown" class="main-dropdown">
+          <option value="">Выберите заведение</option>
+          <option value="restaurant1">Ресторан 1</option>
+          <option value="restaurant2">Ресторан 2</option>
+          <option value="restaurant3">Ресторан 3</option>
+        </select>
+      </div>
+      
+      <!-- Основные кнопки -->
+      <div class="buttons-row">
+        <button class="btn-AddRestaurant">Добавить заведение</button>
+        <button class="btn-Create">Создать заявку</button>
+      </div>
+    </div>
+
+    <!-- Страница заявок -->
+    <div id="requests" class="page">
+        <div class="table-filters">
+            <div class="filter-row">
+            <div class="filter-group">
+                <label for="filter-date-created">Дата создания:</label>
+                <input type="date" id="filter-date-created" class="filter-input">
+            </div>
+            <div class="filter-group">
+                <label for="filter-date-completed">Дата завершения:</label>
+                <input type="date" id="filter-date-completed" class="filter-input">
+            </div>
+            <div class="filter-group">
+                <label for="filter-establishment">Заведение:</label>
+                <select id="filter-establishment" class="filter-input">
+                <option value="">Все заведения</option>
+                <option value="Ресторан Центральный">Ресторан Центральный</option>
+                <option value="Кафе Уголок">Кафе Уголок</option>
+                <option value="Бар Nocturne">Бар Nocturne</option>
+                </select>
+            </div>
+            <button id="clear-filters" class="btn-ClearFilters">Сбросить фильтры</button>
+            </div>
+        </div>
+        
+        <div class="table-container requests-table">
+            <table class="main-table" id="requests-table">
+            <thead>
+                <tr>
+                <th class="sortable" data-column="number">Номер <span class="sort-arrow"></span></th>
+                <th class="sortable" data-column="date-created">Дата создания <span class="sort-arrow"></span></th>
+                <th class="sortable" data-column="date-completed">Дата завершения <span class="sort-arrow"></span></th>
+                <th class="sortable" data-column="establishment">Заведение <span class="sort-arrow"></span></th>
+                <th>Тема</th>
+                <th>Описание</th>
+                <th>Решение</th>
+                </tr>
+            </thead>
+            <tbody id="requests-table-body">
+                <tr>
+                <td>001</td>
+                <td data-sort="2024-01-15">15.01.2024</td>
+                <td data-sort="2024-01-20">20.01.2024</td>
+                <td>Ресторан Центральный</td>
+                <td>Оборудование</td>
+                <td>Не работает кофемашина</td>
+                <td>В ремонте</td>
+                </tr>
+                <tr>
+                <td>002</td>
+                <td data-sort="2024-01-16">16.01.2024</td>
+                <td data-sort=""></td>
+                <td>Кафе Уголок</td>
+                <td>Интерьер</td>
+                <td>Нужна замена мебели</td>
+                <td>Планируется</td>
+                </tr>
+                <tr>
+                <td>003</td>
+                <td data-sort="2024-01-17">17.01.2024</td>
+                <td data-sort="2024-01-18">18.01.2024</td>
+                <td>Бар Nocturne</td>
+                <td>Освещение</td>
+                <td>Перегорели лампы</td>
+                <td>Заменено</td>
+                </tr>
+                <tr>
+                <td>004</td>
+                <td data-sort="2024-01-18">18.01.2024</td>
+                <td data-sort="2024-01-22">22.01.2024</td>
+                <td>Ресторан Центральный</td>
+                <td>Сантехника</td>
+                <td>Протечка воды</td>
+                <td>Устранено</td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Страница счетов -->
+    <div id="accounts" class="page">
+        <button id="select-establishment-btn" class="btn-SelectRestModal w-full">Выбрать заведение</button>
+        <div id="selected-establishment" class="bg-gray-800 p-4 rounded-lg text-center text-gray-400 font-medium">
+            Заведение не выбрано
+        </div>
+    </div>
+
+    <!-- Страница профиля -->
+    <div id="profile" class="page">
+      <!-- Шапка профиля -->
+      <div class="profile-header">
+        <img id="user-avatar" src="  https://via.placeholder.com/40  " alt="Аватар пользователя" />
+        <div class="user-info">
+          <h2 id="user-fullname">Имя Фамилия</h2>
+          <p id="user-phone">+7 900 123 45 67</p>
+        </div>
+        <i id="edit-icon" class="fas fa-cog" title="Редактировать профиль"></i>
+      </div>
+
+      <!-- Кнопка поделиться контактом -->
+      <button id="share-contact-btn" class="btn-Share w-full mb-6 hidden">Поделиться контактом</button>
+
+      <!-- Раздел заведений (Пока не надо) -->
+      <!-- <div class="mb-6">
+        <h3 class="font-bold mb-2">Заведения</h3>
+        <button class="bg-gray-800 p-3 rounded-lg w-full text-left text-gray-300">Общий доступ</button>
+      </div> -->
+
+      <!-- Раздел оценки приложения -->
+      <div class="bg-gray-800 p-4 rounded-lg">
+        <h3 class="font-bold mb-2">Оцените приложение</h3>
+        <p class="text-gray-400 text-sm mb-3">Ваши отзывы делают нас лучше</p>
+        <button class="btn-Feedback w-full">Оставить отзыв</button>
+      </div>
+    </div>
+
+    <!-- ==================== МОДАЛЬНЫЕ ОКНА ==================== -->
+    
+    <!-- Модальное окно редактирования профиля -->
+    <div id="edit-modal" class="modal hidden">
+      <div class="modal-content">
+        <button id="close-modal-icon" class="modal-close" aria-label="Закрыть">×</button>
+        <h3 class="font-bold mb-4">Редактировать профиль</h3>
+        <input type="text" id="edit-firstname" class="w-full p-2 mb-3 rounded bg-gray-700 text-white" placeholder="Имя" />
+        <input type="text" id="edit-lastname" class="w-full p-2 mb-4 rounded bg-gray-700 text-white" placeholder="Фамилия" />
+        <div class="flex gap-2">
+          <button id="save-profile-btn" class="btn-Save flex-1">Сохранить</button>
+          <button id="close-modal-btn" class="btn-CancelModal flex-1">Отмена</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно выбора заведения -->
+    <div id="establishment-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 class="font-bold mb-4 text-center">Ваши заведения</h3>
+            <div class="establishment-list space-y-3">
+                <button class="establishment-item btn-RestModal w-full">Ресторан Центральный</button>
+                <button class="establishment-item btn-RestModal w-full">Кафе Уголок</button>
+                <button class="establishment-item btn-RestModal w-full">Бар Nocturne</button>
+            </div>
+            <div class="flex gap-2 mt-6">
+            <button id="close-establishment-modal-btn" class="btn-CancelModal flex-1">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== НАВИГАЦИЯ ==================== -->
+    <nav class="nav-bar">
+      <a href="#" data-page="home" class="nav-btn active">
+        <i class="fas fa-home"></i>
+        <span>Главная</span>
+      </a>
+      <a href="#" data-page="requests" class="nav-btn">
+        <i class="fas fa-comment-alt"></i>
+        <span>Заявки</span>
+      </a>
+      <a href="#" data-page="accounts" class="nav-btn">
+        <i class="fas fa-file-invoice-dollar"></i>
+        <span>Счета</span>
+      </a>
+      <a href="#" data-page="profile" class="nav-btn">
+        <i class="fas fa-user"></i>
+        <span>Профиль</span>
+      </a>
+    </nav>
+  </div>
+
+<!-- ==================== СКРИПТЫ ==================== -->
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

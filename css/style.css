@@ -1,0 +1,759 @@
+/* ==================== БАЗОВЫЕ СТИЛИ ==================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'PT Root UI', sans-serif;
+  font-weight: 500;
+  background-color: #121212;
+  color: white;
+  height: 100vh;
+  overflow: hidden;
+  font-size: clamp(14px, 2.5vw, 18px);
+}
+
+/* ==================== ЛОГОТИПЫ ==================== */
+/* Общий логотип для всех страниц */
+.main-logo-container {
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  padding: 0;
+  background-color: #121212;
+  z-index: 10;
+  width: 100%;
+  top: 40px;
+  height: 80px;
+}
+
+#main-logo {
+  max-width: 1000px;
+  width: 90vw;
+  height: auto;
+  object-fit: contain;
+  max-height: 200px;
+}
+
+/* ==================== ЭКРАН ПРИВЕТСТВИЯ ==================== */
+#welcome-screen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #1e1e1e;
+  position: fixed;
+  z-index: 1000;
+  opacity: 0;
+  border-radius: 12px;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+  width: 100%;
+  height: 100%;
+}
+
+#welcome-screen.fade-in,
+#welcome-screen.fade-in #welcome-logo,
+#welcome-screen.fade-in p {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#welcome-logo {
+  max-width: 200px;
+  width: 40vw;
+  height: auto;
+  margin-bottom: clamp(15px, 3vw, 30px);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+#welcome-screen p {
+  font-weight: 700;
+  font-size: clamp(24px, 5vw, 48px);
+  text-align: center;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+  line-height: 1.2;
+}
+
+/* ==================== ОСНОВНОЕ ПРИЛОЖЕНИЕ ==================== */
+#main-app {
+  display: none;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+#home.page {
+  padding-top: 100px;
+}
+
+#requests.page {
+  padding-top: 80px;
+}
+
+.page {
+  display: none;
+  width: 100%;
+  height: calc(100% - clamp(60px, 12vw, 100px));
+  padding: clamp(12px, 2.5vw, 24px);
+  overflow-y: auto;
+  background-color: #121212;
+  margin-top: 90px;
+}
+
+.page p {
+  margin-top: clamp(30px, 6vw, 60px);
+  font-size: clamp(14px, 2.5vw, 16px);
+  line-height: 1.4;
+}
+
+.page.active {
+  display: block;
+  align-items: center;
+}
+
+/* ==================== НАВИГАЦИОННАЯ ПАНЕЛЬ ==================== */
+.nav-bar {
+  display: flex;
+  justify-content: space-around;
+  background-color: #1e1e1e;
+  padding: clamp(12px, 2.5vw, 20px) 0;
+  position: fixed;
+  z-index: 3;
+  border-top: 1px solid #333;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  font-weight: 500;
+  width: 100%;
+  bottom: 0;
+}
+
+.nav-bar.slide-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(6px, 1.5vw, 12px);
+  color: #aaaaaa;
+  font-size: clamp(10px, 2vw, 14px);
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.nav-btn i {
+  font-size: clamp(20px, 4vw, 32px);
+  margin-bottom: clamp(2px, 0.5vw, 6px);
+}
+
+.nav-btn.active {
+  color: white;
+}
+
+/* ==================== ОБЩИЕ СТИЛИ КНОПОК ==================== */
+/* Базовые стили для всех кнопок */
+.btn-Create,
+.btn-Share,
+.btn-Feedback,
+.btn-Save,
+.btn-CancelModal,
+.btn-AddRestaurant,
+.btn-SelectRestModal,
+.btn-RestModal {
+  font-family: 'PT Root UI', sans-serif;
+  font-weight: 500;
+  border: none;
+  border-radius: clamp(6px, 1.5vw, 12px);
+  font-size: clamp(14px, 2.5vw, 18px);
+  cursor: pointer;
+  margin-top: clamp(10px, 2vw, 20px);
+  width: 100%;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: clamp(10px, 2.5vw, 16px) clamp(20px, 5vw, 32px);
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-appearance: none;
+  
+  /* Анимационные свойства - перенесены сюда */
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: opacity 1.5s ease, transform 1.5s ease, background-color 0.4s ease;
+
+  /* Добавляем transition для scale эффекта */
+  will-change: transform;
+}
+
+/* Основные кнопки действия */
+.btn-Create,
+.btn-Share,
+.btn-Feedback,
+.btn-AddRestaurant,
+.btn-SelectRestModal {
+  background-color: #00c8ff;
+  color: white;
+}
+
+.btn-Create:hover,
+.btn-Share:hover,
+.btn-Feedback:hover,
+.btn-AddRestaurant:hover,
+.btn-SelectRestModal:hover {
+  background-color: #0070ff;
+}
+
+/* Вспомогательные кнопки */
+.btn-Save {
+  background-color: #00c8ff;
+  color: white;
+}
+
+.btn-Save:hover {
+  background-color: #0070ff;
+}
+
+.btn-CancelModal,
+.btn-RestModal {
+  background-color: #333;
+  color: white;
+}
+
+.btn-CancelModal:hover,
+.btn-RestModal:hover {
+  background-color: #444;
+}
+
+/* Эффекты при нажатии */
+.btn-Create:active,
+.btn-Share:active,
+.btn-Feedback:active,
+.btn-AddRestaurant:active,
+.btn-Save:active,
+.btn-CancelModal:active,
+.btn-RestModal:active {
+  transform: translateX(-30px) scale(0.98);
+  transition: all 0.1s ease;
+}
+
+/* Сброс активного состояния */
+.btn-Create:not(:active),
+.btn-Share:not(:active),
+.btn-Feedback:not(:active),
+.btn-AddRestaurant:not(:active),
+.btn-Save:not(:active),
+.btn-CancelModal:not(:active),
+.btn-RestModal:not(:active) {
+  transform: translateX(-30px) scale(1);
+  transition: all 0.2s ease;
+}
+
+/* Специальный сброс для Cancel кнопки */
+.btn-CancelModal:not(:active) {
+  background-color: #333;
+}
+
+/* Состояния для анимации выезда */
+.btn-Create.slide-in,
+.btn-Share.slide-in,
+.btn-Feedback.slide-in,
+.btn-AddRestaurant.slide-in,
+.btn-Save.slide-in
+.btn-SelectRestModal.slide-in {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Специальные позиции для некоторых кнопок */
+.btn-Share.slide-in,
+.btn-Create.slide-in {
+  transform: translateX(0); /* Исправлено - должно быть 0, а не 30px */
+}
+
+/* Исходные позиции для анимации справа (без slide-in класса) */
+.btn-Share:not(.slide-in),
+.btn-Create:not(.slide-in) {
+  transform: translateX(500px);
+}
+
+/* Исходные позиции для анимации слева (без slide-in класса) */
+.btn-AddRestaurant:not(.slide-in),
+.btn-Feedback:not(.slide-in),
+.btn-SelectRestModal:not(.slide-in) {
+  transform: translateX(-500px);
+}
+
+/* ==================== СОСТОЯНИЕ ВЫБРАННОГО ЗАВЕДЕНИЯ ==================== */
+
+.btn-RestModal.selected {
+  transform: scale(0.96) !important;
+  background-color: #2a2a2a !important;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+  color: white;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+/* ==================== СТРАНИЦА ПРОФИЛЯ ==================== */
+.profile-header {
+  display: flex;
+  align-items: center;
+  padding: clamp(10px, 2vw, 20px);
+  background-color: #1e1e1e;
+  border-radius: clamp(10px, 2vw, 16px);
+  margin-bottom: clamp(12px, 2.5vw, 24px);
+  margin-top: clamp(20px, 4vw, 40px);
+  width: 100%;
+}
+
+#user-avatar {
+  width: clamp(50px, 12vw, 80px);
+  height: clamp(50px, 12vw, 80px);
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: clamp(10px, 2vw, 20px);
+}
+
+.user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.user-info h2 {
+  font-weight: 700;
+  font-size: clamp(16px, 3vw, 24px);
+  margin-bottom: clamp(2px, 0.5vw, 6px);
+  text-align: left;
+  margin-top: clamp(4px, 1vw, 12px);
+}
+
+.user-info p {
+  font-size: clamp(12px, 2.5vw, 16px);
+  color: #aaa;
+  text-align: left;
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+#edit-icon {
+  font-size: clamp(18px, 3vw, 24px);
+  color: #aaa;
+  margin-left: clamp(6px, 1vw, 12px);
+  cursor: pointer;
+  margin-top: clamp(4px, 1vw, 8px);
+  align-items: right;
+}
+
+/* ==================== МОДАЛЬНЫЕ ОКНА ==================== */
+/* РЕДАКТИРОВАНИЕ ПРОФИЛЯ */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background-color: #1e1e1e;
+  padding: clamp(20px, 4vw, 32px);
+  border-radius: clamp(10px, 2vw, 16px);
+  width: 90%;
+  max-width: clamp(280px, 50vw, 400px);
+  position: relative;
+}
+
+.modal-content input {
+  font-weight: 500;
+  border: none;
+  outline: none;
+  padding: clamp(10px, 2vw, 16px);
+  margin-bottom: clamp(10px, 2vw, 20px);
+  border-radius: clamp(6px, 1.5vw, 10px);
+  font-size: clamp(14px, 2.5vw, 16px);
+  width: 100%;
+  background-color: #333;
+  color: white;
+}
+
+.modal-content h3 {
+  font-weight: 700;
+  font-size: clamp(18px, 3vw, 24px);
+  margin-bottom: clamp(15px, 3vw, 25px);
+}
+
+.modal-content .btn-Save,
+.modal-content .btn-CancelModal {
+  margin-top: clamp(8px, 2vw, 16px);
+  padding: clamp(10px, 2.5vw, 14px) clamp(16px, 4vw, 24px);
+  font-size: clamp(14px, 2.5vw, 16px);
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #aaa;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  color: #00c8ff;
+}
+
+/* ВЫБОР ЗАВЕДЕНИЯ */
+.establishment-list {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.establishment-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.establishment-list::-webkit-scrollbar-thumb {
+  background-color: #00c8ff;
+  border-radius: 3px;
+}
+
+.establishment-item {
+  font-family: 'PT Root UI', sans-serif;
+  font-weight: 500;
+  font-size: clamp(14px, 2.5vw, 16px);
+  color: white;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  transition: background-color 0.2s ease;
+}
+
+.establishment-item:active {
+  background-color: #0070ff !important;
+  transform: scale(0.99);
+}
+
+/* Стиль для выбранного заведения на странице счетов */
+#selected-establishment {
+  font-size: clamp(16px, 3vw, 20px);
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==================== ВЫПАДАЮЩИЕ СПИСКИ ==================== */
+.dropdown-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: clamp(20px, 4vw, 40px);
+  margin-top: clamp(20px, 4vw, 40px);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.dropdown-container.slide-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.main-dropdown {
+  font-family: 'PT Root UI', sans-serif;
+  font-weight: 500;
+  background-color: #1e1e1e;
+  color: white;
+  border: 1px solid #333;
+  padding: clamp(12px, 2.5vw, 16px) clamp(20px, 5vw, 32px);
+  border-radius: clamp(6px, 1.5vw, 12px);
+  font-size: clamp(14px, 2.5vw, 16px);
+  cursor: pointer;
+  width: 100%;
+  max-width: 400px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.main-dropdown:focus {
+  border-color: #00c8ff;
+}
+
+.main-dropdown option {
+  background-color: #1e1e1e;
+  color: white;
+}
+
+/* ==================== КНОПКИ В СТРОКУ ==================== */
+.buttons-row {
+  display: flex;
+  gap: clamp(15px, 3vw, 30px);
+  justify-content: center;
+  margin-bottom: clamp(30px, 6vw, 60px);
+  flex-wrap: wrap;
+}
+
+/* ==================== ТАБЛИЦЫ ==================== */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: clamp(10px, 2vw, 20px);
+  background-color: #1e1e1e;
+  border-radius: clamp(8px, 2vw, 16px);
+  padding: clamp(15px, 3vw, 30px);
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.table-container.slide-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Стили для таблицы на странице заявок с анимацией выезжания снизу */
+.requests-table {
+  width: 100%;
+  overflow-x: auto;
+  background-color: #1e1e1e;
+  border-radius: clamp(8px, 2vw, 16px);
+  padding: clamp(15px, 3vw, 30px);
+  opacity: 0;
+  transform: translateY(100%);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  margin-top: 10px;
+}
+
+.requests-table.slide-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.main-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: clamp(12px, 2vw, 14px);
+  color: white;
+}
+
+.main-table th {
+  font-weight: 700;
+  text-align: left;
+  padding: clamp(10px, 2vw, 15px);
+  border-bottom: 2px solid #333;
+  background-color: #2a2a2a;
+}
+
+.main-table td {
+  padding: clamp(8px, 1.5vw, 12px);
+  border-bottom: 1px solid #333;
+}
+
+.main-table tbody tr:hover {
+  background-color: #2a2a2a;
+}
+
+.main-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ==================== ФИЛЬТРЫ ТАБЛИЦЫ ==================== */
+.table-filters {
+  background-color: #1e1e1e;
+  border-radius: clamp(8px, 2vw, 16px);
+  padding: clamp(15px, 3vw, 20px);
+  margin-bottom: clamp(15px, 3vw, 25px);
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+
+  margin-top: 0; /* Убираем отступ сверху */
+  position: relative;
+  top: -60px; /* Поднимаем вверх на 20px */
+}
+
+.table-filters.slide-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(10px, 2vw, 15px);
+  align-items: end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 150px;
+}
+
+.filter-group label {
+  font-size: clamp(12px, 2vw, 14px);
+  margin-bottom: clamp(4px, 1vw, 8px);
+  color: #aaa;
+}
+
+.filter-input {
+  font-family: 'PT Root UI', sans-serif;
+  background-color: #333;
+  color: white;
+  border: 1px solid #444;
+  padding: clamp(8px, 1.5vw, 12px);
+  border-radius: clamp(4px, 1vw, 8px);
+  font-size: clamp(12px, 2vw, 14px);
+  outline: none;
+}
+
+.filter-input:focus {
+  border-color: #00c8ff;
+}
+
+.btn-ClearFilters {
+  background-color: #333;
+  color: white;
+  border: none;
+  padding: clamp(8px, 1.5vw, 12px) clamp(15px, 3vw, 20px);
+  border-radius: clamp(4px, 1vw, 8px);
+  font-size: clamp(12px, 2vw, 14px);
+  cursor: pointer;
+  height: fit-content;
+  margin-top: clamp(20px, 4vw, 25px);
+}
+
+.btn-ClearFilters:hover {
+  background-color: #444;
+}
+
+/* ==================== СОРТИРОВКА ТАБЛИЦЫ ==================== */
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.sort-arrow {
+  margin-left: 5px;
+  font-size: 0.8em;
+  color: #777;
+}
+
+.sort-arrow.asc::after {
+  content: "▲";
+  color: #00c8ff;
+}
+
+.sort-arrow.desc::after {
+  content: "▼";
+  color: #00c8ff;
+}
+
+/* ==================== АДАПТИВНЫЕ СТИЛИ ==================== */
+@media (max-width: 768px) {
+  /* Адаптация логотипов */
+  #welcome-logo { 
+    width: 60vw; 
+    max-width: 200px; 
+  }
+  
+  #main-logo { 
+    max-width: 150px; 
+  }
+
+  /* Адаптация таблиц */
+  .main-table {
+    font-size: clamp(10px, 2.5vw, 12px);
+  }
+  
+  .main-table th,
+  .main-table td {
+    padding: clamp(6px, 1.5vw, 10px);
+  }
+  
+  /* Горизонтальная прокрутка для таблиц на мобильных */
+  .table-container {
+    overflow-x: auto;
+  }
+  
+  .main-table {
+    min-width: 800px; /* Минимальная ширина для всех колонок */
+  }
+  
+  /* Адаптивные фильтры */
+  .filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(8px, 2vw, 12px);
+  }
+  
+  .filter-group:nth-child(3) {
+    grid-column: span 2;
+  }
+  
+  .btn-ClearFilters {
+    grid-column: span 2;
+    justify-self: start;
+  }
+  
+  /* Адаптация кнопок в строку */
+  .buttons-row {
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(10px, 2vw, 20px);
+  }
+  
+  .btn-AddRestaurant,
+  .btn-Create {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+@media (min-width: 1200px) {
+  /* Адаптация логотипов для больших экранов */
+  #welcome-logo { 
+    width: 25vw; 
+    max-width: 300px; 
+  }
+  
+  #main-logo { 
+    max-width: 430px; 
+  }
+}
+
+/* ==================== ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ ЗАГОЛОВКОВ ==================== */
+.page h3 {
+  font-weight: 700;
+}
