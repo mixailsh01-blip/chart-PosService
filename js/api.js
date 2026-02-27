@@ -92,6 +92,44 @@ const API = {
       return null;
     }
   }
+  ,
+
+  /**
+   * Второй вебхук: передаем массив заведений [{Client, ID}]
+   * @param {Array|Object} establishmentsPayload - Массив или один объект {Client, ID}
+   * @returns {Promise<any|null>} Ответ вебхука или null
+   */
+  async sendTaskSupport(establishmentsPayload) {
+    const hookUrl = 'https://quumahienot.beget.app/webhook/task_support';
+    const payload = Array.isArray(establishmentsPayload)
+      ? establishmentsPayload
+      : (establishmentsPayload ? [establishmentsPayload] : []);
+
+    try {
+      console.log('📤 [API] Отправляем task_support:', payload);
+
+      const response = await fetch(hookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json().catch(() => null);
+      console.log('✅ [API] Ответ task_support:', result);
+      return result;
+
+    } catch (error) {
+      console.error('❌ [API] Ошибка task_support:', error);
+      return null;
+    }
+  }
 };
 
 // Экспортируем модуль

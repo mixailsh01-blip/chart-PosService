@@ -268,6 +268,14 @@ const handleQrResult = (data, stream) => {
           } else {
             alert('QR отправлен, но заведение не получено');
           }
+
+          // Второй вебхук: отправляем исходный ответ первого хука как [{Client, ID}]
+          if (window.API?.sendTaskSupport && result) {
+            window.API.sendTaskSupport(result).then((taskSupportResponse) => {
+              // Пока просто сохраняем и логируем, формат ответов по заявкам уточним
+              window.lastTaskSupportResponse = taskSupportResponse;
+            });
+          }
         })
         .catch((error) => {
           console.error('Ошибка отправки QR в вебхук:', error);
@@ -301,6 +309,25 @@ const applyRestaurants = (restaurants) => {
     // Обновляем dropdown на главной (через существующую логику Auth)
     if (window.Auth?.updateRestaurants) {
       window.Auth.updateRestaurants(restaurants);
+    }
+
+    // Обновляем фильтр "Заведение" на вкладке "Заявки"
+    const filterSelect = document.getElementById('filter-establishment');
+    if (filterSelect) {
+      const previousValue = filterSelect.value;
+      filterSelect.innerHTML = '<option value="">Все заведения</option>';
+
+      restaurants.forEach((restaurant) => {
+        const option = document.createElement('option');
+        option.value = restaurant.id;
+        option.textContent = restaurant.name;
+        filterSelect.appendChild(option);
+      });
+
+      // Пытаемся восстановить выбор, если он еще существует
+      if (previousValue && Array.from(filterSelect.options).some(o => o.value === previousValue)) {
+        filterSelect.value = previousValue;
+      }
     }
 
     // Обновляем список в модалке "Ваши заведения"
