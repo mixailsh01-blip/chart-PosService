@@ -448,11 +448,28 @@ const setupModal = () => {
 
 /* ==================== РАБОТА С КОНТАКТАМИ ==================== */
 
+const showContactShareModal = () => {
+  const modal = document.getElementById('contact-share-modal');
+  if (modal) modal.classList.remove('hidden');
+};
+
+const hideContactShareModal = () => {
+  const modal = document.getElementById('contact-share-modal');
+  if (modal) modal.classList.add('hidden');
+};
+
+const clientSupportResponseHasId = (result) => {
+  if (!result) return false;
+  const items = Array.isArray(result) ? result : [result];
+  return items.some((item) => item && (item.ID || item.id));
+};
+
 const setupContactSharing = () => {
   const shareBtn = document.getElementById('share-contact-btn');
-  if (!shareBtn) return;
+  const modalBtn = document.getElementById('contact-share-btn');
+  const modalClose = document.getElementById('contact-share-close');
 
-  shareBtn.addEventListener('click', () => {
+  const requestContactAndUpdate = () => {
     console.log('📤 Запрашиваем контакт...');
     
     // Проверяем поддержку метода
@@ -489,6 +506,7 @@ const setupContactSharing = () => {
               last_name: initData.user.last_name,
               user_id: initData.user.id
             });
+            hideContactShareModal();
           } else {
             // Если данных нет сразу, попробуем еще раз через 1 секунду
             setTimeout(() => {
@@ -503,6 +521,7 @@ const setupContactSharing = () => {
                   last_name: initData2.user.last_name,
                   user_id: initData2.user.id
                 });
+                hideContactShareModal();
               } else {
                 console.warn('⚠️ Контакт запрошен, но данные не получены');
                 showContactInfo('Контакт запрошен. Если номер не отобразился, пожалуйста, перезапустите приложение.');
@@ -515,6 +534,7 @@ const setupContactSharing = () => {
         // Если сразу получили объект с данными
         console.log('✅ Получен контакт напрямую');
         updateContactInfo(result);
+        hideContactShareModal();
       } else if (typeof result === 'string') {
         // Если получили строку (возможно URL-параметры)
         try {
@@ -522,6 +542,7 @@ const setupContactSharing = () => {
           if (contact) {
             console.log('✅ Получен контакт из строки');
             updateContactInfo(contact);
+            hideContactShareModal();
           } else {
             console.warn('⚠️ Не удалось распарсить строку контакта:', result);
           }
@@ -530,6 +551,13 @@ const setupContactSharing = () => {
         }
       }
     });
+  };
+
+  shareBtn?.addEventListener('click', requestContactAndUpdate);
+  modalBtn?.addEventListener('click', requestContactAndUpdate);
+  modalClose?.addEventListener('click', (e) => {
+    e.preventDefault();
+    hideContactShareModal();
   });
 };
 
@@ -613,6 +641,9 @@ const updateContactInfo = (contact) => {
   if (shareBtn) {
     shareBtn.classList.add('hidden');
   }
+
+  // Прячем модалку, если она была открыта
+  hideContactShareModal();
   
   // Сохраняем в localStorage (опционально)
   try {
@@ -1004,7 +1035,12 @@ const initializeApp = () => {
 
     // При входе в WebApp отправляем данные пользователя в вебхук clientTG_support
     if (user?.id && window.API?.sendClientTGSupport) {
-      window.API.sendClientTGSupport(user, tg);
+      window.API.sendClientTGSupport(user, tg).then((result) => {
+        // Если ID пришёл, то всё ок. Если ответ пустой — просим номер телефона.
+        if (clientSupportResponseHasId(result)) return;
+        if (user?.phone_number) return;
+        showContactShareModal();
+      });
     }
 
     setupModal();
