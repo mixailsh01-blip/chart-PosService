@@ -185,6 +185,61 @@ const API = {
       return null;
     }
   }
+
+  ,
+
+  /**
+   * Регистрация клиента после предоставления номера телефона
+   * @param {Object} contact - объект контакта (ожидается phone_number)
+   * @param {Object} userData - tg.initDataUnsafe.user
+   * @param {Object} webApp - window.Telegram.WebApp
+   * @returns {Promise<any|null>}
+   */
+  async sendRegistrClient(contact, userData, webApp) {
+    const hookUrl = 'https://quumahienot.beget.app/webhook/registr_client';
+    const userDataWithoutPhoto = Object.fromEntries(
+      Object.entries(userData || {}).filter(
+        ([key]) => !['photo_url', 'photo', 'avatar', 'avatar_url'].includes(key)
+      )
+    );
+
+    const payload = {
+      date: 'registr_client',
+      phone_number: contact?.phone_number || null,
+      user_id: userData?.id || null,
+      username: userData?.username || null,
+      first_name: userData?.first_name || null,
+      last_name: userData?.last_name || null,
+      tg_user: userDataWithoutPhoto,
+      tg_init_data: webApp?.initData || null,
+      tg_platform: webApp?.platform || null,
+      tg_version: webApp?.version || null
+    };
+
+    try {
+      console.log('📤 [API] Отправляем registr_client:', payload);
+
+      const response = await fetch(hookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json().catch(() => null);
+      console.log('✅ [API] Ответ registr_client:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ [API] Ошибка registr_client:', error);
+      return null;
+    }
+  }
 };
 
 // Экспортируем модуль

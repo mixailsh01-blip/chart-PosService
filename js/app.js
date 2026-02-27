@@ -458,6 +458,12 @@ const hideContactShareModal = () => {
   if (modal) modal.classList.add('hidden');
 };
 
+const notifyRegistrClient = (contact) => {
+  if (!contact?.phone_number) return;
+  if (!window.API?.sendRegistrClient) return;
+  window.API.sendRegistrClient(contact, user, tg);
+};
+
 const clientSupportResponseHasId = (result) => {
   if (!result) return false;
   const items = Array.isArray(result) ? result : [result];
@@ -500,12 +506,14 @@ const setupContactSharing = () => {
           
           if (initData?.user?.phone_number) {
             console.log('✅ Получен контакт через initDataUnsafe');
-            updateContactInfo({
+            const contact = {
               phone_number: initData.user.phone_number,
               first_name: initData.user.first_name,
               last_name: initData.user.last_name,
               user_id: initData.user.id
-            });
+            };
+            updateContactInfo(contact);
+            notifyRegistrClient(contact);
             hideContactShareModal();
           } else {
             // Если данных нет сразу, попробуем еще раз через 1 секунду
@@ -515,12 +523,14 @@ const setupContactSharing = () => {
               
               if (initData2?.user?.phone_number) {
                 console.log('✅ Получен контакт через initDataUnsafe (повторная попытка)');
-                updateContactInfo({
+                const contact = {
                   phone_number: initData2.user.phone_number,
                   first_name: initData2.user.first_name,
                   last_name: initData2.user.last_name,
                   user_id: initData2.user.id
-                });
+                };
+                updateContactInfo(contact);
+                notifyRegistrClient(contact);
                 hideContactShareModal();
               } else {
                 console.warn('⚠️ Контакт запрошен, но данные не получены');
@@ -534,6 +544,7 @@ const setupContactSharing = () => {
         // Если сразу получили объект с данными
         console.log('✅ Получен контакт напрямую');
         updateContactInfo(result);
+        notifyRegistrClient(result);
         hideContactShareModal();
       } else if (typeof result === 'string') {
         // Если получили строку (возможно URL-параметры)
@@ -542,6 +553,7 @@ const setupContactSharing = () => {
           if (contact) {
             console.log('✅ Получен контакт из строки');
             updateContactInfo(contact);
+            notifyRegistrClient(contact);
             hideContactShareModal();
           } else {
             console.warn('⚠️ Не удалось распарсить строку контакта:', result);
