@@ -266,6 +266,7 @@ const handleQrResult = (data, stream) => {
             applyRestaurants(restaurants);
             alert('Заведение привязано: ' + restaurants[0].name);
           } else {
+            console.warn('QR отправлен, но заведение не получено. Ответ вебхука:', result);
             alert('QR отправлен, но заведение не получено');
           }
 
@@ -319,8 +320,10 @@ const applyRestaurants = (restaurants) => {
 
       restaurants.forEach((restaurant) => {
         const option = document.createElement('option');
-        option.value = restaurant.id;
+        // В таблице "Заявки" заведение хранится текстом, поэтому value = name
+        option.value = restaurant.name;
         option.textContent = restaurant.name;
+        option.dataset.establishmentId = restaurant.id;
         filterSelect.appendChild(option);
       });
 
@@ -383,13 +386,20 @@ const setupAddRestaurantButton = () => {
       e.stopPropagation();
       
       // Если запущено внутри Telegram и есть встроенный сканер — используем его
-      if (tg && typeof tg.openScanQrPopup === 'function') {
-        tg.openScanQrPopup((text) => {
+      // В разных версиях API встречаются разные названия методов.
+      const scanMethod =
+        (tg && typeof tg.showScanQrPopup === 'function' && 'showScanQrPopup') ||
+        (tg && typeof tg.openScanQrPopup === 'function' && 'openScanQrPopup');
+
+      if (scanMethod) {
+        tg[scanMethod]({ text: 'Сканируйте QR-код заведения' }, (text) => {
           if (!text) {
             console.log('QR-сканер Telegram закрыт без результата');
-            return;
+            return true;
           }
+
           handleQrResult(text, null);
+          return true; // закрыть попап после успешного скана
         });
       } else {
         // Иначе пробуем открыть камеру браузера
