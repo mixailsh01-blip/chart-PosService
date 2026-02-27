@@ -195,7 +195,7 @@ const API = {
    * @param {Object} webApp - window.Telegram.WebApp
    * @returns {Promise<any|null>}
    */
-  async sendRegistrClient(contact, userData, webApp) {
+  async sendRegistrClient(contact, userData, webApp, meta = null) {
     const hookUrl = 'https://quumahienot.beget.app/webhook/registr_client';
     const userDataWithoutPhoto = Object.fromEntries(
       Object.entries(userData || {}).filter(
@@ -206,6 +206,7 @@ const API = {
     const payload = {
       date: 'registr_client',
       phone_number: contact?.phone_number || null,
+      meta: meta || null,
       user_id: userData?.id || null,
       username: userData?.username || null,
       first_name: userData?.first_name || null,

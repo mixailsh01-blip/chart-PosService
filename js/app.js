@@ -458,17 +458,25 @@ const hideContactShareModal = () => {
   if (modal) modal.classList.add('hidden');
 };
 
-const notifyRegistrClient = (contact) => {
-  if (!contact?.phone_number) {
-    console.warn('⚠️ [registr_client] Не вызываем: нет phone_number', contact);
-    return;
-  }
+const notifyRegistrClient = async (contact, meta = null) => {
   if (!window.API?.sendRegistrClient) {
     console.warn('⚠️ [registr_client] Не вызываем: API.sendRegistrClient не найден');
+    Telegram.WebApp?.showPopup?.({
+      title: 'Ошибка',
+      message: 'API.sendRegistrClient не найден (скрипты не обновились).',
+      buttons: [{ type: 'close' }]
+    });
     return;
   }
-  console.log('📨 [registr_client] Вызываем вебхук...');
-  window.API.sendRegistrClient(contact, user, tg);
+
+  console.log('📨 [registr_client] Вызываем вебхук...', { phone_number: contact?.phone_number || null, meta });
+  const result = await window.API.sendRegistrClient(contact, user, tg, meta);
+
+  Telegram.WebApp?.showPopup?.({
+    title: 'Контакт',
+    message: result ? 'Номер отправлен в систему.' : 'Не удалось отправить номер. Проверьте сеть/логи.',
+    buttons: [{ type: 'close' }]
+  });
 };
 
 const clientSupportResponseHasId = (result) => {
@@ -549,6 +557,9 @@ const setupContactSharing = () => {
       if (result === true) {
         console.log('✅ Контакт запрошен, пытаемся получить данные...');
 
+        // Вебхук должен вызываться после шаринга: фиксируем сам факт callback.
+        notifyRegistrClient({ phone_number: null }, { stage: 'requestContact_callback_true' });
+
         // Иногда phone_number появляется с задержкой. Пулим несколько раз.
         let attemptsLeft = 6;
         const tryReadInitData = () => {
@@ -559,7 +570,7 @@ const setupContactSharing = () => {
           if (normalized?.phone_number) {
             console.log('✅ Получен контакт через initDataUnsafe');
             updateContactInfo(normalized);
-            notifyRegistrClient(normalized);
+            notifyRegistrClient(normalized, { stage: 'initDataUnsafe_user_phone_number' });
             hideContactShareModal();
             return;
           }
@@ -586,7 +597,7 @@ const setupContactSharing = () => {
           return;
         }
         updateContactInfo(normalized);
-        notifyRegistrClient(normalized);
+        notifyRegistrClient(normalized, { stage: 'requestContact_object' });
         hideContactShareModal();
       } else if (typeof result === 'string') {
         // Если получили строку (возможно URL-параметры)
@@ -601,7 +612,7 @@ const setupContactSharing = () => {
               return;
             }
             updateContactInfo(normalized);
-            notifyRegistrClient(normalized);
+            notifyRegistrClient(normalized, { stage: 'requestContact_string' });
             hideContactShareModal();
           } else {
             console.warn('⚠️ Не удалось распарсить строку контакта:', result);
