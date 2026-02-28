@@ -132,7 +132,7 @@ const Auth = {
     if (userName) userName.textContent = firstName || 'Гость';
 
     // Обновляем телефон
-    const phone = userData.phone;
+    const phone = userData.phone || userData.Nubmer || userData.Number || null;
     const userPhone = document.getElementById('user-phone');
     const shareContactBtn = document.getElementById('share-contact-btn');
 
@@ -177,17 +177,54 @@ const Auth = {
       // Очищаем текущие опции (кроме placeholder)
       dropdown.innerHTML = '<option value="">Выберите заведение</option>';
 
-      // Добавляем рестораны
-      restaurants.forEach(restaurant => {
-        if (restaurant.name && restaurant.id) {
-          const option = document.createElement('option');
-          option.value = restaurant.id;
-          option.textContent = restaurant.name;
-          dropdown.appendChild(option);
-        }
+      const normalizedRestaurants = restaurants
+        .map((restaurant) => {
+          const id = restaurant?.id ?? restaurant?.ID ?? restaurant?.Id ?? null;
+          const name = restaurant?.name ?? restaurant?.Client ?? restaurant?.client ?? null;
+          if (!id || !name) return null;
+          return { id: String(id), name: String(name) };
+        })
+        .filter(Boolean);
+
+      // Добавляем рестораны в dropdown главной страницы
+      normalizedRestaurants.forEach((restaurant) => {
+        const option = document.createElement('option');
+        option.value = restaurant.id;
+        option.textContent = restaurant.name;
+        dropdown.appendChild(option);
       });
 
-      console.log(`✅ [Auth] Загружено ${restaurants.length} ресторанов`);
+      // Обновляем фильтр "Заведение" на вкладке заявок
+      const filterSelect = document.getElementById('filter-establishment');
+      if (filterSelect) {
+        const previousValue = filterSelect.value;
+        filterSelect.innerHTML = '<option value="">Все заведения</option>';
+        normalizedRestaurants.forEach((restaurant) => {
+          const option = document.createElement('option');
+          option.value = restaurant.name;
+          option.textContent = restaurant.name;
+          option.dataset.establishmentId = restaurant.id;
+          filterSelect.appendChild(option);
+        });
+        if (previousValue && Array.from(filterSelect.options).some(o => o.value === previousValue)) {
+          filterSelect.value = previousValue;
+        }
+      }
+
+      // Обновляем список в модалке "Ваши заведения"
+      const list = document.querySelector('#establishment-modal .establishment-list');
+      if (list) {
+        list.innerHTML = '';
+        normalizedRestaurants.forEach((restaurant) => {
+          const button = document.createElement('button');
+          button.className = 'establishment-item btn-RestModal w-full';
+          button.textContent = restaurant.name;
+          button.dataset.establishmentId = restaurant.id;
+          list.appendChild(button);
+        });
+      }
+
+      console.log(`✅ [Auth] Загружено ${normalizedRestaurants.length} ресторанов`);
 
     } catch (error) {
       console.error('❌ [Auth] Ошибка парсинга ресторанов:', error);
@@ -281,8 +318,33 @@ const Auth = {
         return;
       }
 
-      // Находим текущего пользователя по ID
-      const currentUser = result.find(item => String(item.id) === String(userData.id));
+      const responseItems = Array.isArray(result) ? result : [result];
+
+      // Находим текущего пользователя по ID (старый формат)
+      let currentUser = responseItems.find(item =>
+        String(item?.id ?? item?.user_id ?? '') === String(userData.id)
+      );
+
+      // Новый формат lk-ps: [{ Nubmer, Client, ID }]
+      // Если user не найден по id, трактуем ответ как список заведений и профильные поля.
+      if (!currentUser && responseItems.length > 0) {
+        const fallbackRestaurants = responseItems
+          .map((item) => {
+            const id = item?.ID ?? item?.id ?? item?.Id ?? null;
+            const name = item?.Client ?? item?.client ?? item?.name ?? null;
+            if (!id || !name) return null;
+            return { id: String(id), name: String(name) };
+          })
+          .filter(Boolean);
+
+        currentUser = {
+          name: userData.first_name || '',
+          last_name: userData.last_name || '',
+          phone: responseItems[0]?.Nubmer ?? responseItems[0]?.Number ?? null,
+          restaurants: fallbackRestaurants
+        };
+      }
+
       if (!currentUser) {
         console.warn('⚠️ [Auth] Пользователь не найден в ответе');
         await new Promise(resolve => setTimeout(resolve, 2000));
