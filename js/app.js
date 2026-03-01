@@ -270,12 +270,10 @@ const handleQrResult = (data, stream) => {
             alert('QR отправлен, но заведение не получено');
           }
 
-          // Второй вебхук: отправляем только валидные данные [{Client, ID}]
+          // Второй вебхук: отправляем валидные данные [{Client, ID}]
+          // Берем как из нормализованного списка, так и напрямую из сырого ответа.
           if (window.API?.sendTaskSupport) {
-            const taskSupportPayload = restaurants.map((restaurant) => ({
-              Client: restaurant.name,
-              ID: restaurant.id
-            }));
+            const taskSupportPayload = buildTaskSupportPayload(result, restaurants);
 
             if (taskSupportPayload.length > 0) {
               window.API.sendTaskSupport(taskSupportPayload, user).then((taskSupportResponse) => {
@@ -310,6 +308,37 @@ const normalizeRestaurantsFromQrResponse = (result) => {
       const id = item?.ID ?? item?.id ?? item?.Id ?? null;
       if (!name || !id) return null;
       return { id: String(id), name: String(name) };
+    })
+    .filter(Boolean);
+};
+
+const buildTaskSupportPayload = (result, restaurants = []) => {
+  const fromRestaurants = (restaurants || [])
+    .map((restaurant) => ({
+      Client: restaurant?.name ?? null,
+      ID: restaurant?.id ?? null
+    }))
+    .filter((item) => item.Client && item.ID);
+
+  if (fromRestaurants.length > 0) {
+    return fromRestaurants;
+  }
+
+  const sourceItems = Array.isArray(result) ? result : (result ? [result] : []);
+
+  return sourceItems
+    .map((item) => {
+      const client = item?.Client ?? item?.client ?? item?.name ?? null;
+      const id = item?.ID ?? item?.Id ?? item?.id ?? null;
+      const number = item?.Nubmer ?? item?.Number ?? item?.number ?? null;
+
+      if (!client || !id) return null;
+
+      return {
+        Client: String(client),
+        ID: String(id),
+        ...(number ? { Nubmer: String(number) } : {})
+      };
     })
     .filter(Boolean);
 };
