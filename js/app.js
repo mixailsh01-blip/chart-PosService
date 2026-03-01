@@ -1261,18 +1261,10 @@ const initializeApp = () => {
     //welcomeScreen.style.display = 'flex';
     //welcomeScreen.classList.add('fade-in');
 
-    // Запускаем авторизацию
-    if (user && window.Auth) {
-      window.Auth.authorize(user, () => {
-        // После завершения авторизации — запускаем основную анимацию
-        startAnimation();
-      });
-    } else {
-      // Если нет данных пользователя или Auth — запускаем через 2 секунды
-      setTimeout(() => {
-        startAnimation();
-      }, 2000);
-    }
+    // lk-ps не вызываем при старте (только после сканирования QR)
+    setTimeout(() => {
+      startAnimation();
+    }, 150);
 
   } catch (error) {
     console.error('❌ Ошибка инициализации приложения:', error);
