@@ -524,6 +524,38 @@ body.hide-main-logo #requests.page {
   filter: brightness(1.05);
 }
 
+.contact-share-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.contact-share-progress {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.contact-share-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #00c8ff;
+  border-radius: 50%;
+  animation: contact-share-spin 0.9s linear infinite;
+  flex: 0 0 auto;
+}
+
+@keyframes contact-share-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ВЫБОР ЗАВЕДЕНИЯ */
 .establishment-list {
   max-height: 60vh;

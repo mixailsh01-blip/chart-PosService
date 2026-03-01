@@ -443,12 +443,47 @@ const setupModal = () => {
 
 const showContactShareModal = () => {
   const modal = document.getElementById('contact-share-modal');
+  const progress = document.getElementById('contact-share-progress');
+  const progressText = document.getElementById('contact-share-progress-text');
+  const modalBtn = document.getElementById('contact-share-btn');
   if (modal) modal.classList.remove('hidden');
+  progress?.classList.add('hidden');
+  if (progressText) {
+    progressText.textContent = 'Секунду… разработчик уже регистрирует вас в POS Service 🙂';
+  }
+  if (modalBtn) {
+    modalBtn.disabled = false;
+    modalBtn.textContent = 'Поделиться номером';
+  }
 };
 
 const hideContactShareModal = () => {
   const modal = document.getElementById('contact-share-modal');
   if (modal) modal.classList.add('hidden');
+};
+
+const setContactShareLoading = (enabled, message = '') => {
+  const progress = document.getElementById('contact-share-progress');
+  const progressText = document.getElementById('contact-share-progress-text');
+  const modalBtn = document.getElementById('contact-share-btn');
+
+  if (enabled) {
+    progress?.classList.remove('hidden');
+    if (progressText) {
+      progressText.textContent = message || 'Секунду… разработчик уже регистрирует вас в POS Service 🙂';
+    }
+    if (modalBtn) {
+      modalBtn.disabled = true;
+      modalBtn.textContent = 'Подождите...';
+    }
+    return;
+  }
+
+  progress?.classList.add('hidden');
+  if (modalBtn) {
+    modalBtn.disabled = false;
+    modalBtn.textContent = 'Поделиться номером';
+  }
 };
 
 const notifyRegistrClient = async (contact, meta = null) => {
@@ -562,7 +597,6 @@ const normalizeContactData = (raw) => {
 const setupContactSharing = () => {
   const shareBtn = document.getElementById('share-contact-btn');
   const modalBtn = document.getElementById('contact-share-btn');
-  const modalClose = document.getElementById('contact-share-close');
 
   const requestContactAndUpdate = () => {
     console.log('📤 Запрашиваем контакт...');
@@ -587,16 +621,11 @@ const setupContactSharing = () => {
       // Если результат true - контакт запрошен, данные нужно получить из initDataUnsafe
       if (result === true) {
         console.log('✅ Контакт запрошен, пытаемся получить данные...');
+        setContactShareLoading(true, 'Секунду… разработчик уже регистрирует вас в POS Service 🙂');
 
         // В большинстве случаев номер телефона НЕ доступен внутри WebApp.
         // Он приходит боту отдельным сообщением. Поэтому вместо registr_client без номера
         // ждём, пока backend начнёт возвращать ID через clientTG_support.
-        Telegram.WebApp?.showPopup?.({
-          title: 'Контакт',
-          message: 'Если вы поделились номером, подождите пару секунд. Обновляем доступ...',
-          buttons: [{ type: 'close' }]
-        });
-
         // Иногда phone_number появляется с задержкой. Пулим несколько раз.
         let attemptsLeft = 6;
         const tryReadInitData = () => {
@@ -620,6 +649,7 @@ const setupContactSharing = () => {
                 hideContactShareModal();
                 showContactInfo('Номер получен. Доступ обновлён.');
               } else {
+                setContactShareLoading(false);
                 showContactInfo('Контакт отправлен в Telegram. Если доступ не обновился, перезапустите приложение.');
               }
             });
@@ -670,10 +700,6 @@ const setupContactSharing = () => {
 
   shareBtn?.addEventListener('click', requestContactAndUpdate);
   modalBtn?.addEventListener('click', requestContactAndUpdate);
-  modalClose?.addEventListener('click', (e) => {
-    e.preventDefault();
-    hideContactShareModal();
-  });
 };
 
 // Функция для парсинга строки контакта
