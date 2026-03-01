@@ -1142,10 +1142,35 @@ const setupEstablishmentSelection = () => {
 const setupRequestDetailsView = () => {
   const sampleCard = document.getElementById('request-card-sample');
   const dialogModal = document.getElementById('request-dialog-modal');
-  const closeBtn = document.getElementById('request-dialog-close');
+  const dialogChat = dialogModal?.querySelector('.request-dialog-chat');
   const backBtn = document.getElementById('request-dialog-back');
+  const input = document.getElementById('request-dialog-input');
+  const sendBtn = document.getElementById('request-dialog-send');
+  const attachBtn = document.getElementById('request-dialog-attach');
+  const fileInput = document.getElementById('request-dialog-file');
 
-  if (!sampleCard || !dialogModal || !closeBtn) return;
+  if (!sampleCard || !dialogModal || !dialogChat || !input || !sendBtn || !attachBtn || !fileInput) return;
+
+  const getCurrentTimeLabel = () => {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
+  const appendOutgoingMessage = (text) => {
+    if (!text) return;
+    const msg = document.createElement('div');
+    msg.className = 'request-msg request-msg-right request-msg-outgoing';
+    msg.innerHTML = `
+      <div class="request-msg-text"></div>
+      <div class="request-msg-time"></div>
+    `;
+    msg.querySelector('.request-msg-text').textContent = text;
+    msg.querySelector('.request-msg-time').textContent = getCurrentTimeLabel();
+    dialogChat.appendChild(msg);
+    dialogChat.scrollTop = dialogChat.scrollHeight;
+  };
 
   const openDialog = () => {
     const number = sampleCard.querySelector('.request-number')?.textContent?.trim() || '';
@@ -1167,15 +1192,37 @@ const setupRequestDetailsView = () => {
     if (dialogDescription) dialogDescription.textContent = text;
 
     dialogModal.classList.remove('hidden');
+    dialogChat.scrollTop = dialogChat.scrollHeight;
   };
 
   const closeDialog = () => {
     dialogModal.classList.add('hidden');
   };
 
+  const sendCurrentMessage = () => {
+    const text = input.value.trim();
+    if (!text) return;
+    appendOutgoingMessage(text);
+    input.value = '';
+  };
+
   sampleCard.addEventListener('click', openDialog);
-  closeBtn.addEventListener('click', closeDialog);
   backBtn?.addEventListener('click', closeDialog);
+  sendBtn.addEventListener('click', sendCurrentMessage);
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      sendCurrentMessage();
+    }
+  });
+  attachBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    const files = Array.from(fileInput.files || []);
+    files.forEach((file) => {
+      appendOutgoingMessage(`Файл: ${file.name}`);
+    });
+    fileInput.value = '';
+  });
   dialogModal.addEventListener('click', (event) => {
     if (event.target === dialogModal) {
       closeDialog();

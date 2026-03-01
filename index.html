@@ -21,7 +21,7 @@
   <link href="https://fonts.googleapis.com/css2?family=PT+Root+UI:wght@500;700&display=swap" rel="stylesheet">
   
   <!-- ==================== СТИЛИ ==================== -->
-  <link rel="stylesheet" href="css/style.css?v=20260301-8" />
+  <link rel="stylesheet" href="css/style.css?v=20260301-9" />
 </head>
 
 <body>
@@ -206,7 +206,16 @@
           </div>
         </div>
 
-        <button id="request-dialog-close" class="request-dialog-close">Заявка закрыта</button>
+        <div class="request-dialog-composer">
+          <button id="request-dialog-attach" class="request-composer-attach" aria-label="Прикрепить файл">
+            <i class="fas fa-paperclip"></i>
+          </button>
+          <input id="request-dialog-file" type="file" class="request-composer-file" multiple />
+          <input id="request-dialog-input" type="text" class="request-composer-input" placeholder="Напишите сообщение..." />
+          <button id="request-dialog-send" class="request-composer-send" aria-label="Отправить">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -232,8 +241,8 @@
   </div>
 
 <!-- ==================== СКРИПТЫ ==================== -->
-<script src="js/api.js?v=20260301-8"></script>
-<script src="js/auth.js?v=20260301-8"></script>
-<script src="js/app.js?v=20260301-8"></script>
+<script src="js/api.js?v=20260301-9"></script>
+<script src="js/auth.js?v=20260301-9"></script>
+<script src="js/app.js?v=20260301-9"></script>
 </body>
 </html>
