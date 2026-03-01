@@ -103,8 +103,8 @@ body.hide-main-logo .main-logo-container {
 }
 
 body.hide-main-logo #requests.page {
-  margin-top: 8px;
-  padding-top: 8px;
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .page {
@@ -859,6 +859,12 @@ body.hide-main-logo #requests.page {
   gap: 12px;
 }
 
+.requests-modern.requests-table {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+}
+
 .requests-title {
   text-align: center;
   font-size: clamp(24px, 4.8vw, 34px);
@@ -873,6 +879,7 @@ body.hide-main-logo #requests.page {
   background: #2c2d35;
   border-radius: 22px;
   padding: 10px 14px;
+  margin-top: 2px;
 }
 
 .requests-search-icon {
