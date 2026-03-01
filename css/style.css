@@ -37,6 +37,10 @@ body {
   max-height: 200px;
 }
 
+body.hide-main-logo .main-logo-container {
+  display: none;
+}
+
 /* ==================== ЭКРАН ПРИВЕТСТВИЯ ==================== */
 #welcome-screen {
   display: flex;
@@ -95,7 +99,12 @@ body {
 }
 
 #requests.page {
-  padding-top: 80px;
+  padding-top: 24px;
+}
+
+body.hide-main-logo #requests.page {
+  margin-top: 8px;
+  padding-top: 8px;
 }
 
 .page {
@@ -844,31 +853,31 @@ body {
 
 /* ==================== НОВЫЙ ЭКРАН ЗАЯВОК ==================== */
 .requests-modern {
-  min-height: calc(100vh - 180px);
+  min-height: calc(100vh - 145px);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .requests-title {
   text-align: center;
-  font-size: clamp(30px, 6vw, 44px);
+  font-size: clamp(24px, 4.8vw, 34px);
   font-weight: 700;
-  margin-top: 4px;
+  margin-top: 0;
 }
 
 .requests-search-wrap {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   background: #2c2d35;
-  border-radius: 28px;
-  padding: 12px 16px;
+  border-radius: 22px;
+  padding: 10px 14px;
 }
 
 .requests-search-icon {
   color: #7e8291;
-  font-size: 22px;
+  font-size: 18px;
 }
 
 .requests-search-input {
@@ -876,7 +885,7 @@ body {
   background: transparent;
   border: none;
   color: #fff;
-  font-size: clamp(18px, 4vw, 22px);
+  font-size: clamp(15px, 3.6vw, 18px);
   outline: none;
 }
 
@@ -888,13 +897,13 @@ body {
   background: transparent;
   border: none;
   color: #8a8fa0;
-  font-size: 22px;
+  font-size: 18px;
 }
 
 .request-card {
   background: #2f3037;
-  border-radius: 24px;
-  padding: 16px 18px;
+  border-radius: 18px;
+  padding: 14px 14px;
   color: #f2f3f7;
 }
 
@@ -907,42 +916,42 @@ body {
 .request-number {
   background: #3a3b43;
   color: #a4a8b6;
-  padding: 4px 10px;
-  border-radius: 10px;
-  font-size: clamp(20px, 4vw, 24px);
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: clamp(15px, 3.4vw, 18px);
 }
 
 .request-status {
   color: #8e92a0;
-  font-size: clamp(18px, 3.8vw, 24px);
+  font-size: clamp(15px, 3.2vw, 18px);
 }
 
 .request-topic {
-  margin-top: 12px;
-  font-size: clamp(26px, 5vw, 34px);
+  margin-top: 10px;
+  font-size: clamp(19px, 4.2vw, 24px);
   font-weight: 700;
 }
 
 .request-meta {
-  margin-top: 8px;
+  margin-top: 6px;
   color: #8c90a0;
-  font-size: clamp(17px, 3.5vw, 23px);
+  font-size: clamp(14px, 3vw, 17px);
 }
 
 .request-text {
-  margin-top: 10px;
+  margin-top: 8px;
   color: #7e8291;
-  font-size: clamp(16px, 3.2vw, 22px);
+  font-size: clamp(14px, 2.8vw, 16px);
 }
 
 .requests-pagination {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 16px;
   background: #2f3037;
-  border-radius: 20px;
-  padding: 14px 10px;
+  border-radius: 16px;
+  padding: 10px 8px;
   color: #9ca0af;
 }
 
@@ -950,11 +959,11 @@ body {
   background: transparent;
   border: none;
   color: #818594;
-  font-size: 30px;
+  font-size: 22px;
 }
 
 .requests-page-info {
-  font-size: clamp(18px, 3.5vw, 26px);
+  font-size: clamp(14px, 2.8vw, 18px);
 }
 
 .btn-NewRequest {
@@ -962,14 +971,14 @@ body {
   align-self: flex-end;
   border: none;
   border-radius: 999px;
-  padding: 16px 24px;
+  padding: 12px 18px;
   font-family: 'PT Root UI', sans-serif;
   font-weight: 700;
-  font-size: clamp(24px, 4.2vw, 30px);
+  font-size: clamp(16px, 3.4vw, 22px);
   color: white;
   background: linear-gradient(90deg, #00c8ff 0%, #0070ff 100%);
   box-shadow: 0 12px 26px rgba(0, 112, 255, 0.3);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }

@@ -834,7 +834,10 @@ const startAnimation = () => {
       
       setTimeout(() => {
         const activePage = document.querySelector('.page.active');
-        if (activePage) animateButtons(activePage);
+        if (activePage) {
+          document.body.classList.toggle('hide-main-logo', activePage.id === 'requests');
+          animateButtons(activePage);
+        }
         document.querySelector('.nav-bar')?.classList.add('slide-in');
       }, 100);
     }, 3000);
@@ -855,6 +858,7 @@ const setupNavigation = () => {
       const newPage = document.getElementById(pageId);
       newPage?.classList.add('active');
       btn.classList.add('active');
+      document.body.classList.toggle('hide-main-logo', pageId === 'requests');
 
       const allButtons = newPage.querySelectorAll('[class^="btn-"]');
       allButtons.forEach(button => button.classList.remove('slide-in'));
