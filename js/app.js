@@ -1141,47 +1141,44 @@ const setupEstablishmentSelection = () => {
 
 const setupRequestDetailsView = () => {
   const sampleCard = document.getElementById('request-card-sample');
-  const detailsView = document.getElementById('request-details-view');
-  const backBtn = document.getElementById('request-details-back');
-  const newRequestBtn = document.querySelector('.btn-NewRequest');
-  const pagination = document.querySelector('.requests-pagination');
+  const dialogModal = document.getElementById('request-dialog-modal');
+  const closeBtn = document.getElementById('request-dialog-close');
 
-  if (!sampleCard || !detailsView || !backBtn) return;
+  if (!sampleCard || !dialogModal || !closeBtn) return;
 
-  const openDetails = () => {
+  const openDialog = () => {
     const number = sampleCard.querySelector('.request-number')?.textContent?.trim() || '';
     const status = sampleCard.querySelector('.request-status')?.textContent?.trim() || '';
     const topic = sampleCard.querySelector('.request-topic')?.textContent?.trim() || '';
     const meta = sampleCard.querySelector('.request-meta')?.textContent?.trim() || '';
     const text = sampleCard.querySelector('.request-text')?.textContent?.trim() || '';
 
-    const detailsNumber = document.getElementById('request-details-number');
-    const detailsStatus = document.getElementById('request-details-status');
-    const detailsTopic = document.getElementById('request-details-topic');
-    const detailsMeta = document.getElementById('request-details-meta');
-    const detailsText = document.getElementById('request-details-text');
+    const dialogNumber = document.getElementById('request-dialog-number');
+    const dialogStatus = document.getElementById('request-dialog-status');
+    const dialogTopic = document.getElementById('request-dialog-topic');
+    const dialogCompany = document.getElementById('request-dialog-company');
+    const dialogDescription = document.getElementById('request-dialog-description');
 
-    if (detailsNumber) detailsNumber.textContent = number;
-    if (detailsStatus) detailsStatus.textContent = status;
-    if (detailsTopic) detailsTopic.textContent = topic;
-    if (detailsMeta) detailsMeta.textContent = meta;
-    if (detailsText) detailsText.textContent = text;
+    if (dialogNumber) dialogNumber.textContent = number;
+    if (dialogStatus) dialogStatus.textContent = status;
+    if (dialogTopic) dialogTopic.textContent = topic;
+    if (dialogCompany) dialogCompany.textContent = meta;
+    if (dialogDescription) dialogDescription.textContent = text;
 
-    sampleCard.classList.add('hidden');
-    if (pagination) pagination.classList.add('hidden');
-    if (newRequestBtn) newRequestBtn.classList.add('hidden');
-    detailsView.classList.remove('hidden');
+    dialogModal.classList.remove('hidden');
   };
 
-  const closeDetails = () => {
-    detailsView.classList.add('hidden');
-    sampleCard.classList.remove('hidden');
-    if (pagination) pagination.classList.remove('hidden');
-    if (newRequestBtn) newRequestBtn.classList.remove('hidden');
+  const closeDialog = () => {
+    dialogModal.classList.add('hidden');
   };
 
-  sampleCard.addEventListener('click', openDetails);
-  backBtn.addEventListener('click', closeDetails);
+  sampleCard.addEventListener('click', openDialog);
+  closeBtn.addEventListener('click', closeDialog);
+  dialogModal.addEventListener('click', (event) => {
+    if (event.target === dialogModal) {
+      closeDialog();
+    }
+  });
 };
 
 /* ==================== ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ ==================== */

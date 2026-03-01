@@ -21,7 +21,7 @@
   <link href="https://fonts.googleapis.com/css2?family=PT+Root+UI:wght@500;700&display=swap" rel="stylesheet">
   
   <!-- ==================== СТИЛИ ==================== -->
-  <link rel="stylesheet" href="css/style.css?v=20260301-5" />
+  <link rel="stylesheet" href="css/style.css?v=20260301-6" />
 </head>
 
 <body>
@@ -88,20 +88,6 @@
 
         <button class="btn-NewRequest"><i class="fas fa-plus"></i> Новая заявка</button>
 
-        <div id="request-details-view" class="request-details hidden">
-          <div class="request-details-header">
-            <button id="request-details-back" class="request-details-back"><i class="fas fa-arrow-left"></i> Назад</button>
-            <div class="request-details-title">Детали заявки</div>
-          </div>
-
-          <div class="request-details-card">
-            <div id="request-details-number" class="request-details-number">№101259 от 05.06</div>
-            <div id="request-details-status" class="request-details-status">Закрыта</div>
-            <div id="request-details-topic" class="request-details-topic">Тестовая заявка</div>
-            <div id="request-details-meta" class="request-details-meta">ООО "Ресторан Сервис" • Иван Кувшинов</div>
-            <div id="request-details-text" class="request-details-text">Мы в вас верим и обязательно дождемся))</div>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -184,6 +170,43 @@
       </div>
     </div>
 
+    <!-- Модальное окно: диалог по заявке -->
+    <div id="request-dialog-modal" class="modal hidden request-dialog-modal">
+      <div class="request-dialog-sheet">
+        <div class="request-dialog-top">
+          <div class="request-dialog-title">Заявка</div>
+          <div class="request-dialog-meta-row">
+            <span id="request-dialog-number" class="request-dialog-number">№101259 от 05.06 17:09</span>
+            <span id="request-dialog-status" class="request-dialog-status">Закрыта</span>
+          </div>
+          <div id="request-dialog-topic" class="request-dialog-topic">Тестовая заявка</div>
+          <div id="request-dialog-company" class="request-dialog-company">ООО "Ресторан Сервис..." • Иван Кувшинов</div>
+        </div>
+
+        <div class="request-dialog-chat">
+          <div class="request-msg request-msg-left">
+            <div class="request-msg-head">
+              <div class="request-msg-avatar"></div>
+              <div class="request-msg-author">Иван Кувшинов</div>
+            </div>
+            <div class="request-msg-text">тесте</div>
+            <div class="request-msg-time">05.06 17:09</div>
+          </div>
+
+          <div class="request-msg request-msg-right">
+            <div class="request-msg-head">
+              <div class="request-msg-avatar"></div>
+              <div class="request-msg-author">Иван Кувшинов</div>
+            </div>
+            <div id="request-dialog-description" class="request-msg-text">Мы в вас верим и обязательно дождемся))</div>
+            <div class="request-msg-time">05.06 19:40</div>
+          </div>
+        </div>
+
+        <button id="request-dialog-close" class="request-dialog-close">Заявка закрыта</button>
+      </div>
+    </div>
+
     <!-- ==================== НАВИГАЦИЯ ==================== -->
     <nav class="nav-bar">
       <a href="#" data-page="home" class="nav-btn active">
@@ -206,8 +229,8 @@
   </div>
 
 <!-- ==================== СКРИПТЫ ==================== -->
-<script src="js/api.js?v=20260301-5"></script>
-<script src="js/auth.js?v=20260301-5"></script>
-<script src="js/app.js?v=20260301-5"></script>
+<script src="js/api.js?v=20260301-6"></script>
+<script src="js/auth.js?v=20260301-6"></script>
+<script src="js/app.js?v=20260301-6"></script>
 </body>
 </html>
