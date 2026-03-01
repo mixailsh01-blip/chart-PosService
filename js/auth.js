@@ -319,6 +319,25 @@ const Auth = {
       }
 
       const responseItems = Array.isArray(result) ? result : [result];
+      const taskSupportPayload = responseItems
+        .map((item) => {
+          const client = item?.Client ?? item?.client ?? item?.name ?? null;
+          const id = item?.ID ?? item?.id ?? item?.Id ?? null;
+          const number = item?.Nubmer ?? item?.Number ?? item?.number ?? null;
+          if (!client || !id) return null;
+          return {
+            Client: String(client),
+            ID: String(id),
+            ...(number ? { Nubmer: String(number) } : {})
+          };
+        })
+        .filter(Boolean);
+
+      if (taskSupportPayload.length > 0 && window.API?.sendTaskSupport) {
+        window.API.sendTaskSupport(taskSupportPayload, userData).then((taskSupportResponse) => {
+          window.lastTaskSupportResponse = taskSupportResponse;
+        });
+      }
 
       // Находим текущего пользователя по ID (старый формат)
       let currentUser = responseItems.find(item =>
