@@ -2131,23 +2131,27 @@ function renderClientsTable(raw) {
     const nameB = normalizeName(getClientNameValue(b));
     return nameA.localeCompare(nameB, "ru", { sensitivity: "base" });
   });
-  const sortedRows = [...searchedRows].sort((a, b) => {
+  const storedOrder = loadClientsOrder();
+  const fullOrderKeys = buildClientOrder(fullSortedRows, storedOrder);
+  const orderIndexByKey = new Map(
+    fullOrderKeys.map((key, index) => [key, index])
+  );
+  const orderedRows = [...searchedRows].sort((a, b) => {
+    const keyA = getClientKey(a.__source || a);
+    const keyB = getClientKey(b.__source || b);
+    const rankA =
+      keyA && orderIndexByKey.has(keyA)
+        ? orderIndexByKey.get(keyA)
+        : Number.MAX_SAFE_INTEGER;
+    const rankB =
+      keyB && orderIndexByKey.has(keyB)
+        ? orderIndexByKey.get(keyB)
+        : Number.MAX_SAFE_INTEGER;
+    if (rankA !== rankB) return rankA - rankB;
     const nameA = normalizeName(getClientNameValue(a));
     const nameB = normalizeName(getClientNameValue(b));
     return nameA.localeCompare(nameB, "ru", { sensitivity: "base" });
   });
-  const storedOrder = loadClientsOrder();
-  const fullOrderKeys = buildClientOrder(fullSortedRows, storedOrder);
-  const fullRowMap = new Map(
-    fullSortedRows.map((row) => [getClientKey(row.__source || row), row])
-  );
-  const filteredKeySet = new Set(
-    sortedRows.map((row) => getClientKey(row.__source || row)).filter(Boolean)
-  );
-  const orderedRows = fullOrderKeys
-    .filter((key) => filteredKeySet.has(key))
-    .map((key) => fullRowMap.get(key))
-    .filter(Boolean);
   const normalizedRows = normalizeClientRows(orderedRows);
   const collapsedGroups = loadCollapsedGroups();
   const childrenByParent = new Map();
