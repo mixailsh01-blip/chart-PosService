@@ -1594,7 +1594,7 @@ function openClientsOrgPopover(sourceRow, anchorEl, rawRow = null) {
 
           <div class="field-row">
             <label>Организация</label>
-            <input type="text" value="${escapeHtml(orgName)}" readonly class="clients-readonly-input">
+            <input type="text" value="${escapeHtml(reorderOrgLabel(orgName))}" readonly class="clients-readonly-input">
             ${clientsCopyBtnHtml("Организация")}
           </div>
 
@@ -1647,14 +1647,13 @@ function openClientsOrgPopover(sourceRow, anchorEl, rawRow = null) {
       onSave: () => {
         sourceRow.__nonSumDirty = true;
         const inputs = clientsPopoverEl?.querySelectorAll(".shift-popover-section input");
-        const orgInput = inputs?.[0];
         const innInput = inputs?.[1];
         const kppInput = inputs?.[2];
         const ogrnInput = inputs?.[3];
         const bikInput = inputs?.[4];
         const corInput = inputs?.[5];
         const rsInput = inputs?.[6];
-        const nextOrg = orgInput?.value?.trim() ?? orgName;
+        const nextOrg = orgName;
         const nextInn = innInput?.value?.trim() ?? innValue;
         const nextKpp = kppInput?.value?.trim() ?? kppValue;
         const nextOgrn = ogrnInput?.value?.trim() ?? ogrnValue;

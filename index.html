@@ -227,7 +227,7 @@
 
   <script src="js/shift-colors.js"></script>
   <script type="module" src="js/app.js?v=10"></script>
-  <script type="module" src="js/clients.js?v=115"></script>
+  <script type="module" src="js/clients.js?v=116"></script>
   <script>
     (function () {
       var CLIENTS_DIRECT_WEBHOOK_URL = "https://quumahienot.beget.app/webhook/client";
@@ -493,7 +493,7 @@
               if (attempt >= 2) {
                 try {
                   var dynamicImport = Function("u", "return import(u)");
-                  dynamicImport("./js/clients.js?v=115")
+                  dynamicImport("./js/clients.js?v=116")
                     .then(function () {
                       if (window.__clientsApi && typeof window.__clientsApi.loadClients === "function") {
                         window.__clientsApi.loadClients({ force: true });
