@@ -1575,8 +1575,9 @@ function openClientsOrgPopover(sourceRow, anchorEl, rawRow = null) {
   const bikValue = getValue("BIK", "bik", "БИК");
   const corValue = getValue("COR", "cor", "Кор счет", "Кор. счет", "Корр счет", "Корр. счет", "Кор");
   const rsValue = getValue("RS", "rs", "Р/С", "РС", "Р/с");
-  const title = orgName || clientName || "Организация";
-  const subtitle = clientName ? `${clientName} • ${orgName || "Без организации"}` : orgName || "Редактирование";
+  const orgDisplay = reorderOrgLabel(orgName);
+  const title = orgDisplay || clientName || "Организация";
+  const subtitle = clientName ? `${clientName} • ${orgDisplay || "Без организации"}` : orgDisplay || "Редактирование";
 
   openClientsPopover(
     `
@@ -2069,7 +2070,7 @@ function openClientsSumPopover(sourceRow, anchorEl) {
   const clientName = pickValue(sourceRow, "Client", "client", "Клиент");
   const orgName = pickValue(sourceRow, "Org", "org", "Орг");
   const sumValue = getSumToValue(sourceRow);
-  const title = clientName || orgName || "Сумма ТО";
+  const title = clientName || reorderOrgLabel(orgName) || "Сумма ТО";
   const subtitle = clientName ? `${clientName} • сумма` : "Сумма ТО";
   const now = new Date();
   const monthNames = getMonthShortOptions();
@@ -2264,7 +2265,7 @@ function openClientsCommentPopover(sourceRow, anchorEl) {
   const clientName = pickValue(sourceRow, "Client", "client", "Клиент");
   const orgName = pickValue(sourceRow, "Org", "org", "Орг");
   const commentValue = getCommentValue(sourceRow);
-  const title = clientName || orgName || "Комментарий";
+  const title = clientName || reorderOrgLabel(orgName) || "Комментарий";
   const subtitle = clientName ? `${clientName} • комментарий` : "Комментарий";
 
   openClientsPopover(
