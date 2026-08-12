@@ -60,6 +60,7 @@ const clientsViewEl = $("#clients-view");
 const clientsTableWrapEl = $("#clients-table-wrap");
 const clientsStateEl = $("#clients-state");
 const clientsRefreshEl = $("#clients-refresh");
+const clientsShowHiddenEl = $("#clients-show-hidden");
 const clientsSaveEl = $("#clients-save");
 const topNavButtons = document.querySelectorAll(".top-nav [data-section]");
 const ACTIVE_SECTION_STORAGE_KEY = "posservice_active_section";
@@ -81,6 +82,37 @@ let clientsManagerFilterPopoverEl = null;
 let clientsManagerFilterKeydownHandler = null;
 
 const CLIENTS_MANAGER_FILTER_KEY = "clients_manager_filter_v1";
+let clientsSortColumn = null; // "client" | "org" | "sum" | "rateTo"
+const CLIENTS_HIDDEN_KEY = "clients_hidden_keys_v1";
+let clientsHiddenKeys = loadClientsHiddenKeys();
+let clientsShowHidden = false;
+
+function loadClientsHiddenKeys() {
+  try {
+    const raw = localStorage.getItem(CLIENTS_HIDDEN_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(arr) ? arr.filter(Boolean) : []);
+  } catch (_) {
+    return new Set();
+  }
+}
+
+function saveClientsHiddenKeys() {
+  try {
+    localStorage.setItem(CLIENTS_HIDDEN_KEY, JSON.stringify(Array.from(clientsHiddenKeys)));
+  } catch (_) {}
+}
+
+function updateClientsShowHiddenButton() {
+  if (!clientsShowHiddenEl) return;
+  const count = clientsHiddenKeys.size;
+  clientsShowHiddenEl.textContent = clientsShowHidden
+    ? `🙉 Скрытые (${count})`
+    : `🙈 Скрытые (${count})`;
+  clientsShowHiddenEl.classList.toggle("active", clientsShowHidden);
+  clientsShowHiddenEl.disabled = count === 0 && !clientsShowHidden;
+}
+let clientsSortDirection = "asc"; // "asc" | "desc"
 let clientsSearchQuery = "";
 let clientsSearchButton = null;
 let clientsSearchBackdropEl = null;
@@ -390,6 +422,59 @@ function normalizeSearchValue(value) {
   return normalizeName(value).toLowerCase();
 }
 
+async function copyTextToClipboard(text) {
+  if (!text) return false;
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (_) {
+    // fall through to legacy fallback
+  }
+  try {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(textarea);
+    return ok;
+  } catch (_) {
+    return false;
+  }
+}
+
+function clientsCopyBtnHtml(labelText) {
+  return `<button type="button" class="clients-copy-btn" aria-label="Копировать: ${escapeHtml(labelText)}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="9" y="9" width="12" height="12" rx="2" ry="2"></rect>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+    </svg>
+  </button>`;
+}
+
+function attachClientsCopyButtons(container) {
+  if (!container) return;
+  container.querySelectorAll(".clients-copy-btn").forEach((btn) => {
+    btn.addEventListener("click", async (event) => {
+      event.stopPropagation();
+      const fieldRow = btn.closest(".field-row");
+      const input = fieldRow?.querySelector("input");
+      const value = input?.value ?? "";
+      if (!value) {
+        showClientsToast("Нечего копировать.");
+        return;
+      }
+      const ok = await copyTextToClipboard(value);
+      showClientsToast(ok ? "Скопировано." : "Не удалось скопировать.");
+    });
+  });
+}
+
 function showClientsToast(message) {
   const raw = String(message || "").trim();
   const hasCyrillic = /[А-Яа-яЁё]/.test(raw);
@@ -459,6 +544,111 @@ function setRowFieldValue(row, keys, value) {
 
 function getSumToValue(row) {
   return pickValue(row, "SumTO", "Сумма ТО", "СуммаТО");
+}
+
+function getOrgValue(row) {
+  return pickValue(row, "Org", "ORG", "Орг", "Юр. лицо", "Юр.лицо");
+}
+
+function getRateToValue(row) {
+  return pickValue(row, "RateTO", "Тип обслуживания", "Rate To", "rateTo");
+}
+
+function getRateToSortGroup(value) {
+  const trimmed = normalizeName(value).toUpperCase();
+  if (!trimmed) return 1;
+  if (trimmed.includes("VIP")) return 0;
+  if (trimmed.includes("NOT ACTIVE")) return 2;
+  return 1;
+}
+
+const ORG_KNOWN_PREFIXES = [
+  "ПРЕДСТАВИТЕЛЬСТВО",
+  "ООО",
+  "ИП",
+  "ЗАО",
+  "ОАО",
+  "ПАО",
+  "АНО",
+  "НКО",
+  "АО",
+];
+
+function matchOrgPrefix(text) {
+  const upper = text.toUpperCase();
+  return ORG_KNOWN_PREFIXES.find((p) => {
+    if (!upper.startsWith(p)) return false;
+    const nextChar = text.charAt(p.length);
+    return nextChar === "" || /[\s"«»']/.test(nextChar);
+  });
+}
+
+function reorderOrgLabel(value) {
+  const original = normalizeName(value);
+  let rest = original;
+  const collectedPrefixes = [];
+  let prefix = matchOrgPrefix(rest);
+  while (prefix) {
+    collectedPrefixes.push(rest.slice(0, prefix.length));
+    rest = rest.slice(prefix.length).trim();
+    prefix = matchOrgPrefix(rest);
+  }
+  if (!collectedPrefixes.length || !rest) return original;
+  return `${rest} ${collectedPrefixes.join(" ")}`;
+}
+
+function parseSumToNumber(value) {
+  const num = parseFloat(String(value ?? "").replace(/\s+/g, "").replace(",", "."));
+  return Number.isFinite(num) ? num : null;
+}
+
+function compareClientsBySort(a, b, column, direction) {
+  const dir = direction === "desc" ? -1 : 1;
+  if (column === "sum") {
+    const numA = parseSumToNumber(getSumToValue(a)) ?? 0;
+    const numB = parseSumToNumber(getSumToValue(b)) ?? 0;
+    return (numA - numB) * dir;
+  }
+  if (column === "org") {
+    const valueA = reorderOrgLabel(getOrgValue(a));
+    const valueB = reorderOrgLabel(getOrgValue(b));
+    return valueA.localeCompare(valueB, "ru", { sensitivity: "base" }) * dir;
+  }
+  if (column === "rateTo") {
+    const groupA = getRateToSortGroup(getRateToValue(a));
+    const groupB = getRateToSortGroup(getRateToValue(b));
+    if (groupA !== groupB) return groupA - groupB;
+    const valueA = normalizeName(getRateToValue(a));
+    const valueB = normalizeName(getRateToValue(b));
+    return valueA.localeCompare(valueB, "ru", { sensitivity: "base" }) * dir;
+  }
+  const valueA = normalizeName(getClientNameValue(a));
+  const valueB = normalizeName(getClientNameValue(b));
+  return valueA.localeCompare(valueB, "ru", { sensitivity: "base" }) * dir;
+}
+
+function createClientsSortButton(column, ariaLabel) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "clients-sort-btn";
+  const isActive = clientsSortColumn === column;
+  if (isActive) {
+    btn.classList.add("active", clientsSortDirection === "desc" ? "desc" : "asc");
+  }
+  btn.setAttribute("aria-label", ariaLabel);
+  btn.innerHTML =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9l5-5 5 5H7zm0 6h10l-5 5-5-5z"></path></svg>';
+  btn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (clientsSortColumn === column) {
+      clientsSortDirection = clientsSortDirection === "asc" ? "desc" : "asc";
+    } else {
+      clientsSortColumn = column;
+      clientsSortDirection = "asc";
+    }
+    if (clientsLastData) renderClientsTable(clientsLastData);
+  });
+  return btn;
 }
 
 function getCommentValue(row) {
@@ -1405,36 +1595,43 @@ function openClientsOrgPopover(sourceRow, anchorEl, rawRow = null) {
           <div class="field-row">
             <label>Организация</label>
             <input type="text" value="${escapeHtml(orgName)}" readonly class="clients-readonly-input">
+            ${clientsCopyBtnHtml("Организация")}
           </div>
 
           <div class="field-row">
             <label>ИНН</label>
             <input type="text" value="${escapeHtml(innValue)}">
+            ${clientsCopyBtnHtml("ИНН")}
           </div>
 
           <div class="field-row">
             <label>КПП</label>
             <input type="text" value="${escapeHtml(kppValue)}">
+            ${clientsCopyBtnHtml("КПП")}
           </div>
 
           <div class="field-row">
             <label>ОГРН</label>
             <input type="text" value="${escapeHtml(ogrnValue)}">
+            ${clientsCopyBtnHtml("ОГРН")}
           </div>
 
           <div class="field-row">
             <label>БИК</label>
             <input type="text" value="${escapeHtml(bikValue)}">
+            ${clientsCopyBtnHtml("БИК")}
           </div>
 
           <div class="field-row">
             <label>Кор. счет</label>
             <input type="text" value="${escapeHtml(corValue)}">
+            ${clientsCopyBtnHtml("Кор. счет")}
           </div>
 
           <div class="field-row">
             <label>Р/С</label>
             <input type="text" value="${escapeHtml(rsValue)}">
+            ${clientsCopyBtnHtml("Р/С")}
           </div>
         </div>
       </div>
@@ -1446,6 +1643,7 @@ function openClientsOrgPopover(sourceRow, anchorEl, rawRow = null) {
     `,
     anchorEl,
     {
+      onReady: (popoverEl) => attachClientsCopyButtons(popoverEl),
       onSave: () => {
         sourceRow.__nonSumDirty = true;
         const inputs = clientsPopoverEl?.querySelectorAll(".shift-popover-section input");
@@ -1554,13 +1752,10 @@ function openClientsClientPopover(sourceRow, anchorEl) {
             <input type="text" value="${escapeHtml(rateIiko)}">
           </div>
         </div>
-
-        <div class="shift-popover-note">
-          Дубликат окна графика. Дальше настроим поля и сохранение.
-        </div>
       </div>
 
       <div class="shift-popover-footer">
+        <button class="btn secondary clients-popover-hide" type="button">Скрыть клиента</button>
         <button class="btn secondary clients-popover-new" type="button">NEW</button>
         <button class="btn clients-popover-cancel" type="button">Отмена</button>
         <button class="btn primary clients-popover-save" type="button">Сохранить локально</button>
@@ -1569,6 +1764,26 @@ function openClientsClientPopover(sourceRow, anchorEl) {
     anchorEl,
     {
       className: "clients-popover-wide",
+      onReady: () => {
+        const hideButton = clientsPopoverEl?.querySelector(".clients-popover-hide");
+        if (!hideButton) return;
+        const rowKey = getClientKey(sourceRow);
+        const applyLabel = () => {
+          hideButton.textContent = clientsHiddenKeys.has(rowKey) ? "Показать клиента" : "Скрыть клиента";
+        };
+        applyLabel();
+        hideButton.addEventListener("click", () => {
+          if (clientsHiddenKeys.has(rowKey)) {
+            clientsHiddenKeys.delete(rowKey);
+          } else {
+            clientsHiddenKeys.add(rowKey);
+          }
+          saveClientsHiddenKeys();
+          applyLabel();
+          if (clientsLastData) renderClientsTable(clientsLastData);
+          if (!clientsShowHidden) closeClientsPopover();
+        });
+      },
       onSave: () => {
         const newButton = clientsPopoverEl?.querySelector(".clients-popover-new");
         sourceRow.__nonSumDirty = true;
@@ -1668,10 +1883,6 @@ function openClientsFirstClientPopover(sourceRow, anchorEl) {
             <label>Email</label>
             <input type="text" value="${escapeHtml(emailValue)}">
           </div>
-        </div>
-
-        <div class="shift-popover-note">
-          Дубликат окна графика. Дальше настроим поля и сохранение.
         </div>
       </div>
 
@@ -2116,9 +2327,12 @@ function renderClientsTable(raw) {
   ensureSumToSnapshot(rows);
   ensureSumStatusSnapshot(rows);
   removeClientsFilters();
+  updateClientsShowHiddenButton();
   const managers = ensureManagerSelection(rows);
   updateManagerFilterButtonState(managers);
   const filteredRows = rows.filter((row) => {
+    const isHidden = clientsHiddenKeys.has(getClientKey(row));
+    if (isHidden && !clientsShowHidden) return false;
     if (clientsManagerSelected === null) return true;
     if (!clientsManagerSelected.size) return false;
     const managerValue = normalizeName(getManagerValue(row));
@@ -2137,6 +2351,9 @@ function renderClientsTable(raw) {
     fullOrderKeys.map((key, index) => [key, index])
   );
   const orderedRows = [...searchedRows].sort((a, b) => {
+    if (clientsSortColumn) {
+      return compareClientsBySort(a, b, clientsSortColumn, clientsSortDirection);
+    }
     const keyA = getClientKey(a.__source || a);
     const keyB = getClientKey(b.__source || b);
     const rankA =
@@ -2382,13 +2599,49 @@ function renderClientsTable(raw) {
         });
       });
 
-      headerWrap.append(name, searchBtn);
+      const clientSortBtn = createClientsSortButton("client", "Сортировать по клиенту");
+      const clientActions = document.createElement("div");
+      clientActions.className = "clients-header-actions";
+      clientActions.append(searchBtn, clientSortBtn);
+      headerWrap.append(name, clientActions);
       th.append(headerWrap);
     } else if (colKey === "org" || colKey === "орг") {
-      const name = document.createElement("div");
-      name.className = "clients-col-name";
+      const headerWrap = document.createElement("div");
+      headerWrap.className = "clients-search-header";
+
+      const name = document.createElement("span");
+      name.className = "header-text";
       name.textContent = displayLabel;
-      th.append(name);
+
+      const orgSortBtn = createClientsSortButton("org", "Сортировать по юр. лицу");
+      headerWrap.append(name, orgSortBtn);
+      th.append(headerWrap);
+    } else if (
+      colKey === "sumto" ||
+      colKey.replace(/[^a-z0-9]/g, "") === "sumto" ||
+      colKey.replace(/[^Ѐ-ӿ0-9]/g, "") === "суммато"
+    ) {
+      const headerWrap = document.createElement("div");
+      headerWrap.className = "clients-search-header";
+
+      const name = document.createElement("span");
+      name.className = "header-text";
+      name.textContent = displayLabel;
+
+      const sumSortBtn = createClientsSortButton("sum", "Сортировать по сумме");
+      headerWrap.append(name, sumSortBtn);
+      th.append(headerWrap);
+    } else if (colKey === "rateto" || colKey === "типобслуживания") {
+      const headerWrap = document.createElement("div");
+      headerWrap.className = "clients-search-header";
+
+      const name = document.createElement("span");
+      name.className = "header-text";
+      name.textContent = displayLabel;
+
+      const rateToSortBtn = createClientsSortButton("rateTo", "Сортировать по типу обслуживания");
+      headerWrap.append(name, rateToSortBtn);
+      th.append(headerWrap);
     } else {
       const name = document.createElement("div");
       name.className = "clients-col-name";
@@ -2426,6 +2679,7 @@ function renderClientsTable(raw) {
     const hasChildren = childrenByParent.has(externalId);
     if (hasChildren) tr.classList.add("clients-group-parent");
     if (isChild) tr.classList.add("clients-group-child");
+    if (rowKey && clientsHiddenKeys.has(rowKey)) tr.classList.add("clients-row-hidden");
     if (rowKey) tr.dataset.key = rowKey;
     if (hasGroups) {
       const groupTd = document.createElement("td");
@@ -2642,7 +2896,7 @@ function renderClientsTable(raw) {
           event.stopPropagation();
           openClientsOrgPopover(sourceRow, td, row);
         });
-        td.textContent = formatClientCell(getClientValue(row, col));
+        td.textContent = reorderOrgLabel(formatClientCell(getClientValue(row, col)));
         tr.appendChild(td);
         return;
       }
@@ -3188,4 +3442,9 @@ if (savedSection) {
   setActiveSection("schedule");
 }
 clientsRefreshEl?.addEventListener("click", () => loadClients({ force: true }));
+clientsShowHiddenEl?.addEventListener("click", () => {
+  clientsShowHidden = !clientsShowHidden;
+  updateClientsShowHiddenButton();
+  if (clientsLastData) renderClientsTable(clientsLastData);
+});
 clientsSaveEl?.addEventListener("click", saveClientsToWebhook);

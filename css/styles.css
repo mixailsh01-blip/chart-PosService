@@ -874,6 +874,11 @@ body.legend-open {
   cursor: pointer;
 }
 
+.clients-table tbody tr.clients-row-hidden td {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+}
+
 .clients-drag-cell {
   width: 28px;
   text-align: center;
@@ -1690,6 +1695,48 @@ body.legend-open {
 
 .clients-search-btn:hover {
   background: var(--button-bg-hover);
+}
+
+.clients-sort-btn {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.clients-sort-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.clients-sort-btn:hover {
+  background: var(--button-bg-hover);
+}
+
+.clients-sort-btn.active {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: rgba(194, 24, 201, 0.16);
+}
+
+.clients-sort-btn.active.desc svg {
+  transform: rotate(180deg);
+}
+
+.clients-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
 }
 
 .clients-search-backdrop {
@@ -2655,6 +2702,32 @@ body.dark-theme .clients-table-wrap::-webkit-scrollbar-thumb:hover {
 .field-row input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent-soft);
+}
+
+.clients-copy-btn {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-alt);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.clients-copy-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.clients-copy-btn:hover {
+  background: var(--button-bg-hover);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .shift-popover.clients-popover-wide {
