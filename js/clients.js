@@ -805,10 +805,7 @@ function resolveYearSumIndicator(row, year) {
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
-  const includeNextMonth = now.getDate() >= 20 ? 1 : 0;
-  const maxMonth = year === currentYear
-    ? Math.min(12, currentMonth + includeNextMonth)
-    : 12;
+  const maxMonth = year === currentYear ? currentMonth : 12;
   const createMeta = resolveClientCreateMonth(row);
   let minMonth = 1;
   if (createMeta && createMeta.year > year) return "";
