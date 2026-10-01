@@ -91,7 +91,7 @@
   },
   "ui": {
     "lines": {
-      "order": ["ALL", "OP", "OV", "L2"],
+      "order": ["ALL", "L2"],
       "labels": {
         "ALL": "ВСЕ",
         "OP": "ОП",
