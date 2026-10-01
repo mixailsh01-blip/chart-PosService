@@ -7,8 +7,8 @@ import { createGraphClient } from "./api/graphClient.js";
 import { createPyrusClient } from "./api/pyrusClient.js";
 import { createMembersService } from "./services/membersService.js";
 import { createCatalogsService } from "./services/catalogsService.js";
-import { createVacationsService } from "./services/vacationsService.js";
-import { createScheduleService } from "./services/scheduleService.js";
+import { createVacationsService } from "./services/vacationsService.js?v=2";
+import { createScheduleService } from "./services/scheduleService.js?v=2";
 import { createProdCalendarService } from "./services/prodCalendarService.js";
 
 
@@ -41,6 +41,9 @@ const TIMEZONE_OFFSET_MIN = getConfigValue("timezone.localOffsetMin", {
 const LINE_KEYS_IN_UI_ORDER = config.ui.lines.order;
 
 const LINE_LABELS = config.ui.lines.labels;
+
+// Линии без служебной вкладки «ВСЕ»
+const LINE_KEYS = LINE_KEYS_IN_UI_ORDER.filter((key) => key !== "ALL");
 
 // Жёсткая привязка department_id -> вкладка
 const LINE_DEPT_IDS = config.departments.byLine;
@@ -158,10 +161,14 @@ const state = {
     currentLine: "ALL",
     theme: "dark",
     isScheduleCached: false,
+    scheduleLoadError: null, // последняя ошибка загрузки графика (пока показан кэш)
     quickPanelBound: false,
   },
   quickMode: {
     enabled: false,
+    deleteMode: false, // в «Шаблоне смены» выбрано «Удалить»: клик по ячейке стирает смену/отпуск
+    vacationMode: false, // выбрано «Отпуск»: клик по первому дню, затем по последнему
+    vacationStart: null, // { line, employeeId, day } — первый выбранный день отпуска
     templateId: null,
     timeFrom: "",
     timeTo: "",
@@ -271,11 +278,49 @@ function deepClone(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
-function updateCurrentUserLabel(login) {
-  if (!currentUserLabelEl) return;
-  const name = state.auth.user?.name || "";
-  currentUserLabelEl.textContent = name || (login || state.auth.user?.login || "").trim();
+function computeInitials(name) {
+  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "--";
+  const first = parts[0][0] || "";
+  const second = parts.length > 1 ? parts[1][0] || "" : "";
+  return (first + second).toUpperCase() || "--";
 }
+
+function updateCurrentUserLabel(login) {
+  const name = state.auth.user?.name || "";
+  const label = name || (login || state.auth.user?.login || "").trim();
+  if (currentUserLabelEl) currentUserLabelEl.textContent = label;
+  if (profileUserNameEl) profileUserNameEl.textContent = label || "—";
+  if (profileAvatarInitialsEl) profileAvatarInitialsEl.textContent = computeInitials(label);
+}
+
+function pyrusAvatarUrl(avatarId, size = 160) {
+  return avatarId ? `https://files.pyrus.com/services/avatar/${avatarId}/${size}` : null;
+}
+
+function updateProfileAvatarImage() {
+  if (!profileAvatarImgEl) return;
+  const memberId = getOwnEmployeeId();
+  const employee = memberId != null ? (state.employeesByLine.ALL || []).find((e) => Number(e.id) === Number(memberId)) : null;
+  const url = pyrusAvatarUrl(employee?.avatarId);
+  if (!url) {
+    profileAvatarImgEl.classList.add("hidden");
+    profileAvatarImgEl.removeAttribute("src");
+    return;
+  }
+  profileAvatarImgEl.onerror = () => {
+    profileAvatarImgEl.classList.add("hidden");
+    profileAvatarImgEl.removeAttribute("src");
+    profileAvatarInitialsEl?.classList.remove("hidden");
+  };
+  profileAvatarImgEl.onload = () => {
+    profileAvatarImgEl.classList.remove("hidden");
+    profileAvatarInitialsEl?.classList.add("hidden");
+  };
+  profileAvatarImgEl.src = url;
+}
+
+
 
 function normalizeAuthUser(rawUser, overrides = {}) {
   if (!rawUser && !overrides.login && !overrides.name && overrides.id == null && !overrides.roles) {
@@ -340,6 +385,27 @@ function canEditLine(line) {
 function canViewLine(line) {
   const permission = state.auth.permissions[line] || state.auth.permissions.ALL;
   return permission === "view" || permission === "edit";
+}
+
+// Своя линия — вкладка, где у пользователя есть право редактировать.
+// Нужна, чтобы во вкладке «ВСЕ» можно было назначить отпуск самому себе: сам отпуск
+// пишется в Pyrus по конкретной линии. Если прав нет ни на одну вкладку или сразу на несколько —
+// самообслуживание недоступно (непонятно, какую линию указывать).
+function getOwnEditableLineKey() {
+  if (getOwnEmployeeId() == null) return null;
+  const editable = LINE_KEYS_IN_UI_ORDER.filter(
+    (key) => key !== "ALL" && state.auth.permissions[key] === "edit"
+  );
+  return editable.length === 1 ? editable[0] : null;
+}
+
+function getOwnEmployeeId() {
+  return state.auth.memberId ?? state.auth.user?.id ?? null;
+}
+
+function isOwnEmployeeId(employeeId) {
+  const myId = getOwnEmployeeId();
+  return myId != null && employeeId != null && Number(myId) === Number(employeeId);
 }
 
 
@@ -704,6 +770,12 @@ const emailResendButtonEl = $("#email-resend-button");
 const emailRequestErrorEl = $("#email-request-error");
 const emailCodeErrorEl = $("#email-code-error");
 const currentUserLabelEl = $("#current-user-label");
+const btnProfileEl = $("#btn-profile");
+const profileDropdownEl = $("#profile-dropdown");
+const profileDropdownBackdropEl = $("#profile-dropdown-backdrop");
+const profileUserNameEl = $("#profile-user-name");
+const profileAvatarImgEl = $("#profile-avatar-img");
+const profileAvatarInitialsEl = $("#profile-avatar-initials");
 const currentMonthLabelEl = $("#current-month-label");
 
 const lineTabsEl = $("#line-tabs");
@@ -1046,7 +1118,79 @@ function persistLocalChanges() {
   } catch (err) {
     console.warn("Не удалось сохранить локальные смены", err);
   }
+  // Любое изменение уходит в Pyrus само, через короткую паузу
+  scheduleAutoSave();
 }
+
+// ---------- Сохранение в Pyrus ----------
+// Любое изменение уходит в Pyrus само, через короткую паузу (серия кликов — один запрос).
+// На ПК пауза дольше: там чаще правят время руками и делают серии правок подряд.
+// Кнопка «Сохранить в Pyrus» остаётся: по ней можно отправить сразу или повторить после ошибки.
+const AUTOSAVE_DELAY_MS_MOBILE = 1200;
+const AUTOSAVE_DELAY_MS_DESKTOP = 2000;
+const autoSave = { timer: null, running: false, again: false, error: null };
+
+function isMobileLayout() {
+  return window.matchMedia("(max-width: 768px)").matches;
+}
+
+function linesWithPendingChanges() {
+  return LINE_KEYS.filter((line) => countChangesForLine(line) > 0 && canEditLine(line));
+}
+
+// Пока открыто окно смены на ПК, правки видны в графике сразу, а в Pyrus уходят при закрытии окна
+let autoSaveHeld = false;
+
+function scheduleAutoSave(delayMs = isMobileLayout() ? AUTOSAVE_DELAY_MS_MOBILE : AUTOSAVE_DELAY_MS_DESKTOP) {
+  if (autoSaveHeld) {
+    updateSaveButtonState();
+    return;
+  }
+  if (autoSave.timer) clearTimeout(autoSave.timer);
+  autoSave.timer = setTimeout(runAutoSave, delayMs);
+  updateSaveButtonState();
+}
+
+async function runAutoSave() {
+  autoSave.timer = null;
+  if (state.ui.isScheduleCached) {
+    // Ждём свежий график: после загрузки reloadScheduleForCurrentMonth запустит отправку сам
+    updateSaveButtonState();
+    return;
+  }
+  if (autoSave.running) {
+    autoSave.again = true;
+    return;
+  }
+  const lines = linesWithPendingChanges();
+  if (!lines.length) {
+    updateSaveButtonState();
+    return;
+  }
+  autoSave.running = true;
+  autoSave.error = null;
+  updateSaveButtonState();
+  try {
+    for (const line of lines) await saveLineToPyrus(line);
+  } catch (err) {
+    autoSave.error = err;
+    // Ошибка видна на кнопке («Не сохранено — повторить»), отдельное окно не нужно
+  } finally {
+    autoSave.running = false;
+    updateSaveButtonState();
+    if (autoSave.again) {
+      autoSave.again = false;
+      scheduleAutoSave(200);
+    }
+  }
+}
+
+window.addEventListener("beforeunload", (event) => {
+  if (autoSave.timer || autoSave.running || linesWithPendingChanges().length) {
+    event.preventDefault();
+    event.returnValue = "";
+  }
+});
 
 function persistChangeHistory() {
   try {
@@ -1977,8 +2121,57 @@ function setLegendOpen(isOpen) {
   }
 }
 
+// Ставит попап под якорем, не давая ему вылезти за края экрана (важно на мобильных, где
+// кнопка «Обед» может оказаться у левого края переносящегося ряда шапки).
+function positionPopoverNear(popoverEl, anchorEl) {
+  if (!popoverEl || !anchorEl) return;
+  const rect = anchorEl.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  popoverEl.style.left = "0px";
+  popoverEl.style.top = "0px";
+  const popoverRect = popoverEl.getBoundingClientRect();
+  const popoverWidth = popoverRect.width || 280;
+  const popoverHeight = popoverRect.height || 160;
+
+  let left = rect.left;
+  let top = rect.bottom + 8;
+  const fitsBelow = top + popoverHeight <= viewportHeight - 16;
+  const fitsAbove = rect.top - popoverHeight - 8 >= 16;
+  if (!fitsBelow && fitsAbove) top = rect.top - popoverHeight - 8;
+
+  left = Math.max(16, Math.min(left, viewportWidth - popoverWidth - 16));
+  top = Math.max(16, Math.min(top, viewportHeight - popoverHeight - 16));
+
+  popoverEl.style.left = `${left}px`;
+  popoverEl.style.top = `${top}px`;
+}
+
+function setProfileDropdownOpen(open) {
+  if (!profileDropdownEl) return;
+  profileDropdownEl.classList.toggle("hidden", !open);
+  profileDropdownBackdropEl?.classList.toggle("hidden", !open);
+  btnProfileEl?.setAttribute("aria-expanded", open ? "true" : "false");
+  if (open) positionPopoverNear(profileDropdownEl, btnProfileEl);
+}
+
 function bindTopBarButtons() {
   renderLineTabs();
+
+  btnProfileEl?.addEventListener("click", () => {
+    const isOpen = profileDropdownEl && !profileDropdownEl.classList.contains("hidden");
+    setProfileDropdownOpen(!isOpen);
+  });
+  profileDropdownBackdropEl?.addEventListener("click", () => setProfileDropdownOpen(false));
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setProfileDropdownOpen(false);
+  });
+  profileDropdownEl?.addEventListener("click", (e) => {
+    if (e.target.closest("#btn-theme-toggle") || e.target.closest("#btn-logout")) {
+      setProfileDropdownOpen(false);
+    }
+  });
   setLegendOpen(window.innerWidth <= 768 ? false : true);
   updateScheduleStickyOffsets();
 
@@ -2080,7 +2273,13 @@ function bindHistoryControls() {
   }
 
   if (btnSavePyrusEl) {
-    btnSavePyrusEl.addEventListener("click", handleSaveToPyrus);
+    btnSavePyrusEl.addEventListener("click", () => {
+      if (state.ui.isScheduleCached) {
+        if (state.ui.scheduleLoadError) reloadScheduleForCurrentMonth();
+        return;
+      }
+      scheduleAutoSave(0);
+    });
   }
 }
 
@@ -2093,7 +2292,17 @@ function initQuickAssignPanel() {
 
   quickTemplateSelectEl?.addEventListener("change", () => {
     const val = quickTemplateSelectEl.value;
-    state.quickMode.templateId = val ? Number(val) : null;
+    state.quickMode.deleteMode = val === QUICK_DELETE_VALUE;
+    state.quickMode.vacationMode = val === QUICK_VACATION_VALUE;
+    resetVacationStart();
+    state.quickMode.templateId =
+      val && !state.quickMode.deleteMode && !state.quickMode.vacationMode ? Number(val) : null;
+    // Выбор шаблона сразу включает режим — не нужно ещё отдельно нажимать «Быстрое назначение».
+    // Селект доступен только когда есть права (см. updateQuickModeForLine), поэтому здесь их не проверяем.
+    state.quickMode.enabled = Boolean(val);
+    updateQuickModeToggleUI();
+    updateQuickModeForLine();
+    if (state.quickMode.deleteMode || state.quickMode.vacationMode) return;
 
     const tmpl = getCurrentLineTemplates().find(
       (t) => t.id === state.quickMode.templateId
@@ -2121,30 +2330,20 @@ function initQuickAssignPanel() {
     state.quickMode.amount = e.target.value;
   });
 
-  quickModeToggleEl?.addEventListener("click", () => {
-    const currentLine = state.ui.currentLine;
-    
-    if (state.ui.isScheduleCached) {
-      alert("Данные загружаются, редактирование временно недоступно.");
-      return;
-    }
-
-    if (!canEditLine(currentLine)) {
-      alert(`У вас нет прав на редактирование линии ${currentLine}`);
-      return;
-    }
-    
-    state.quickMode.enabled = !state.quickMode.enabled;
-    updateQuickModeToggleUI();
-  });
 
   state.ui.quickPanelBound = true;
 }
 
+const QUICK_DELETE_VALUE = "__delete__";
+const QUICK_VACATION_VALUE = "__vacation__";
+
 function renderQuickTemplateOptions() {
   if (!quickTemplateSelectEl) return;
 
-  const currentLineTemplates = getCurrentLineTemplates();
+  const isAll = state.ui.currentLine === "ALL";
+  // Во вкладке «ВСЕ» нет собственного отдела — обычные шаблоны смен там ничего не решают
+  // (сохранение всё равно заблокировано), показываем только «Отпуск себе» и его удаление.
+  const currentLineTemplates = isAll ? [] : getCurrentLineTemplates();
   const prevSelected = state.quickMode.templateId;
 
   quickTemplateSelectEl.innerHTML = "";
@@ -2163,7 +2362,37 @@ function renderQuickTemplateOptions() {
     quickTemplateSelectEl.appendChild(option);
   });
 
+  // Отпуск пишется в Pyrus с конкретным отделом (ТП/ПО). Во вкладке подразделения —
+  // любому сотруднику вкладки; во «ВСЕ» — только самому себе, и только если у вас есть
+  // редакторские права ровно на одну из вкладок (иначе непонятно, какой отдел указать).
+  const ownLine = getOwnEditableLineKey();
+  const canVacation = isAll ? Boolean(ownLine) : true;
+  if (canVacation) {
+    const vacOption = document.createElement("option");
+    vacOption.value = QUICK_VACATION_VALUE;
+    vacOption.textContent = isAll ? "🏖 Отпуск (себе)" : "🏖 Отпуск";
+    quickTemplateSelectEl.appendChild(vacOption);
+  } else if (state.quickMode.vacationMode) {
+    state.quickMode.vacationMode = false;
+    resetVacationStart();
+  }
+
+  const delOption = document.createElement("option");
+  delOption.value = QUICK_DELETE_VALUE;
+  delOption.textContent = isAll ? "🗑 Удалить свой отпуск" : "🗑 Удалить смену / отпуск";
+  quickTemplateSelectEl.appendChild(delOption);
+
   const hasPrev = currentLineTemplates.some((t) => t.id === prevSelected);
+  if (state.quickMode.vacationMode) {
+    quickTemplateSelectEl.value = QUICK_VACATION_VALUE;
+    state.quickMode.templateId = null;
+    return;
+  }
+  if (state.quickMode.deleteMode) {
+    quickTemplateSelectEl.value = QUICK_DELETE_VALUE;
+    state.quickMode.templateId = null;
+    return;
+  }
   quickTemplateSelectEl.value = hasPrev ? String(prevSelected) : "";
   state.quickMode.templateId = hasPrev ? prevSelected : null;
 }
@@ -2183,47 +2412,58 @@ function syncQuickPanelInputs() {
   }
 }
 
+// Статус «режим включён» теперь показывает сам селект «Шаблон смены» (подсветкой),
+// отдельной кнопки-переключателя больше нет — выбор шаблона сразу и есть включение.
 function updateQuickModeToggleUI() {
-  if (!quickModeToggleEl) return;
-  quickModeToggleEl.classList.toggle("active", state.quickMode.enabled);
-  quickModeToggleEl.textContent = state.quickMode.enabled
-    ? "Быстрое назначение: Вкл"
-    : "Быстрое назначение";
+  if (!quickTemplateSelectEl) return;
+  const del = state.quickMode.deleteMode;
+  quickTemplateSelectEl.classList.toggle("quick-active", state.quickMode.enabled);
+  quickTemplateSelectEl.classList.toggle("delete-mode", state.quickMode.enabled && del);
+  document.body.classList.toggle("quick-delete-active", state.quickMode.enabled && del);
 }
 
 function updateQuickModeForLine() {
   const currentLine = state.ui.currentLine;
-  const canEdit = canEditLine(currentLine);
+  const lineLabel = LINE_LABELS[currentLine] || currentLine;
+  const isAll = currentLine === "ALL";
+  const ownLine = getOwnEditableLineKey();
+  // Во «ВСЕ» обычного редактирования нет — только отпуск себе (см. renderQuickTemplateOptions)
+  const canEdit = isAll ? Boolean(ownLine) : canEditLine(currentLine);
   const isCached = state.ui.isScheduleCached;
-  
+
   if (!canEdit && state.quickMode.enabled) {
     state.quickMode.enabled = false;
     updateQuickModeToggleUI();
   }
-  
-  if (quickModeToggleEl) {
-    quickModeToggleEl.disabled = !canEdit;
-    quickModeToggleEl.title = canEdit 
-      ? "Включить быстрое назначение смен"
-      : isCached
-      ? "Данные загружаются, редактирование временно недоступно"
-      : `Нет прав на редактирование ${currentLine}`;
+  if (isAll && state.quickMode.enabled && !state.quickMode.vacationMode && !state.quickMode.deleteMode) {
+    state.quickMode.enabled = false;
+    updateQuickModeToggleUI();
   }
-  
+
   if (quickTemplateSelectEl) {
     quickTemplateSelectEl.disabled = !canEdit;
+    quickTemplateSelectEl.title = canEdit
+      ? isAll
+        ? "Назначить отпуск самому себе"
+        : "Выберите шаблон, чтобы включить быстрое назначение"
+      : isCached
+      ? "Данные загружаются, редактирование временно недоступно"
+      : isAll
+      ? "Отпуск себе можно назначить, если вы редактор одной из вкладок (ТП или ПО)"
+      : `Нет прав на редактирование ${lineLabel}`;
   }
   
+  const noTimes = !canEdit || state.quickMode.deleteMode || state.quickMode.vacationMode;
   if (quickTimeFromInputEl) {
-    quickTimeFromInputEl.disabled = !canEdit;
+    quickTimeFromInputEl.disabled = noTimes;
   }
   
   if (quickTimeToInputEl) {
-    quickTimeToInputEl.disabled = !canEdit;
+    quickTimeToInputEl.disabled = noTimes;
   }
   
   if (quickAmountInputEl) {
-    quickAmountInputEl.disabled = !canEdit;
+    quickAmountInputEl.disabled = noTimes;
   }
 }
 
@@ -2245,26 +2485,54 @@ function updateSaveButtonState() {
   if (!btnSavePyrusEl) return;
   
   const currentLine = state.ui.currentLine;
+  const lineLabel = LINE_LABELS[currentLine] || currentLine;
   const canEdit = canEditLine(currentLine);
+  // «Панель смены» (мобильная) доступна только во вкладке, где есть права на редактирование
+  document.body.classList.toggle("can-edit-line", Boolean(canEdit));
+  if (!canEdit) document.body.classList.remove("mobile-toolbar-open");
   const changesCount = countChangesForLine(currentLine);
   const isCached = state.ui.isScheduleCached;
   
+  const mobile = true; // автосохранение работает и на ПК: кнопка показывает статус
+  btnSavePyrusEl.classList.toggle("save-status", isMobileLayout());
+  btnSavePyrusEl.classList.remove("is-error", "is-saving");
   if (!canEdit) {
-    btnSavePyrusEl.textContent = isCached
-      ? `Данные загружаются (${currentLine})`
-      : `Нет прав на ${currentLine}`;
+    btnSavePyrusEl.textContent = isCached ? `Данные загружаются…` : `Только просмотр`;
     btnSavePyrusEl.disabled = true;
     btnSavePyrusEl.title = isCached
       ? "Сейчас отображается кэш, редактирование временно отключено."
-      : `У вас только просмотр для линии ${currentLine}`;
-  } else if (changesCount === 0) {
-    btnSavePyrusEl.textContent = `Нет изменений (${currentLine})`;
+      : `У вас только просмотр для вкладки ${lineLabel}`;
+  } else if (isCached) {
+    // Показан кэш: сохранять нельзя, пока не придёт свежий график из Pyrus
+    const loadError = state.ui.scheduleLoadError;
+    btnSavePyrusEl.textContent = loadError ? "Нет связи с Pyrus — повторить" : "Данные загружаются…";
+    btnSavePyrusEl.classList.toggle("is-error", Boolean(loadError));
+    btnSavePyrusEl.disabled = !loadError;
+    btnSavePyrusEl.title = loadError
+      ? `Не удалось загрузить график: ${loadError.message || loadError}. Повторяем автоматически.`
+      : "Загружаем свежий график из Pyrus. Правки сохранятся локально и уйдут после загрузки.";
+  } else if (autoSave.running || (mobile && autoSave.timer)) {
+    btnSavePyrusEl.textContent = "Сохранение…";
+    btnSavePyrusEl.classList.add("is-saving");
     btnSavePyrusEl.disabled = true;
-    btnSavePyrusEl.title = `Нет несохранённых изменений для линии ${currentLine}`;
-  } else {
-    btnSavePyrusEl.textContent = `Сохранить ${currentLine} (${changesCount})`;
+    btnSavePyrusEl.title = "Изменения отправляются в Pyrus";
+  } else if (!mobile && changesCount > 0) {
+    btnSavePyrusEl.textContent = `Сохранить ${lineLabel} (${changesCount})`;
     btnSavePyrusEl.disabled = false;
-    btnSavePyrusEl.title = `Сохранить ${changesCount} изменений для линии ${currentLine}`;
+    btnSavePyrusEl.title = `Отправить ${changesCount} изменений вкладки ${lineLabel} в Pyrus`;
+  } else if (autoSave.error || changesCount > 0) {
+    btnSavePyrusEl.textContent = "Не сохранено — повторить";
+    btnSavePyrusEl.classList.add("is-error");
+    btnSavePyrusEl.disabled = false;
+    btnSavePyrusEl.title = autoSave.error ? String(autoSave.error.message || autoSave.error) : "Есть неотправленные изменения";
+  } else if (!mobile) {
+    btnSavePyrusEl.textContent = `Нет изменений (${lineLabel})`;
+    btnSavePyrusEl.disabled = true;
+    btnSavePyrusEl.title = "Все изменения сохранены в Pyrus";
+  } else {
+    btnSavePyrusEl.textContent = "✓ Сохранено в Pyrus";
+    btnSavePyrusEl.disabled = true;
+    btnSavePyrusEl.title = "Все изменения сохранены в Pyrus";
   }
 }
 
@@ -2462,7 +2730,9 @@ function buildPyrusChangesPayload(lineToSave = null) {
           result.edit.task.push({
             task_id: baseShift.taskId,
             employee_id: row.employeeId,
-            item_id: currentShift.templateId ?? baseShift.templateId ?? null,
+            item_id: currentShift.templateId ?? null,
+            // Кастомная смена: шаблон у задачи нужно очистить, а не оставить прежний
+            clear_template: baseShift.templateId != null && currentShift.templateId == null,
             start: conversion.startUtcIso,
             duration: conversion.durationMinutes,
             amount: Number(currentShift.amount || 0),
@@ -2476,66 +2746,62 @@ function buildPyrusChangesPayload(lineToSave = null) {
   return result;
 }
 
-async function handleSaveToPyrus() {
-  if (!btnSavePyrusEl) return;
+async function saveLineToPyrus(currentLine) {
+  if (currentLine === "ALL" || !canEditLine(currentLine)) return;
 
-  const currentLine = state.ui.currentLine;
-  
-  if (!canEditLine(currentLine)) {
-    alert(`У вас нет прав на сохранение изменений для линии ${currentLine}`);
-    return;
-  }
+  if (state.ui.isScheduleCached) return; // ждём свежие данные из Pyrus
 
   const payload = buildPyrusChangesPayload(currentLine);
-  
-  const hasChanges = 
+  const hasChanges =
     payload.create.task.length > 0 ||
     payload.deleted.task.length > 0 ||
     payload.edit.task.length > 0;
-  
   if (!hasChanges) {
-    alert(`Нет изменений для сохранения в линии ${currentLine}`);
+    // Локальные правки совпали с тем, что уже в Pyrus — просто убираем их
+    const { year: y, monthIndex: m } = state.monthMeta;
+    const pfx = `${currentLine}-${y}-${m + 1}-`;
+    for (const key in state.localChanges) if (key.startsWith(pfx)) delete state.localChanges[key];
+    try {
+      localStorage.setItem(STORAGE_KEYS.localChanges, JSON.stringify(state.localChanges));
+    } catch (_) {}
     return;
   }
-  
-  btnSavePyrusEl.disabled = true;
-  btnSavePyrusEl.textContent = "Сохранение...";
+
+  // Снимок на момент отправки: правки, сделанные пока идёт запрос, не должны потеряться
+  const { year, monthIndex } = state.monthMeta;
+  const prefix = `${currentLine}-${year}-${monthIndex + 1}-`;
+  const sentChanges = {};
+  for (const key in state.localChanges) if (key.startsWith(prefix)) sentChanges[key] = state.localChanges[key];
+  const sentSchedule = deepClone(state.scheduleByLine[currentLine]);
 
   try {
-    const meta = {
-      line: currentLine,
-      month: state.monthMeta.monthIndex + 1,
-      year: state.monthMeta.year,
-    };
-    
-    await graphClient.callGraphApi("pyrus_save", { changes: payload, meta });
-    showAppToast(
-      `Pyrus: ${currentLine} • создано ${payload.create.task.length}, изменено ${payload.edit.task.length}, удалено ${payload.deleted.task.length}`
-    );
-    
-    state.originalScheduleByLine[currentLine] = deepClone(state.scheduleByLine[currentLine]);
-    
-    const { year, monthIndex } = state.monthMeta;
-    const prefix = `${currentLine}-${year}-${monthIndex + 1}-`;
-    for (const key in state.localChanges) {
-      if (key.startsWith(prefix)) {
-        delete state.localChanges[key];
-      }
-    }
-    persistLocalChanges();
-    
-    updateSaveButtonState();
+    const meta = { line: currentLine, month: monthIndex + 1, year };
+    const saveResult = (await graphClient.callGraphApi("pyrus_save", { changes: payload, meta })) || {};
+    // Если n8n вернул созданные/изменённые задачи, держим их поверх реестра Pyrus, пока он не догонит
+    scheduleService.applySaveResult?.(saveResult);
 
-    const monthKey = getMonthKey(state.monthMeta.year, state.monthMeta.monthIndex);
+    if (Array.isArray(saveResult.errors) && saveResult.errors.length) {
+      console.warn("pyrus_save errors", saveResult.errors);
+      alert(
+        `Часть изменений не сохранилась (${saveResult.errors.length}):\n` +
+          saveResult.errors.slice(0, 5).map((e) => `• ${e.op}: ${e.message}`).join("\n")
+      );
+    }
+
+    state.originalScheduleByLine[currentLine] = sentSchedule;
+    for (const key in sentChanges) {
+      if (state.localChanges[key] === sentChanges[key]) delete state.localChanges[key];
+    }
+    try {
+      localStorage.setItem(STORAGE_KEYS.localChanges, JSON.stringify(state.localChanges));
+    } catch (_) {}
+
+    const monthKey = getMonthKey(year, monthIndex);
     scheduleService.invalidateMonthSchedule(monthKey);
     await reloadScheduleForCurrentMonth();
-    
   } catch (err) {
-    console.error("handleSaveToPyrus error", err);
-    alert(`Не удалось отправить в Pyrus: ${err.message || err}`);
-  } finally {
-    btnSavePyrusEl.disabled = false;
-    btnSavePyrusEl.textContent = "Сохранить в Pyrus";
+    console.error("saveLineToPyrus error", err);
+    throw err;
   }
 }
 
@@ -2590,7 +2856,187 @@ function renderChangeLog() {
   });
 }
 
+// -----------------------------
+// Отпуска: создание и удаление (форма Pyrus «График отпусков», сразу, без кнопки «Сохранить»)
+// -----------------------------
+
+function resetVacationStart() {
+  if (!state.quickMode.vacationStart) return;
+  state.quickMode.vacationStart = null;
+  if (state.scheduleByLine[state.ui.currentLine]) renderScheduleCurrentLine();
+}
+
+function formatDateRu(year, monthIndex, day) {
+  return `${String(day).padStart(2, "0")}.${String(monthIndex + 1).padStart(2, "0")}.${year}`;
+}
+
+// Удалять с сайта можно отпуск сотрудника своей линии (как и смены — только во вкладке с правами).
+// Во «ВСЕ» отдельной линии нет — там можно удалить только свой собственный отпуск.
+function canDeleteVacation(line, vac, employeeId) {
+  if (!vac || vac.taskId == null) return false;
+  if (line === "ALL") return isOwnEmployeeId(employeeId) && Boolean(getOwnEditableLineKey());
+  return canEditLine(line);
+}
+
+async function refreshVacationsForCurrentMonth() {
+  const { year, monthIndex } = state.monthMeta;
+  const monthKey = getMonthKey(year, monthIndex);
+  try {
+    const data = await vacationsService.getVacationsForMonth(monthKey);
+    if (monthKey !== getMonthKey(state.monthMeta.year, state.monthMeta.monthIndex)) return;
+    state.vacationsByEmployee = data || {};
+    persistCachedScheduleForMonth(year, monthIndex);
+  } catch (err) {
+    console.warn("Не удалось обновить отпуска", err);
+  }
+  renderScheduleCurrentLine();
+}
+
+// Пока выбран первый день отпуска, при движении мыши подсвечиваем весь период до курсора
+function previewVacationRange(tr, line, employeeId, hoverDay) {
+  const vs = state.quickMode.vacationStart;
+  document.querySelectorAll("td.vacation-preview").forEach((c) => c.classList.remove("vacation-preview"));
+  if (!vs || vs.line !== line || vs.employeeId !== employeeId) return;
+  const from = Math.min(vs.day, hoverDay);
+  const to = Math.max(vs.day, hoverDay);
+  tr.querySelectorAll("td[data-day]").forEach((c) => {
+    const d = Number(c.dataset.day);
+    if (d >= from && d <= to) c.classList.add("vacation-preview");
+  });
+}
+
+function handleVacationRangeClick({ line, row, day }) {
+  if (state.ui.isScheduleCached) {
+    alert("Дождитесь загрузки свежего графика из Pyrus — без него нельзя проверить смены в периоде отпуска.");
+    return;
+  }
+  const start = state.quickMode.vacationStart;
+  if (!start || start.line !== line || start.employeeId !== row.employeeId) {
+    // Первый клик — начало отпуска
+    state.quickMode.vacationStart = { line, employeeId: row.employeeId, day };
+    renderScheduleCurrentLine();
+    return;
+  }
+  state.quickMode.vacationStart = null;
+  renderScheduleCurrentLine();
+  // Во «ВСЕ» отдела для записи в Pyrus нет — берём собственный (сюда попадаем,
+  // только если он определён однозначно, см. renderQuickTemplateOptions/updateQuickModeForLine)
+  const submitLine = line === "ALL" ? getOwnEditableLineKey() : line;
+  if (!submitLine) {
+    alert("Не удалось определить ваш отдел для отпуска. Поставьте его во вкладке своего подразделения.");
+    return;
+  }
+  createVacationForRange(line, row, Math.min(start.day, day), Math.max(start.day, day), submitLine);
+}
+
+async function createVacationForRange(line, row, firstDay, lastDay, submitLine = line) {
+  const { year, monthIndex } = state.monthMeta;
+  const sched = state.scheduleByLine[line];
+  const days = sched?.days || [];
+
+  // В периоде не должно быть смен (с учётом несохранённых правок) и других отпусков
+  const shiftDays = [];
+  days.forEach((d, idx) => {
+    if (d >= firstDay && d <= lastDay && row.shiftsByDay[idx]) shiftDays.push(d);
+  });
+  if (shiftDays.length) {
+    alert(
+      `В период отпуска у сотрудника есть смены: ${shiftDays.join(", ")} число.\n` +
+        "Сначала удалите их (и сохраните), затем поставьте отпуск."
+    );
+    return;
+  }
+  const overlapping = (state.vacationsByEmployee[row.employeeId] || []).find(
+    (v) => v.startDay <= lastDay && (v.endDayExclusive || v.startDay + 1) > firstDay
+  );
+  if (overlapping) {
+    alert(`Период пересекается с отпуском ${overlapping.startLabel} – ${overlapping.endLabel}.`);
+    return;
+  }
+
+  const count = lastDay - firstDay + 1;
+  const fromLabel = formatDateRu(year, monthIndex, firstDay);
+  const toLabel = formatDateRu(year, monthIndex, lastDay);
+  if (!confirm(`Добавить отпуск в Pyrus?\n\n${row.employeeName}\nс ${fromLabel} по ${toLabel} (${count} дн.)`)) return;
+
+  // Показываем отпуск сразу, до ответа сервера; при ошибке — откатываем
+  const entry = {
+    taskId: null,
+    startDay: firstDay,
+    endDayExclusive: lastDay + 1,
+    startLabel: fromLabel,
+    endLabel: toLabel,
+  };
+  const list = (state.vacationsByEmployee[row.employeeId] = state.vacationsByEmployee[row.employeeId] || []);
+  list.push(entry);
+  list.sort((x, y) => (x.startDay || 0) - (y.startDay || 0));
+  renderScheduleCurrentLine();
+
+  try {
+    const result = await graphClient.callGraphApi("vacation_create", {
+      employee_id: row.employeeId,
+      start_date: `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(firstDay).padStart(2, "0")}`,
+      days: count,
+      line: submitLine,
+      // Начало периода в UTC: полночь первого дня по местному (бизнес) времени. n8n пишет его в поле «Период» как есть
+      start_utc: new Date(Date.UTC(year, monthIndex, firstDay) - TIMEZONE_OFFSET_MIN * 60000).toISOString(),
+      duration_minutes: count * 1440,
+    });
+    vacationsService.applyCreated(result && result.task);
+    entry.taskId = result?.task?.id ?? null;
+    persistCachedScheduleForMonth(year, monthIndex);
+    renderScheduleCurrentLine();
+  } catch (err) {
+    console.error("vacation.create error", err);
+    const cur = state.vacationsByEmployee[row.employeeId] || [];
+    const idx = cur.indexOf(entry);
+    if (idx >= 0) cur.splice(idx, 1);
+    renderScheduleCurrentLine();
+    alert(`Не удалось добавить отпуск: ${err.message || err}`);
+    return;
+  }
+  // Сверка с Pyrus — в фоне, не блокирует уже показанный результат
+  refreshVacationsForCurrentMonth().catch(() => {});
+}
+
+async function confirmAndDeleteVacation(row, vac) {
+  if (!confirm(`Удалить отпуск из Pyrus?\n\n${row.employeeName}\nс ${vac.startLabel} по ${vac.endLabel}`)) return;
+  try {
+    await graphClient.callGraphApi("vacation_delete", { task_id: vac.taskId });
+    vacationsService.applyDeleted(vac.taskId);
+  } catch (err) {
+    console.error("vacation.delete error", err);
+    alert(`Не удалось удалить отпуск: ${err.message || err}`);
+    return;
+  }
+
+  // Убираем сразу, локально — не ждём, пока реестр Pyrus догонит удаление
+  const list = state.vacationsByEmployee[row.employeeId];
+  if (Array.isArray(list)) {
+    state.vacationsByEmployee[row.employeeId] = list.filter((v) => v.taskId !== vac.taskId);
+  }
+  const { year, monthIndex } = state.monthMeta;
+  persistCachedScheduleForMonth(year, monthIndex);
+  renderScheduleCurrentLine();
+  // Сверка с Pyrus — в фоне
+  refreshVacationsForCurrentMonth().catch(() => {});
+}
+
 function handleShiftCellClick({ line, row, day, dayIndex, shift, cellEl }) {
+  // Вкладка «ВСЕ»: обычного редактирования нет, но себе можно назначить отпуск
+  // (режим доступен, только когда линия определяется однозначно, см. getOwnEditableLineKey).
+  // Чужие строки во «ВСЕ» остаются только для просмотра.
+  if (
+    line === "ALL" &&
+    state.quickMode.enabled &&
+    state.quickMode.vacationMode &&
+    isOwnEmployeeId(row.employeeId) &&
+    getOwnEditableLineKey()
+  ) {
+    handleVacationRangeClick({ line, row, day });
+    return;
+  }
+
   if (!canEditLine(line)) {
     openShiftPopoverReadOnly(
       {
@@ -2602,6 +3048,32 @@ function handleShiftCellClick({ line, row, day, dayIndex, shift, cellEl }) {
       },
       cellEl
     );
+    return;
+  }
+
+  if (state.quickMode.enabled && state.quickMode.vacationMode) {
+    handleVacationRangeClick({ line, row, day });
+    return;
+  }
+
+  if (state.quickMode.enabled && state.quickMode.deleteMode) {
+    // Быстрое удаление: клик по ячейке со сменой стирает её (уходит в Pyrus автосохранением)
+    if (!shift) return;
+    const { year, monthIndex } = state.monthMeta;
+    const key = `${line}-${year}-${monthIndex + 1}-${row.employeeId}-${day}`;
+    state.localChanges[key] = { deleted: true };
+    persistLocalChanges();
+    applyLocalChangesToSchedule();
+    renderScheduleCurrentLine();
+    logChange({
+      action: "delete",
+      line,
+      employeeId: row.employeeId,
+      employeeName: row.employeeName,
+      day,
+      previousShift: shift,
+      nextShift: null,
+    });
     return;
   }
 
@@ -2842,6 +3314,8 @@ state.employeesByLine.L2 = sortEmployeesByDeptOrder(employeesByLine.L2, DEPT_ORD
 state.employeesByLine.AI = sortEmployeesByName(employeesByLine.AI);
 state.employeesByLine.OU = sortEmployeesByName(employeesByLine.OU);
 
+updateProfileAvatarImage();
+
 persistCachedEmployees();
 }
 
@@ -3054,7 +3528,8 @@ async function reloadScheduleForCurrentMonth() {
       PYRUS_FIELD_IDS.smeni?.shift ?? PYRUS_FIELD_IDS.smeni?.template;
     const shiftField = findField(fields, shiftFieldId);
 
-    if (!dueField || !personField || !shiftField) continue;
+    // Кастомная смена — без шаблона (поле «Шаблон» пустое), но смена всё равно показывается
+    if (!dueField || !personField) continue;
 
     const rawDuration = Number(dueField.duration || 0);
     const startUtcMs = new Date(dueField.value).getTime();
@@ -3079,7 +3554,7 @@ async function reloadScheduleForCurrentMonth() {
     const empId = emp.id;
     if (!empId) continue;
 
-    const shiftCatalog = shiftField.value || {};
+    const shiftCatalog = shiftField?.value || {};
     const deptRaw = (shiftCatalog.values && shiftCatalog.values[4]) || "";
     const tokens = parseDeptTokens(deptRaw);
 
@@ -3115,9 +3590,9 @@ async function reloadScheduleForCurrentMonth() {
       (matchingTemplate && matchingTemplate.specialShortLabel) || null;
 
     const amount =
-      typeof moneyField.value === "number"
+      typeof moneyField?.value === "number"
         ? moneyField.value
-        : Number(moneyField.value || 0);
+        : Number(moneyField?.value || 0);
 
     const entry = {
       startLocal,
@@ -3441,8 +3916,15 @@ th1.appendChild(th1Label);
 
         td.addEventListener("click", (ev) => {
           ev.stopPropagation();
+          if (state.quickMode.enabled && state.quickMode.deleteMode && canDeleteVacation(line, vac, row.employeeId)) {
+            confirmAndDeleteVacation(row, vac);
+            return;
+          }
           openVacationPopover(
             {
+              line,
+              row,
+              vac,
               employeeName: row.employeeName,
               startLabel: vac.startLabel,
               endLabel: vac.endLabel,
@@ -3467,6 +3949,11 @@ th1.appendChild(th1Label);
 
       const td = document.createElement("td");
       td.className = "shift-cell";
+      const vs = state.quickMode.vacationStart;
+      if (vs && vs.line === line && vs.employeeId === row.employeeId && vs.day === dayNumber) {
+        td.classList.add("vacation-start-pending");
+        td.title = "Начало отпуска — кликните последний день";
+      }
       const dayKind = dayKindByDay[dayNumber];
       if (dayKind) {
         td.classList.add(`day-${dayKind}`);
@@ -3540,8 +4027,10 @@ th1.appendChild(th1Label);
         });
       });
 
+      td.dataset.day = String(dayNumber);
       td.addEventListener("mouseenter", () => {
         tr.classList.add("row-hover");
+        previewVacationRange(tr, line, row.employeeId, dayNumber);
       });
       td.addEventListener("mouseleave", () => {
         tr.classList.remove("row-hover");
@@ -3663,6 +4152,11 @@ function positionShiftPopover(anchorEl) {
 function closeShiftPopover() {
   if (!shiftPopoverEl) return;
 
+  if (autoSaveHeld) {
+    autoSaveHeld = false;
+    if (linesWithPendingChanges().length) scheduleAutoSave(0);
+  }
+
   shiftPopoverEl.classList.remove("open");
   shiftPopoverBackdropEl.classList.add("hidden");
 
@@ -3731,13 +4225,17 @@ function openBirthdayPopover(context, anchorEl) {
 
 
 function openVacationPopover(context, anchorEl) {
-  const { employeeName, startLabel, endLabel } = context;
+  const { line, row, vac, employeeName, startLabel, endLabel } = context;
+  const canDelete = canDeleteVacation(line, vac, row.employeeId);
+  const note = canDelete
+    ? "Отпуск хранится в Pyrus. Удаление сразу уходит в Pyrus."
+    : "Отпуск загружается из Pyrus. Изменить его можно во вкладке его линии или в Pyrus.";
 
   shiftPopoverEl.innerHTML = `
     <div class="shift-popover-header">
       <div>
         <div class="shift-popover-title">${employeeName}</div>
-        <div class="shift-popover-subtitle">Отпуск • только просмотр</div>
+        <div class="shift-popover-subtitle">Отпуск${canDelete ? "" : " • только просмотр"}</div>
       </div>
       <button class="shift-popover-close" type="button">✕</button>
     </div>
@@ -3748,10 +4246,11 @@ function openVacationPopover(context, anchorEl) {
         <div class="field-row"><label>с:</label><div>${startLabel}</div></div>
         <div class="field-row"><label>по:</label><div>${endLabel}</div></div>
       </div>
-      <div class="shift-popover-note">Отпуск загружается из внешней системы и не редактируется здесь.</div>
+      <div class="shift-popover-note">${note}</div>
     </div>
 
     <div class="shift-popover-footer">
+      ${canDelete ? '<button class="btn btn-danger" type="button" id="shift-btn-delete-vacation">Удалить отпуск</button>' : ""}
       <button class="btn" type="button" id="shift-btn-close-vacation">Закрыть</button>
     </div>
   `;
@@ -3762,8 +4261,15 @@ function openVacationPopover(context, anchorEl) {
 
   const closeBtn = shiftPopoverEl.querySelector(".shift-popover-close");
   const closeBtn2 = shiftPopoverEl.querySelector("#shift-btn-close-vacation");
+  const deleteBtn = shiftPopoverEl.querySelector("#shift-btn-delete-vacation");
 
   const doClose = () => closeShiftPopover();
+  if (deleteBtn) {
+    deleteBtn.addEventListener("click", () => {
+      doClose();
+      confirmAndDeleteVacation(row, vac);
+    });
+  }
   if (closeBtn) closeBtn.addEventListener("click", doClose);
   if (closeBtn2) closeBtn2.addEventListener("click", doClose);
 
@@ -3853,18 +4359,70 @@ function openShiftPopoverReadOnly(context, anchorEl) {
   document.addEventListener("keydown", shiftPopoverKeydownHandler);
 }
 
+function timePickerHtml(id, value) {
+  const v = normalizeTimeHHMM(value || "");
+  const [hh, mm] = v ? v.split(":") : ["", ""];
+  return `<div class="time-pick" data-time-pick="${id}">
+    <input class="time-pick-h" type="number" inputmode="numeric" min="0" max="23" step="1" placeholder="--" aria-label="Часы" value="${hh ? Number(hh) : ""}">
+    <span class="time-pick-sep">:</span>
+    <input class="time-pick-m" type="number" inputmode="numeric" min="0" max="59" step="1" placeholder="--" aria-label="Минуты" value="${mm !== "" ? mm : ""}">
+    <input type="hidden" id="${id}" value="${v}">
+  </div>`;
+}
+
+function readTimePick(box) {
+  const h = box.querySelector(".time-pick-h");
+  const m = box.querySelector(".time-pick-m");
+  const hidden = box.querySelector("input[type=hidden]");
+  const hv = h.value === "" ? NaN : Number(h.value);
+  let mv = m.value === "" ? NaN : Number(m.value);
+  if (Number.isFinite(hv) && !Number.isFinite(mv)) mv = 0;
+  hidden.value =
+    Number.isInteger(hv) && Number.isInteger(mv) && hv >= 0 && hv <= 23 && mv >= 0 && mv <= 59
+      ? `${String(hv).padStart(2, "0")}:${String(mv).padStart(2, "0")}`
+      : "";
+  return hidden.value;
+}
+
+function setTimePickerValue(id, value) {
+  const hidden = document.getElementById(id);
+  if (!hidden) return;
+  const v = normalizeTimeHHMM(value || "");
+  hidden.value = v;
+  const box = hidden.closest(".time-pick");
+  if (!box) return;
+  const [hh, mm] = v ? v.split(":") : ["", ""];
+  box.querySelector(".time-pick-h").value = hh ? Number(hh) : "";
+  box.querySelector(".time-pick-m").value = mm;
+}
+
 function openShiftPopover(context, anchorEl) {
   const { line, employeeId, employeeName, day, shift } = context;
   const { year, monthIndex } = state.monthMeta;
   const date = new Date(year, monthIndex, day);
   const hasShift = Boolean(shift);
+  // Снимок на момент открытия: по «✕»/Esc правки окна откатываются
+  const cellKey = `${line}-${year}-${monthIndex + 1}-${employeeId}-${day}`;
+  const hadLocal = Object.prototype.hasOwnProperty.call(state.localChanges, cellKey);
+  const prevLocal = state.localChanges[cellKey];
+  const shiftSnap = shift ? deepClone(shift) : null;
+  let touched = false;
   let selectedTemplateId = shift?.templateId ?? null;
+
+  const templates = state.shiftTemplatesByLine[line] || [];
+
+  // «Кастомная смена»: смена без шаблона или с временем, не совпадающим с шаблоном.
+  // Время и сумма показываются только для неё, для шаблонов они берутся из шаблона.
+  const shiftTemplate = templates.find((t) => t.id === shift?.templateId);
+  const matchesTemplate =
+    Boolean(shiftTemplate?.timeRange) &&
+    normalizeTimeHHMM(shiftTemplate.timeRange.start) === normalizeTimeHHMM(shift?.startLocal) &&
+    normalizeTimeHHMM(shiftTemplate.timeRange.end) === normalizeTimeHHMM(shift?.endLocal);
+  let isCustom = hasShift && !matchesTemplate;
 
   const dateLabel = `${String(day).padStart(2, "0")}.${String(
     monthIndex + 1
   ).padStart(2, "0")}.${year}`;
-
-  const templates = state.shiftTemplatesByLine[line] || [];
 
   shiftPopoverEl.innerHTML = `
     <div class="shift-popover-header">
@@ -3883,7 +4441,7 @@ function openShiftPopover(context, anchorEl) {
           ${templates
             .map(
               (t) => `
-            <button class="shift-template-pill" data-template-id="${t.id}">
+            <button class="shift-template-pill${!isCustom && t.id === shift?.templateId ? " active" : ""}" type="button" data-template-id="${t.id}">
               <div class="name">${t.name}</div>
               ${
                 t.timeRange
@@ -3894,24 +4452,24 @@ function openShiftPopover(context, anchorEl) {
           `
             )
             .join("")}
+          <button class="shift-template-pill shift-template-custom${isCustom ? " active" : ""}" type="button" data-custom="1">
+            <div class="name">Кастомная смена</div>
+            <div class="time">своё время и сумма</div>
+          </button>
         </div>
       </div>
 
-      <div class="shift-popover-section">
-        <div class="shift-popover-section-title">Ручное редактирование</div>
+      <div class="shift-popover-section shift-custom-section${isCustom ? "" : " hidden"}" id="shift-custom-section">
+        <div class="shift-popover-section-title">Кастомная смена</div>
 
         <div class="field-row">
           <label>Начало</label>
-          <input type="time" id="shift-start-input" value="${
-            shift?.startLocal || ""
-          }">
+          ${timePickerHtml("shift-start-input", shift?.startLocal)}
         </div>
 
         <div class="field-row">
           <label>Окончание</label>
-          <input type="time" id="shift-end-input" value="${
-            shift?.endLocal || ""
-          }">
+          ${timePickerHtml("shift-end-input", shift?.endLocal)}
         </div>
 
         <div class="field-row">
@@ -3920,9 +4478,13 @@ function openShiftPopover(context, anchorEl) {
             shift?.amount || ""
           }">
         </div>
+      </div>
 
+      <div class="shift-popover-section">
         <div class="shift-popover-note">
-          Изменения сохраняются в локальном кэше в браузере и не отправляются в Pyrus.
+          ${isMobileLayout()
+            ? "Кнопка «Сохранить» сразу отправляет смену в Pyrus."
+            : "Изменения видны сразу, в Pyrus сохраняются при закрытии окна."}
         </div>
       </div>
     </div>
@@ -3931,8 +4493,8 @@ function openShiftPopover(context, anchorEl) {
       <button class="btn danger" type="button" id="shift-btn-delete" ${
         hasShift ? "" : "disabled"
       }>Удалить</button>
-      <button class="btn" type="button" id="shift-btn-cancel">Отмена</button>
-      <button class="btn primary" type="button" id="shift-btn-save">Сохранить локально</button>
+      <button class="btn" type="button" id="shift-btn-cancel">${isMobileLayout() ? "Отмена" : "Готово"}</button>
+      ${isMobileLayout() ? '<button class="btn primary" type="button" id="shift-btn-save">Сохранить</button>' : ""}
     </div>
   `;
 
@@ -3944,15 +4506,35 @@ function openShiftPopover(context, anchorEl) {
     shift?.specialShortLabel,
     hasShift
   );
+  if (isCustom) {
+    const nameEl = shiftPopoverEl.querySelector("#shift-popover-shift-name");
+    if (nameEl) nameEl.textContent = "Кастомная смена";
+  }
   positionShiftPopover(anchorEl);
 
   requestAnimationFrame(() => {
     shiftPopoverEl.classList.add("open");
   });
 
+  const revertPopover = () => {
+    if (hadLocal) state.localChanges[cellKey] = prevLocal;
+    else delete state.localChanges[cellKey];
+    persistLocalChanges();
+    const sched = state.scheduleByLine[line];
+    const rowObj = sched?.rows?.find((r) => r.employeeId === employeeId);
+    const idx = sched?.days?.indexOf(day);
+    if (rowObj && idx >= 0) rowObj.shiftsByDay[idx] = shiftSnap ? deepClone(shiftSnap) : null;
+    applyLocalChangesToSchedule();
+    renderScheduleCurrentLine();
+  };
+  // ✕ и Esc отменяют правки, сделанные в этом окне; «Готово» и клик мимо окна — сохраняют
+  const cancelPopover = () => {
+    if (touched && !isMobileLayout()) revertPopover();
+    closeShiftPopover();
+  };
   shiftPopoverEl
     .querySelector(".shift-popover-close")
-    .addEventListener("click", closeShiftPopover);
+    .addEventListener("click", cancelPopover);
   shiftPopoverEl
     .querySelector("#shift-btn-cancel")
     .addEventListener("click", closeShiftPopover);
@@ -3979,36 +4561,56 @@ function openShiftPopover(context, anchorEl) {
     });
   }
 
+  const customSectionEl = shiftPopoverEl.querySelector("#shift-custom-section");
+  const markActivePill = (activeBtn) => {
+    shiftPopoverEl
+      .querySelectorAll(".shift-template-pill")
+      .forEach((b) => b.classList.toggle("active", b === activeBtn));
+  };
+
+  shiftPopoverEl.querySelector(".shift-template-custom")?.addEventListener("click", (e) => {
+    isCustom = true;
+    selectedTemplateId = null;
+    markActivePill(e.currentTarget);
+    customSectionEl?.classList.remove("hidden");
+    const nameEl = shiftPopoverEl.querySelector("#shift-popover-shift-name");
+    if (nameEl) nameEl.textContent = "Кастомная смена";
+    positionShiftPopover(anchorEl);
+    // Для шаблонной смены подставленное время остаётся как основа для правки;
+    // для пустой ячейки подставляем 09:00–18:00, чтобы квадратик появился сразу
+    if (!document.getElementById("shift-start-input")?.value) setTimePickerValue("shift-start-input", "09:00");
+    if (!document.getElementById("shift-end-input")?.value) setTimePickerValue("shift-end-input", "18:00");
+    if (!isMobileLayout()) commitPopover({ close: false, silent: true });
+  });
+
   shiftPopoverEl
-    .querySelectorAll(".shift-template-pill")
+    .querySelectorAll(".shift-template-pill[data-template-id]")
     .forEach((btn) => {
       btn.addEventListener("click", () => {
         const id = Number(btn.getAttribute("data-template-id"));
         const tmpl = templates.find((t) => t.id === id);
         if (!tmpl) return;
 
+        isCustom = false;
         selectedTemplateId = id;
+        markActivePill(btn);
+        customSectionEl?.classList.add("hidden");
         updateShiftPopoverName(line, id, tmpl.specialShortLabel);
 
         if (tmpl.timeRange) {
-          const startInput = document.getElementById("shift-start-input");
-          const endInput = document.getElementById("shift-end-input");
-          if (startInput && endInput) {
-	        startInput.value = normalizeTimeHHMM(tmpl.timeRange.start);
-	        endInput.value = normalizeTimeHHMM(tmpl.timeRange.end);
-          }
+          setTimePickerValue("shift-start-input", tmpl.timeRange.start);
+          setTimePickerValue("shift-end-input", tmpl.timeRange.end);
         }
 
         const amountInput = document.getElementById("shift-amount-input");
         if (amountInput && tmpl.amount) {
           amountInput.value = tmpl.amount;
         }
+        if (!isMobileLayout()) commitPopover();
       });
     });
 
-  shiftPopoverEl
-    .querySelector("#shift-btn-save")
-    .addEventListener("click", () => {
+  const commitPopover = ({ close = true, silent = false } = {}) => {
       const startInput = document.getElementById("shift-start-input");
       const endInput = document.getElementById("shift-end-input");
       const amountInput = document.getElementById("shift-amount-input");
@@ -4017,27 +4619,36 @@ function openShiftPopover(context, anchorEl) {
 	    const end = normalizeTimeHHMM(endInput.value);
       const amount = Number(amountInput.value || 0);
 
+      // Пока заполнено только одно из времён — ждём второе, без ошибки
+      if (silent && (!start || !end)) return false;
+
       const key = `${line}-${year}-${monthIndex + 1}-${employeeId}-${day}`;
-      const templateId =
-        selectedTemplateId != null ? selectedTemplateId : shift?.templateId;
+      const templateId = isCustom
+        ? null
+        : selectedTemplateId != null
+          ? selectedTemplateId
+          : shift?.templateId;
       const specialShortLabel = resolveSpecialShortLabel(line, templateId);
 	      // В поповере всегда есть year/monthIndex выбранного месяца — используем их,
 	      // чтобы не ловить RangeError на невалидном state.monthMeta.
 	      const conversion = convertLocalRangeToUtcWithMeta(year, monthIndex, day, start, end);
 	      if (!conversion) {
+	        if (silent) return false;
 	        alert("Некорректное время смены. Проверьте формат (например 08:00–20:00)." );
-	        return;
+	        return false;
 	      }
       state.localChanges[key] = {
         startLocal: start,
         endLocal: end,
         amount,
         templateId,
+        custom: isCustom,
         specialShortLabel,
 	        startUtcIso: conversion.startUtcIso,
 	        endUtcIso: conversion.endUtcIso,
 	        durationMinutes: conversion.durationMinutes,
       };
+      touched = true;
       persistLocalChanges();
 
       applyLocalChangesToSchedule();
@@ -4051,11 +4662,56 @@ function openShiftPopover(context, anchorEl) {
         previousShift: shift || null,
         nextShift: { startLocal: start, endLocal: end, amount, specialShortLabel },
       });
-      closeShiftPopover();
+      if (close) closeShiftPopover();
+      return true;
+  };
+
+  shiftPopoverEl.querySelector("#shift-btn-save")?.addEventListener("click", () => {
+    if (commitPopover()) scheduleAutoSave(0);
+  });
+
+  // На ПК кнопки в окне нет: правка применяется сразу, в Pyrus уходит автосохранением
+  const desktop = !isMobileLayout();
+  if (desktop) autoSaveHeld = true;
+  const live = () => commitPopover({ close: false, silent: true });
+  shiftPopoverEl.querySelectorAll(".time-pick").forEach((box) => {
+    const h = box.querySelector(".time-pick-h");
+    const m = box.querySelector(".time-pick-m");
+    const onInput = () => {
+      readTimePick(box);
+      if (desktop) live();
+    };
+    h.addEventListener("input", onInput);
+    m.addEventListener("input", onInput);
+    // Стрелками вверх/вниз значения идут по кругу: 59 → 00, 23 → 00
+    for (const [el, max] of [[h, 23], [m, 59]]) {
+      el.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+        e.preventDefault();
+        const cur = el.value === "" ? 0 : Number(el.value);
+        const next = e.key === "ArrowUp" ? (cur + 1) % (max + 1) : (cur + max) % (max + 1);
+        el.value = el === m ? String(next).padStart(2, "0") : String(next);
+        onInput();
+      });
+    }
+    // При уходе из поля показываем минуты как 05, а пустые минуты дополняем нулём
+    m.addEventListener("blur", () => {
+      if (m.value !== "") m.value = String(Math.min(59, Math.max(0, Number(m.value) || 0))).padStart(2, "0");
     });
+    h.addEventListener("blur", () => {
+      if (h.value !== "") h.value = String(Math.min(23, Math.max(0, Number(h.value) || 0)));
+      if (h.value !== "" && m.value === "") m.value = "00";
+      onInput();
+    });
+    h.addEventListener("focus", () => h.select());
+    m.addEventListener("focus", () => m.select());
+  });
+  if (desktop) {
+    shiftPopoverEl.querySelector("#shift-amount-input")?.addEventListener("input", live);
+  }
 
   shiftPopoverKeydownHandler = (e) => {
-    if (e.key === "Escape") closeShiftPopover();
+    if (e.key === "Escape") cancelPopover();
   };
   document.addEventListener("keydown", shiftPopoverKeydownHandler);
 }
@@ -4104,7 +4760,9 @@ function applyLocalChangesToSchedule() {
           row.shiftsByDay[idx].startLocal = change.startLocal;
           row.shiftsByDay[idx].endLocal = change.endLocal;
           row.shiftsByDay[idx].amount = Number(change.amount || 0);
-          if (change.templateId != null) {
+          if (change.custom) {
+            row.shiftsByDay[idx].templateId = null;
+          } else if (change.templateId != null) {
             row.shiftsByDay[idx].templateId = change.templateId;
           }
           row.shiftsByDay[idx].specialShortLabel = specialShortLabel;

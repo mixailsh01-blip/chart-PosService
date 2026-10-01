@@ -1,7 +1,11 @@
-import { cached, peekCache } from "../cache/requestCache.js";
+import { cached, peekCache, invalidateByPrefix } from "../cache/requestCache.js";
 import { unwrapPyrusData } from "../api/pyrusClient.js";
 
 const DEFAULT_VACATIONS_TTL_MS = 3 * 60 * 60 * 1000; // 3h
+// Реестр Pyrus обновляется с задержкой: созданные/удалённые с сайта отпуска
+// держим поверх реестра, пока он не догонит (и после перезагрузки страницы тоже).
+const RECENT_WRITES_TTL_MS = 30 * 60_000;
+const RECENT_WRITES_STORAGE_KEY = "chart-posservice:vacations:recentWrites:v1";
 
 function parseMonthKey(monthKey) {
   const [yearStr, monthStr] = String(monthKey).split("-");
@@ -24,6 +28,72 @@ export function createVacationsService({
     throw new Error("pyrusClient is required for vacationsService");
   }
 
+  const recentUpserts = new Map(); // task_id -> { task, at }
+  const recentDeletes = new Map(); // task_id -> at
+
+  function persistRecentWrites() {
+    try {
+      localStorage.setItem(
+        RECENT_WRITES_STORAGE_KEY,
+        JSON.stringify({ upserts: Object.fromEntries(recentUpserts), deletes: Object.fromEntries(recentDeletes) })
+      );
+    } catch (_) {
+      // localStorage недоступен — просто без переживания перезагрузки
+    }
+  }
+
+  function loadPersistedRecentWrites() {
+    try {
+      const raw = localStorage.getItem(RECENT_WRITES_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      const border = Date.now() - RECENT_WRITES_TTL_MS;
+      for (const [id, v] of Object.entries(parsed?.upserts || {})) {
+        if (v && Number(v.at) >= border) recentUpserts.set(Number(id), v);
+      }
+      for (const [id, at] of Object.entries(parsed?.deletes || {})) {
+        if (Number(at) >= border) recentDeletes.set(Number(id), Number(at));
+      }
+    } catch (_) {
+      // повреждённые данные — игнорируем
+    }
+  }
+  loadPersistedRecentWrites();
+
+  function withRecentWrites(tasks) {
+    const border = Date.now() - RECENT_WRITES_TTL_MS;
+    let pruned = false;
+    for (const [id, v] of recentUpserts) if (v.at < border) { recentUpserts.delete(id); pruned = true; }
+    for (const [id, at] of recentDeletes) if (at < border) { recentDeletes.delete(id); pruned = true; }
+    if (pruned) persistRecentWrites();
+    if (!recentUpserts.size && !recentDeletes.size) return tasks;
+    const byId = new Map(tasks.map((t) => [t.id, t]));
+    for (const [id, { task }] of recentUpserts) if (!byId.has(id)) byId.set(id, task);
+    for (const id of recentDeletes.keys()) byId.delete(id);
+    return [...byId.values()];
+  }
+
+  function invalidateAll() {
+    invalidateByPrefix("pyrus:vacations:");
+  }
+
+  // Результат создания/удаления отпуска — показываем сразу, не дожидаясь реестра
+  function applyCreated(task) {
+    if (!task || task.id == null) return;
+    recentUpserts.set(task.id, { task, at: Date.now() });
+    recentDeletes.delete(task.id);
+    persistRecentWrites();
+    invalidateAll();
+  }
+
+  function applyDeleted(taskId) {
+    if (taskId == null) return;
+    recentDeletes.set(taskId, Date.now());
+    recentUpserts.delete(taskId);
+    persistRecentWrites();
+    invalidateAll();
+  }
+
   async function getVacationsForMonth(monthKey, { force } = {}) {
     const { year, monthIndex } = parseMonthKey(monthKey);
 
@@ -31,12 +101,13 @@ export function createVacationsService({
       `pyrus:vacations:${monthKey}`,
       { ttlMs, force },
       async () => {
-        const raw = await pyrusClient.pyrusRequest(`/v4/forms/${formId}/register`, {
-          method: "GET",
-        });
+        // Реестр отпусков один на все месяцы — запрашиваем один раз (кеш 90 с), по месяцам только разбираем
+        const raw = await cached("pyrus:vacations:register", { ttlMs: 90_000, force }, () =>
+          pyrusClient.pyrusRequest(`/v4/forms/${formId}/register`, { method: "GET" })
+        );
         const data = unwrapPyrusData(raw);
         const wrapper = Array.isArray(data) ? data[0] : data;
-        const tasks = (wrapper && wrapper.tasks) || [];
+        const tasks = withRecentWrites((wrapper && wrapper.tasks) || []);
 
         const vacationsByEmployee = Object.create(null);
         const offsetMs = Number(timezoneOffsetMin || 0) * 60 * 1000;
@@ -108,6 +179,7 @@ export function createVacationsService({
           if (isMidnight(endShiftedMs)) endLabelShiftedMs = endShiftedMs - 1;
 
           (vacationsByEmployee[empId] = vacationsByEmployee[empId] || []).push({
+            taskId: task.id ?? null,
             startDay,
             endDayExclusive,
             startLabel: fmt(startShiftedMs),
@@ -131,5 +203,5 @@ export function createVacationsService({
     return entry && entry.value ? entry.value : null;
   }
 
-  return { getVacationsForMonth, peekVacationsForMonth };
+  return { getVacationsForMonth, peekVacationsForMonth, applyCreated, applyDeleted };
 }

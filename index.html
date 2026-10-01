@@ -20,7 +20,7 @@
     html { background: #0f1626; color-scheme: dark; }
     html[data-theme="light"] { background: #f0f0f0; color-scheme: light; }
   </style>
-  <link rel="stylesheet" href="css/styles.css?v=84" />
+  <link rel="stylesheet" href="css/styles.css?v=85" />
 </head>
 
 <body class="booting">
@@ -94,12 +94,6 @@
         </div>
 
         <div class="top-bar-right">
-          <button type="button" class="btn toggle" id="btn-theme-toggle">
-            🌙 Тема
-          </button>
-          <button type="button" class="btn toggle" id="btn-logout" title="Сбросить авторизацию">
-            🚪 Выйти
-          </button>
           <button type="button" class="btn toggle clients-only hidden" id="clients-refresh">
             &#8635; Обновить
           </button>
@@ -127,6 +121,26 @@
               &#8250;
             </button>
           </div>
+
+          <!-- Профиль: аватар с фото из Pyrus (или инициалами), выпадающее меню — тема/выход -->
+          <div class="profile-menu">
+            <button type="button" class="avatar-btn" id="btn-profile" aria-haspopup="true" aria-expanded="false" title="Профиль">
+              <img id="profile-avatar-img" class="avatar-img hidden" alt="" />
+              <span id="profile-avatar-initials">--</span>
+            </button>
+            <div class="profile-dropdown-backdrop hidden" id="profile-dropdown-backdrop"></div>
+            <div class="profile-dropdown hidden" id="profile-dropdown" role="menu">
+              <div class="profile-dropdown-user">
+                <span id="profile-user-name" class="profile-user-name">—</span>
+              </div>
+              <button type="button" class="profile-dropdown-item" id="btn-theme-toggle">
+                🌙 Тема
+              </button>
+              <button type="button" class="profile-dropdown-item" id="btn-logout" title="Сбросить авторизацию">
+                🚪 Выйти
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -138,25 +152,8 @@
               <select id="quick-template-select"></select>
             </div>
 
-            <div class="toolbar-group">
-              <label>Время</label>
-              <div class="toolbar-inline">
-                <input id="quick-time-from" type="time" />
-                <span class="toolbar-separator">—</span>
-                <input id="quick-time-to" type="time" />
-              </div>
-            </div>
-
-            <div class="toolbar-group">
-              <label for="quick-amount">Сумма</label>
-              <input id="quick-amount" type="number" min="0" step="100" />
-            </div>
-
             <div class="toolbar-actions">
               <button type="button" class="btn toggle mobile-only" id="btn-mobile-toolbar-close">⬇️ Скрыть</button>
-              <button type="button" class="btn toggle" id="quick-mode-toggle">
-                Быстрое назначение
-              </button>
               <button type="button" class="btn primary ghost" id="btn-save-pyrus">
                 Сохранить в Pyrus
               </button>
@@ -177,8 +174,8 @@
           </div>
 
           <div style="padding: 8px 12px; font-size: 12px; color: var(--text-muted);">
-            Режим: редактирование доступно только при правах <b>edit</b> (сейчас
-            реализован локальный кэш, без отправки в Pyrus).
+            Редактировать можно только во вкладке своей линии. Изменения сохраняются
+            в Pyrus автоматически.
           </div>
 
           <div class="change-log-panel">
@@ -226,7 +223,7 @@
   </div>
 
   <script src="js/shift-colors.js"></script>
-  <script type="module" src="js/app.js?v=10"></script>
+  <script type="module" src="js/app.js?v=11"></script>
   <script type="module" src="js/clients.js?v=117"></script>
   <script>
     (function () {
