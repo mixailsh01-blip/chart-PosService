@@ -3733,6 +3733,30 @@ for (const m of members) {
   }
 }
 
+// Состав вкладок по ролям Pyrus: кто в роли из config.departments.byRole[линия] — тот в этой вкладке
+try {
+  const byRole = config.departments?.byRole || {};
+  const roleLines = Object.keys(byRole).filter((k) => (byRole[k] || []).length);
+  if (roleLines.length) {
+    const roles = await membersService.getRoles();
+    for (const lineKey of roleLines) {
+      const wanted = new Set(byRole[lineKey].map(Number));
+      const ids = new Set();
+      for (const role of roles || []) {
+        if (role && !role.banned && wanted.has(Number(role.id))) {
+          for (const mid of role.member_ids || []) ids.add(Number(mid));
+        }
+      }
+      const target = employeesByLine[lineKey];
+      for (const e of employeesByLine.ALL) {
+        if (ids.has(Number(e.id)) && !target.some((x) => Number(x.id) === Number(e.id))) target.push(e);
+      }
+    }
+  }
+} catch (err) {
+  console.warn("Не удалось загрузить роли Pyrus для состава вкладок", err);
+}
+
 const sortEmployeesByName = (arr) =>
   arr.sort((a, b) => a.fullName.localeCompare(b.fullName, "ru"));
 

@@ -1,0 +1,2676 @@
+{
+  "name": "Пайрус-Манго Автоматика",
+  "nodes": [
+    {
+      "parameters": {
+        "type": "SHA256",
+        "value": "=2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc{{ $json.json }}4q0zlwgtxz4ofwkopa3a0v1amrbvrg9m"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        368,
+        432
+      ],
+      "id": "9be07789-01a8-43e1-8714-87f7447f2b46",
+      "name": "Crypto5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "32599c22-bcfa-4ca7-91b1-361fcdcc87c2",
+              "name": "json",
+              "value": "={\n  \"group_id\": \"19724718\",\n  \"group\": {\n    \"dial_alg_users\": \"4\"\n  }\n}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        432
+      ],
+      "id": "4a81fea1-63b9-4136-8259-350e96c757e1",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "type": "SHA256",
+        "value": "=2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc{{ $json.json }}4q0zlwgtxz4ofwkopa3a0v1amrbvrg9m"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        352,
+        736
+      ],
+      "id": "c5d12049-893d-4a0c-a6d7-619e8a0571a9",
+      "name": "Crypto6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "32599c22-bcfa-4ca7-91b1-361fcdcc87c2",
+              "name": "json",
+              "value": "={\n  \"group_id\": \"19724718\",\n  \"group\": {\n    \"dial_alg_users\": \"2\"\n  }\n}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        736
+      ],
+      "id": "3d827735-39a6-4bf5-8e61-5e232af2aa8e",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "triggerAtHour": 7,
+              "triggerAtMinute": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        736
+      ],
+      "id": "9e02709f-7368-4ac8-a2b6-9152c0121ecd",
+      "name": "Schedule Trigger1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "triggerAtHour": 20,
+              "triggerAtMinute": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        432
+      ],
+      "id": "4b2820dd-b83b-4278-bbb2-3154ffb5a302",
+      "name": "Schedule Trigger2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## переключить на все телефоны",
+        "height": 224,
+        "width": 1328
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -48,
+        368
+      ],
+      "typeVersion": 1,
+      "id": "0a58616d-d255-4966-8108-6659052516fd",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## переключить на приложение",
+        "height": 224,
+        "width": 1344
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -48,
+        672
+      ],
+      "typeVersion": 1,
+      "id": "6c144d6e-1b3a-4256-b4f1-e5346d94bd82",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Удаление старых смен из таблицы",
+        "height": 176,
+        "width": 624
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -48,
+        144
+      ],
+      "typeVersion": 1,
+      "id": "d89a97ca-5aa2-4829-978c-7554265f95ed",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.mango-office.ru/vpbx/group/update",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "vpbx_api_key",
+              "value": "2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc"
+            },
+            {
+              "name": "sign",
+              "value": "={{ $json.data }}"
+            },
+            {
+              "name": "json",
+              "value": "={{ $json.json }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        496,
+        432
+      ],
+      "id": "24025b9a-8f8d-4004-a1e0-648afb618ded",
+      "name": "L1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.mango-office.ru/vpbx/group/update",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "vpbx_api_key",
+              "value": "2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc"
+            },
+            {
+              "name": "sign",
+              "value": "={{ $json.data }}"
+            },
+            {
+              "name": "json",
+              "value": "={{ $json.json }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        736
+      ],
+      "id": "c3d2197b-6202-4245-b9da-ef12c94974a1",
+      "name": "L1_"
+    },
+    {
+      "parameters": {
+        "operation": "deleteRows",
+        "dataTableId": {
+          "__rl": true,
+          "value": "4bNL7Doi3OTc6oMU",
+          "mode": "list",
+          "cachedResultName": "pyrus-raspisanie",
+          "cachedResultUrl": "/projects/kDOBQSGqVIkeWgVV/datatables/4bNL7Doi3OTc6oMU"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "date_open",
+              "keyValue": "={{ $now.minus(1, 'day').format('yyyy-MM-dd') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        224,
+        192
+      ],
+      "id": "3a61c99c-2af3-498f-a329-ceebb6be3ef2",
+      "name": "Delete row(s)"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 11
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        16,
+        192
+      ],
+      "id": "a8507ad4-7e3a-4484-a08f-c0df6e47ec63",
+      "name": "Schedule Trigger4"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtMinute": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -96,
+        1008
+      ],
+      "id": "da029510-f72f-4fe2-a976-5b20cc4368c3",
+      "name": "Schedule Trigger3",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "FCAZyekbrVfHGxkz",
+          "mode": "list",
+          "cachedResultName": "mango_users",
+          "cachedResultUrl": "/projects/kDOBQSGqVIkeWgVV/datatables/FCAZyekbrVfHGxkz"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "user_name": "={{ $json.last_name }} {{ $json.first_name }}",
+            "number": "={{ $json.phone }}",
+            "user_id": "={{ $json.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "number",
+              "displayName": "number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "user_name",
+              "displayName": "user_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        720,
+        1008
+      ],
+      "id": "808d792b-6403-47d5-8e13-ec14dc78bdf5",
+      "name": "Upsert row(s)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://accounts.pyrus.com/api/v4/auth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"login\": \"bot@dabc0bf0-40da-40d2-a1c0-d67f7d756ae1\",\n    \"security_key\": \"RAemjI119XkQCrMH~0GBZF75wLr1LUgu5-huCezpq2St6zAwPf9icr~1fR4ykYUu9Bxzh20F4waIppnCLUDtZ49mooY9qvdg\"\n}\n",
+        "options": {}
+      },
+      "id": "6bac7148-c450-4705-ad88-492429d8917d",
+      "name": "Получаем Токен Пайруса",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        224,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.pyrus.com/v4/members/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        368,
+        1008
+      ],
+      "id": "871e6a01-0175-4bb7-b266-a6607aaad79e",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "members",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        560,
+        1008
+      ],
+      "id": "4dc0f3be-be10-47bf-b5d8-ea51345db667",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "type": "SHA256",
+        "value": "=2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc{{ $json.json }}4q0zlwgtxz4ofwkopa3a0v1amrbvrg9m"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        1696,
+        704
+      ],
+      "id": "c0eb5bd0-bf13-4332-9025-4e7f981be7b0",
+      "name": "Crypto"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "32599c22-bcfa-4ca7-91b1-361fcdcc87c2",
+              "name": "json",
+              "value": "={\n}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        704
+      ],
+      "id": "fbcfd64d-2069-4b9f-8036-6c397292161c",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.mango-office.ru/vpbx/groups",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "vpbx_api_key",
+              "value": "2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc"
+            },
+            {
+              "name": "sign",
+              "value": "={{ $json.data }}"
+            },
+            {
+              "name": "json",
+              "value": "={{ $json.json }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1824,
+        704
+      ],
+      "id": "94213351-8c22-4ec2-a303-66a0dc1d6be8",
+      "name": "L1_1"
+    },
+    {
+      "parameters": {
+        "type": "SHA256",
+        "value": "=2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc{{ $json.json }}4q0zlwgtxz4ofwkopa3a0v1amrbvrg9m"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        336,
+        -128
+      ],
+      "id": "f0530175-813e-4d87-b9b9-8a7ca0b35979",
+      "name": "Crypto10"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "32599c22-bcfa-4ca7-91b1-361fcdcc87c2",
+              "name": "json",
+              "value": "={\n  \"ext_fields\": [\n    \"general.user_id\",\n    \"general.use_status\",\n    \"general.use_cc_numbers\",\n    \"general.mobile\",\n    \"general.login\",\n    \"general.email\",\n    \"telephony.outgoingline\",\n    \"telephony.line_id\",\n    \"telephony.trunk_number_id\",\n    \"telephony.dial_alg\",\n    \"telephony.numbers.schedule\"\n  ]\n}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        -128
+      ],
+      "id": "6676ad0d-54d2-498a-859d-a786a683a51c",
+      "name": "Edit Fields14"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.mango-office.ru/vpbx/config/users/request",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "vpbx_api_key",
+              "value": "2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc"
+            },
+            {
+              "name": "sign",
+              "value": "={{ $json.data }}"
+            },
+            {
+              "name": "json",
+              "value": "={{ $json.json }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        528,
+        -128
+      ],
+      "id": "2eb44412-7c8b-4acb-a900-08e8b4dead52",
+      "name": "HTTP Request5",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtMinute": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -48,
+        -128
+      ],
+      "id": "1ab57f1e-3de3-4afc-8491-8e9beae201bc",
+      "name": "Schedule Trigger5"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "users",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        736,
+        -224
+      ],
+      "id": "9656404e-03f1-4fb1-b763-b199930022f1",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "FCAZyekbrVfHGxkz",
+          "mode": "list",
+          "cachedResultName": "mango_users",
+          "cachedResultUrl": "/projects/kDOBQSGqVIkeWgVV/datatables/FCAZyekbrVfHGxkz"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "keyValue": "={{ $json.general.user_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "user_id": "={{ $json.general.user_id }}",
+            "user_name": "={{ $json.general.name }}",
+            "number": "={{ $json.telephony.extension }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "number",
+              "displayName": "number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "user_name",
+              "displayName": "user_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        944,
+        -224
+      ],
+      "id": "8904c201-980c-45b2-9bcf-1826b77b7240",
+      "name": "Upsert row(s)1"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "4bNL7Doi3OTc6oMU",
+          "mode": "list",
+          "cachedResultName": "pyrus-raspisanie",
+          "cachedResultUrl": "/projects/kDOBQSGqVIkeWgVV/datatables/4bNL7Doi3OTc6oMU"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "date_close",
+              "condition": "ilike",
+              "keyValue": "={{ $json.timestamp?.toDateTime().format('yyyy-MM-dd') }}"
+            },
+            {
+              "keyName": "date_open",
+              "condition": "ilike",
+              "keyValue": "={{ $json.timestamp?.toDateTime().format('yyyy-MM-dd') }}"
+            },
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        1680
+      ],
+      "id": "f9572858-228a-4920-8241-819b560af640",
+      "name": "Get row(s)3",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 4-59/5 * * * *"
+            },
+            {
+              "triggerAtHour": 19
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -640,
+        1680
+      ],
+      "id": "c9ec6c0b-6632-4150-a046-c5231c3a8ae9",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Берём \"текущее время\" в момент запуска (работает и от расписания, и от вебхука синхронизации)\nconst now = new Date();\n\n// входные данные: смены из «Get row(s)3» (вход этой ноды — таблица обедов)\nconst rows = $('Get row(s)3').all().map(i => i.json);\n\n// телефоны сотрудников, которые сейчас на обеде — их в группы Манго не добавляем\nconst onLunch = new Set(\n  $input.all().map(i => i.json)\n    .filter(l => l && l.seg_id && l.status === 'active' && new Date(l.end_utc) > now)\n    .map(l => String(l.phone_number))\n);\n\n// ✅ ПАРСИМ ВСЁ КАК GMT+3\nfunction parseGmt3(str) {\n  const [datePart, timePart] = str.split(' ');\n  return new Date(`${datePart}T${timePart}:00+03:00`);\n}\n\n// Форматирование в GMT+3\nfunction fmtGmt3(d) {\n  return new Intl.DateTimeFormat('ru-RU', {\n    timeZone: 'Europe/Moscow',\n    year: 'numeric', month: '2-digit', day: '2-digit',\n    hour: '2-digit', minute: '2-digit', second: '2-digit',\n    hour12: false\n  }).format(d);\n}\n\n// фильтрация активных смен (и исключение обедающих)\nconst active = rows.filter(r => {\n  if (!r.date_open || !r.date_close) return false;\n  if (onLunch.has(String(r.phone_number))) return false;\n\n  const open = parseGmt3(r.date_open);  // ✅ GMT+3\n  const close = parseGmt3(r.date_close); // ✅ GMT+3\n\n  return now >= open && now < close;\n});\n\n// возвращаем МАССИВ items (n8n)\nreturn active.map(r => {\n  const open = parseGmt3(r.date_open);\n  const close = parseGmt3(r.date_close);\n\n  return {\n    json: {\n      phone_number: r.phone_number,\n      name: r.name,\n      date_open: r.date_open,\n      podrazd: r.podrazdelenie,\n      smena: r.smena,\n\n      // 🔍 дебаг\n      now_gmt3: fmtGmt3(now),\n      open_gmt3: fmtGmt3(open),\n      close_gmt3: fmtGmt3(close),\n      isActive: now >= open && now < close\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -352,
+        1680
+      ],
+      "id": "d3cd1dce-2d1c-4d25-a88b-460ebe600ce6",
+      "name": "Code in JavaScript",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "type": "SHA256",
+        "value": "=2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc{{ $json.json }}4q0zlwgtxz4ofwkopa3a0v1amrbvrg9m"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        720,
+        2592
+      ],
+      "id": "ec2f7919-7fa5-4810-ae1c-316e9a3ac432",
+      "name": "Crypto7"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.mango-office.ru/vpbx/group/update",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "vpbx_api_key",
+              "value": "2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc"
+            },
+            {
+              "name": "sign",
+              "value": "={{ $json.data }}"
+            },
+            {
+              "name": "json",
+              "value": "={{ $json.json }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        848,
+        2592
+      ],
+      "id": "9dd6b0c7-80ca-4742-abc0-4b3f2122c595",
+      "name": "L2"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "FCAZyekbrVfHGxkz",
+          "mode": "list",
+          "cachedResultName": "mango_users",
+          "cachedResultUrl": "/projects/kDOBQSGqVIkeWgVV/datatables/FCAZyekbrVfHGxkz"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "number",
+              "keyValue": "={{ $json.phone_number }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        2592
+      ],
+      "id": "4d9d8405-505c-437c-b90a-6dd806967474",
+      "name": "Get row(s)",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "FCAZyekbrVfHGxkz",
+          "mode": "list",
+          "cachedResultName": "mango_users",
+          "cachedResultUrl": "/projects/kDOBQSGqVIkeWgVV/datatables/FCAZyekbrVfHGxkz"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "number",
+              "keyValue": "={{ $json.phone_number }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        32,
+        1792
+      ],
+      "id": "93f3e7aa-ccd5-44b4-9301-9b82960d55d1",
+      "name": "Get row(s)1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "concatenate",
+              "field": "id"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        2592
+      ],
+      "id": "9e911555-74c7-42ec-989b-b4dfb881e135",
+      "name": "Summarize"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "79df54fa-1908-4b7a-8ead-7299d9937685",
+              "name": "id",
+              "value": "={\"id\": \"{{ $json.user_id }}\"} ",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        1792
+      ],
+      "id": "7c6b2b57-331d-4f6f-8ddf-5851094bbb03",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "concatenate",
+              "field": "id"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        656,
+        1792
+      ],
+      "id": "d12d9a66-bcd9-4876-8d8c-1deb2819336b",
+      "name": "Summarize1"
+    },
+    {
+      "parameters": {
+        "type": "SHA256",
+        "value": "=2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc{{ $json.json }}4q0zlwgtxz4ofwkopa3a0v1amrbvrg9m"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        928,
+        1792
+      ],
+      "id": "b6d18ef9-5b5a-43f8-8ad2-f52e0294b196",
+      "name": "Crypto8"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "32599c22-bcfa-4ca7-91b1-361fcdcc87c2",
+              "name": "json",
+              "value": "={\n  \"group_id\": \"19724880\",\n   \"group\": {\n    \"operators\":[\n{{ $json.concatenated_id }}\n    ]\n  }\n}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        800,
+        1792
+      ],
+      "id": "801c9c94-1b2c-4578-a9f0-8a8713ebbb35",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "32599c22-bcfa-4ca7-91b1-361fcdcc87c2",
+              "name": "json",
+              "value": "={\n  \"group_id\": \"19724718\",\n  \"group\": {\n    \"operators\":[\n{{ $json.concatenated_id }}\n    ]\n  }\n}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        592,
+        2592
+      ],
+      "id": "7a23df20-e62c-413e-9038-b1fcbabaa402",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.mango-office.ru/vpbx/group/update",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "vpbx_api_key",
+              "value": "2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc"
+            },
+            {
+              "name": "sign",
+              "value": "={{ $json.data }}"
+            },
+            {
+              "name": "json",
+              "value": "={{ $json.json }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1056,
+        1792
+      ],
+      "id": "259fd7f0-a677-4727-9108-ee18c4877ae5",
+      "name": "L"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "79df54fa-1908-4b7a-8ead-7299d9937685",
+              "name": "id",
+              "value": "={\"id\": \"{{ $json.user_id }}\"} ",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        288,
+        2592
+      ],
+      "id": "4313796c-7a7a-4100-a916-d8d6c6d9bb31",
+      "name": "Edit Fields6"
+    },
+    {
+      "parameters": {
+        "type": "SHA256",
+        "value": "=2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc{{ $json.json }}4q0zlwgtxz4ofwkopa3a0v1amrbvrg9m"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        720,
+        2176
+      ],
+      "id": "c7e6fe5b-406d-46b5-8230-c38688d01c86",
+      "name": "Crypto9"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.mango-office.ru/vpbx/group/update",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "vpbx_api_key",
+              "value": "2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc"
+            },
+            {
+              "name": "sign",
+              "value": "={{ $json.data }}"
+            },
+            {
+              "name": "json",
+              "value": "={{ $json.json }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        848,
+        2176
+      ],
+      "id": "a01f926e-aca1-45f6-bee9-1e94e4893c80",
+      "name": "L3"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "FCAZyekbrVfHGxkz",
+          "mode": "list",
+          "cachedResultName": "mango_users",
+          "cachedResultUrl": "/projects/kDOBQSGqVIkeWgVV/datatables/FCAZyekbrVfHGxkz"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "number",
+              "keyValue": "={{ $json.phone_number }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -112,
+        2176
+      ],
+      "id": "f3b53b46-66a9-4988-9055-d0f97f9d42cf",
+      "name": "Get row(s)2",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "concatenate",
+              "field": "id"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        2176
+      ],
+      "id": "566e68b1-91c2-4f23-b789-1883eafece00",
+      "name": "Summarize2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "32599c22-bcfa-4ca7-91b1-361fcdcc87c2",
+              "name": "json",
+              "value": "={\n  \"group_id\": \"19724854\",\n  \"group\": {\n    \"operators\":[\n{{ $json.concatenated_id }}\n    ]\n  }\n}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        592,
+        2176
+      ],
+      "id": "16782b41-4e55-41bf-89bf-f0ffb5cb344c",
+      "name": "Edit Fields7"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "79df54fa-1908-4b7a-8ead-7299d9937685",
+              "name": "id",
+              "value": "={\"id\": \"{{ $json.user_id }}\"} ",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        304,
+        2176
+      ],
+      "id": "a1b6b53f-64e1-4bc6-b319-7123a8bbd1c3",
+      "name": "Edit Fields8"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a532d742-b68a-49c2-9178-25057c7e1248",
+              "leftValue": "={{ $json.smena }}",
+              "rightValue": "ПНР",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -384,
+        1984
+      ],
+      "id": "a06e3331-4092-4094-9b5c-f868d52bca60",
+      "name": "ПНР",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a532d742-b68a-49c2-9178-25057c7e1248",
+              "leftValue": "={{ $json.smena }}",
+              "rightValue": "ОП",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -384,
+        2128
+      ],
+      "id": "c6b4cd85-0d5e-4a37-a562-0d1999cae172",
+      "name": "ОП",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a532d742-b68a-49c2-9178-25057c7e1248",
+              "leftValue": "={{ $json.smena }}",
+              "rightValue": "ОП",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "254c8086-2a8a-469f-a8ab-86fd0e6b00d3",
+              "leftValue": "={{ $json.smena }}",
+              "rightValue": "ПНР",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -384,
+        2320
+      ],
+      "id": "065de06b-2402-4229-9926-6e473bd681a5",
+      "name": "ТП",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f8e13c0c-c22a-45dc-974d-e4281dd7b07a",
+              "leftValue": "={{ $json.user_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        1792
+      ],
+      "id": "54402c62-d81c-4925-aec9-2077790ffc22",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "type": "SHA256",
+        "value": "=2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc{{ $json.json }}4q0zlwgtxz4ofwkopa3a0v1amrbvrg9m"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        944,
+        1952
+      ],
+      "id": "de6c0f37-7140-4f34-a124-db070f2c7f45",
+      "name": "Crypto11"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "32599c22-bcfa-4ca7-91b1-361fcdcc87c2",
+              "name": "json",
+              "value": "={\n  \"group_id\": \"19724880\",\n   \"group\": {\n    \"operators\":[]\n  }\n}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        816,
+        1952
+      ],
+      "id": "d9f55ee4-e92f-4875-84a8-82cc08354f2b",
+      "name": "Edit Fields9"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.mango-office.ru/vpbx/group/update",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "vpbx_api_key",
+              "value": "2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc"
+            },
+            {
+              "name": "sign",
+              "value": "={{ $json.data }}"
+            },
+            {
+              "name": "json",
+              "value": "={{ $json.json }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1072,
+        1952
+      ],
+      "id": "95ccaf97-cc5b-4c4c-963c-daf37fbc785c",
+      "name": "L4"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f8e13c0c-c22a-45dc-974d-e4281dd7b07a",
+              "leftValue": "={{ $json.user_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        96,
+        2176
+      ],
+      "id": "759b75f0-9af6-483a-9016-5fcdc4cffd6c",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f8e13c0c-c22a-45dc-974d-e4281dd7b07a",
+              "leftValue": "={{ $json.user_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        128,
+        2592
+      ],
+      "id": "277a3619-d71e-42de-a3c6-40cd9176ebcb",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "type": "SHA256",
+        "value": "=2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc{{ $json.json }}4q0zlwgtxz4ofwkopa3a0v1amrbvrg9m"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        720,
+        2304
+      ],
+      "id": "cde9643a-3911-42fa-91d7-de086f7fb8df",
+      "name": "Crypto12"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.mango-office.ru/vpbx/group/update",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "vpbx_api_key",
+              "value": "2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc"
+            },
+            {
+              "name": "sign",
+              "value": "={{ $json.data }}"
+            },
+            {
+              "name": "json",
+              "value": "={{ $json.json }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        848,
+        2304
+      ],
+      "id": "f7f7185f-4ab8-47de-a6c5-45e8b4dbd0d4",
+      "name": "L5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "32599c22-bcfa-4ca7-91b1-361fcdcc87c2",
+              "name": "json",
+              "value": "={\n  \"group_id\": \"19724854\",\n  \"group\": {\n    \"operators\":[]\n  }\n}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        592,
+        2304
+      ],
+      "id": "b6a32fae-547b-4610-ae90-f05d051640b6",
+      "name": "Edit Fields10"
+    },
+    {
+      "parameters": {
+        "type": "SHA256",
+        "value": "=2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc{{ $json.json }}4q0zlwgtxz4ofwkopa3a0v1amrbvrg9m"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        720,
+        2720
+      ],
+      "id": "4a56ba3f-5fbd-450a-affd-2d2c6d1e0dcc",
+      "name": "Crypto13"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.mango-office.ru/vpbx/group/update",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "vpbx_api_key",
+              "value": "2ugh1c4o5tq0dlcvqhs15kv0bfs6whtc"
+            },
+            {
+              "name": "sign",
+              "value": "={{ $json.data }}"
+            },
+            {
+              "name": "json",
+              "value": "={{ $json.json }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        848,
+        2720
+      ],
+      "id": "9bb85bee-a8e9-4cb1-b01a-391af3c728fe",
+      "name": "L6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "32599c22-bcfa-4ca7-91b1-361fcdcc87c2",
+              "name": "json",
+              "value": "={\n  \"group_id\": \"19724718\",\n  \"group\": {\n    \"operators\":[]\n  }\n}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        592,
+        2720
+      ],
+      "id": "53357639-cd48-44fa-9167-c5ccabe88278",
+      "name": "Edit Fields11"
+    },
+    {
+      "parameters": {
+        "content": "## Заполнение групп в манго людьми\n",
+        "height": 1360,
+        "width": 2192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -784,
+        1600
+      ],
+      "typeVersion": 1,
+      "id": "2b41e01d-7335-4124-b7b7-e283e15d1f57",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "pyrus-lunch"
+        },
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -300,
+        1680
+      ],
+      "id": "c2df95d1-0916-44c8-9d96-84bd96a95245",
+      "name": "Обеды: сейчас",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mango/sync",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1000,
+        1780
+      ],
+      "id": "3de15c1b-005c-42ab-9b6f-92f9f975b4af",
+      "name": "Вебхук: пересобрать группы",
+      "webhookId": "f3d5a211-986c-43fe-9d2c-0adc5de367f7"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8d8b1ba9-a33a-4517-a651-88c55c596369",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -740,
+        1780
+      ],
+      "id": "7bcd8428-5c33-4aef-bbac-62b714933b6d",
+      "name": "Время запуска"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1000,
+        1980
+      ],
+      "id": "c3626654-cdad-4179-9877-a1dfc8897cce",
+      "name": "Таймер обедов (1 мин)"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "pyrus-lunch"
+        },
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "scheduled"
+            }
+          ]
+        },
+        "matchType": "anyCondition"
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -780,
+        1980
+      ],
+      "id": "3fae1146-8494-4fb4-919a-4e098cbbd820",
+      "name": "Обеды: открытые",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code-нода «Таймер: что изменить» (Run Once for All Items), запускается раз в минуту.\n// scheduled → active, когда подошло время; active → returned (overdue), когда вышел лимит.\nconst now = Date.now();\nconst out = [];\nfor (const it of $input.all()) {\n  const r = it.json;\n  if (!r || !r.seg_id) continue;\n  const start = new Date(r.start_utc).getTime();\n  const end = new Date(r.end_utc).getTime();\n  if (r.status === 'scheduled' && start <= now) {\n    if (end <= now) out.push({ json: { ...r, status: 'cancelled', ended_at: new Date(now).toISOString() } });\n    else out.push({ json: { ...r, status: 'active' } });\n  } else if (r.status === 'active' && end <= now) {\n    out.push({ json: { ...r, status: 'returned', ended_at: new Date(end).toISOString() } });\n  }\n}\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        1980
+      ],
+      "id": "b254b557-1821-40d2-ac97-fc6794dee33e",
+      "name": "Таймер: что изменить"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "pyrus-lunch"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "seg_id",
+              "keyValue": "={{ $json.seg_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "seg_id": "={{ $json.seg_id }}",
+            "member_id": "={{ $json.member_id }}",
+            "name": "={{ $json.name }}",
+            "phone_number": "={{ $json.phone_number }}",
+            "start_utc": "={{ $json.start_utc }}",
+            "end_utc": "={{ $json.end_utc }}",
+            "status": "={{ $json.status }}",
+            "ended_at": "={{ $json.ended_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "seg_id",
+              "displayName": "seg_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "member_id",
+              "displayName": "member_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phone_number",
+              "displayName": "phone_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "start_utc",
+              "displayName": "start_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "end_utc",
+              "displayName": "end_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ended_at",
+              "displayName": "ended_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -340,
+        1980
+      ],
+      "id": "001f638b-3ff3-4236-8fe8-5cf9359aa183",
+      "name": "Обед: обновить статус"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -120,
+        1980
+      ],
+      "id": "8d9076c5-afeb-4c90-8768-50dd346d66d0",
+      "name": "Склеить в один запуск"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3aed8c6f-7716-4709-9f04-e660e21440fa",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        100,
+        1980
+      ],
+      "id": "46070a01-567e-4961-bfdc-921670bd1e0a",
+      "name": "Время запуска (таймер)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Crypto5": {
+      "main": [
+        [
+          {
+            "node": "L1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Crypto5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crypto6": {
+      "main": [
+        [
+          {
+            "node": "L1_",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Crypto6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1": {
+      "main": [
+        []
+      ]
+    },
+    "L1_": {
+      "main": [
+        []
+      ]
+    },
+    "Schedule Trigger4": {
+      "main": [
+        [
+          {
+            "node": "Delete row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger3": {
+      "main": [
+        [
+          {
+            "node": "Получаем Токен Пайруса",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Получаем Токен Пайруса": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Upsert row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crypto": {
+      "main": [
+        [
+          {
+            "node": "L1_1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Crypto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crypto10": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields14": {
+      "main": [
+        [
+          {
+            "node": "Crypto10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request5": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger5": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Upsert row(s)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)3": {
+      "main": [
+        [
+          {
+            "node": "Обеды: сейчас",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crypto7": {
+      "main": [
+        [
+          {
+            "node": "L2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Summarize1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crypto8": {
+      "main": [
+        [
+          {
+            "node": "L",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Crypto8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Crypto7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields6": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "ПНР",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ОП",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ТП",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crypto9": {
+      "main": [
+        [
+          {
+            "node": "L3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)2": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields7": {
+      "main": [
+        [
+          {
+            "node": "Crypto9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields8": {
+      "main": [
+        [
+          {
+            "node": "Summarize2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ПНР": {
+      "main": [
+        []
+      ]
+    },
+    "ОП": {
+      "main": [
+        []
+      ]
+    },
+    "ТП": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crypto11": {
+      "main": [
+        [
+          {
+            "node": "L4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields9": {
+      "main": [
+        [
+          {
+            "node": "Crypto11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields8",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crypto12": {
+      "main": [
+        [
+          {
+            "node": "L5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields10": {
+      "main": [
+        [
+          {
+            "node": "Crypto12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crypto13": {
+      "main": [
+        [
+          {
+            "node": "L6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields11": {
+      "main": [
+        [
+          {
+            "node": "Crypto13",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Обеды: сейчас": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Вебхук: пересобрать группы": {
+      "main": [
+        [
+          {
+            "node": "Время запуска",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Время запуска": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Таймер обедов (1 мин)": {
+      "main": [
+        [
+          {
+            "node": "Обеды: открытые",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Обеды: открытые": {
+      "main": [
+        [
+          {
+            "node": "Таймер: что изменить",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Таймер: что изменить": {
+      "main": [
+        [
+          {
+            "node": "Обед: обновить статус",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Обед: обновить статус": {
+      "main": [
+        [
+          {
+            "node": "Склеить в один запуск",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Склеить в один запуск": {
+      "main": [
+        [
+          {
+            "node": "Время запуска (таймер)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Время запуска (таймер)": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "d49dbf71-fb4b-44fe-8990-56e630f73882",
+  "meta": {
+    "instanceId": "9a6e7962b6bf9c09b7bb21193c1935e26d407a0af9e06b83f3f01dee52651989"
+  },
+  "nodeGroups": [],
+  "id": "dsMkRdECE6dTJpsG",
+  "tags": []
+}

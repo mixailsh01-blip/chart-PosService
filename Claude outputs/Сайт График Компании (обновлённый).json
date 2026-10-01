@@ -1,0 +1,1788 @@
+{
+  "name": "Сайт График Компании",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pyrus/graph",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -464,
+        16
+      ],
+      "id": "d455af2e-0eb7-470f-934b-3f374a2f365e",
+      "name": "Webhook",
+      "webhookId": "68e99c82-4bea-4416-aa5d-5fa07048dc8f"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "joryY9IuYTwBujTK",
+          "mode": "list",
+          "cachedResultName": "pyrus-graph-table",
+          "cachedResultUrl": "/projects/kDOBQSGqVIkeWgVV/datatables/joryY9IuYTwBujTK"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "login",
+              "keyValue": "={{ $json.body.login }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        -416
+      ],
+      "id": "6122a145-6f78-414a-b16c-959ff3a41459",
+      "name": "Get row(s)",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"ACCESS_GRANTED\",\n  \"permissions\": { \"ALL\": \"{{ $json.role }}\", \"L1\": \"{{ $json.role_L1 }}\", \"L2\": \"{{ $json.role_L2 }}\", \"OV\": \"{{ $json.role_OV }}\", \"OP\": \"{{ $json.role_OP }}\", \"OU\": \"{{ $json.role_OU }}\", \"AI\": \"{{ $json.role_AI }}\" },\n  \"user\": {\n    \"name\": \"{{ $json.name }}\",\n    \"login\": \"{{ $json.login }}\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        432,
+        -640
+      ],
+      "id": "16e2d158-41fd-4946-b9f3-0278d33d79b2",
+      "name": "Доступ есть"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": {\n    \"code\": \"INVALID_CREDENTIALS\",\n    \"message\": \"Неверный логин или пароль\"\n  }\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        432,
+        -512
+      ],
+      "id": "27e36b28-6155-49ae-8d15-bfc986f9b9a4",
+      "name": "Пользователь не найден"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": {\n    \"code\": \"ACCESS_DENIED\",\n    \"message\": \"У вас нет доступа к системе графиков\"\n  }\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        304,
+        -400
+      ],
+      "id": "d7036c60-c796-4f40-ab3e-a2e09aeee1cb",
+      "name": "Доступа НЕТ"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "auth",
+                    "rightValue": "={{ $json.body.type }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "25a5ed61-7676-4a86-8ce1-39b558f02e77"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "auth"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "776edf89-7153-41ff-b1d2-b3aa89855eed",
+                    "leftValue": "pyrus_api",
+                    "rightValue": "={{ $json.body.type }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "pyrus-api"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "72c0ad28-e1c3-40f5-944e-f3ac50c9328b",
+                    "leftValue": "pyrus_save",
+                    "rightValue": "={{ $json.body.type }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "pyrus_save"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ee731cb7-3a12-429f-a4f9-1dcdfaf4a85f",
+                    "leftValue": "email",
+                    "rightValue": "={{ $json.body.type }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "email"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ee966ba8-e34b-4b7d-bf5c-706b7f96f9ae",
+                    "leftValue": "vacation_create",
+                    "rightValue": "={{ $json.body.type }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  },
+                  {
+                    "id": "d71510da-2f40-4c82-88c6-99ba6088f4c5",
+                    "leftValue": "vacation_delete",
+                    "rightValue": "={{ $json.body.type }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  },
+                  {
+                    "id": "f6ecc440-1462-451c-b7c5-b3ea543010c0",
+                    "leftValue": "schedule_swap",
+                    "rightValue": "={{ $json.body.type }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  },
+                  {
+                    "id": "fb83ff37-78dd-42ae-8995-fa40e3ee82c5",
+                    "leftValue": "lunch_status",
+                    "rightValue": "={{ $json.body.type }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  },
+                  {
+                    "id": "89f8d021-1f4c-44bd-af9f-72ca513bc095",
+                    "leftValue": "lunch_start",
+                    "rightValue": "={{ $json.body.type }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  },
+                  {
+                    "id": "6246e2f3-996e-44a6-8a19-01640de7bc1d",
+                    "leftValue": "lunch_end",
+                    "rightValue": "={{ $json.body.type }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "or"
+              },
+              "renameOutput": true,
+              "outputKey": "actions"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -192,
+        0
+      ],
+      "id": "36767314-e5d8-4c87-b247-341412849494",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://accounts.pyrus.com/api/v4/auth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"login\": \"bot@dabc0bf0-40da-40d2-a1c0-d67f7d756ae1\",\n    \"security_key\": \"RAemjI119XkQCrMH~0GBZF75wLr1LUgu5-huCezpq2St6zAwPf9icr~1fR4ykYUu9Bxzh20F4waIppnCLUDtZ49mooY9qvdg\"\n}\n",
+        "options": {}
+      },
+      "id": "d16ffc2a-9e94-4103-9bf5-7db200ec147d",
+      "name": "Получаем Токен Пайруса",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        128,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "method": "={{ $('Webhook').item.json.body.method }}",
+        "url": "=https://api.pyrus.com{{ $('Webhook').item.json.body.path }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        272,
+        16
+      ],
+      "id": "5c94e8b6-6d3a-4f07-bd79-0b78fd76e817",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"data\": {{ $json.json }}\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        544,
+        16
+      ],
+      "id": "4b2f5fcd-6e01-4dab-a949-a438a1d54c75",
+      "name": "Доступ есть1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b1568897-e5b9-455a-8891-9bc8952b1e79",
+              "name": "json",
+              "value": "={{$json}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        400,
+        16
+      ],
+      "id": "ee431a39-bf34-4b7c-8d83-723b4f4d993b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://accounts.pyrus.com/api/v4/auth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"login\": \"bot@dabc0bf0-40da-40d2-a1c0-d67f7d756ae1\",\n    \"security_key\": \"RAemjI119XkQCrMH~0GBZF75wLr1LUgu5-huCezpq2St6zAwPf9icr~1fR4ykYUu9Bxzh20F4waIppnCLUDtZ49mooY9qvdg\"\n}\n",
+        "options": {}
+      },
+      "id": "e222a6f3-e6a4-41bc-bf55-80465a32f032",
+      "name": "Получаем Токен Пайруса1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        464,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pyrus.com/v4/tasks",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer  {{ $json.access_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"fields\": [\n    {\n      \"id\": 7,\n      \"value\": {\n        \"item_id\": {{ $('Loop Over Items').item.json.date2.item_id }}\n      }\n    },\n    {\n      \"id\": 1,\n      \"value\": {\n        \"item_id\": {{ $('Code in JavaScript').item.json.date2.department_item_id }}\n      }\n    },\n    {\n      \"id\": 8,\n      \"value\": {\"id\": \"{{ $('Loop Over Items').item.json.date2.employee_id }}\"}\n    },\n    {\n      \"id\": 5,\n      \"value\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\"\n    },\n    {\n      \"id\": 6,\n      \"value\": {{ $('Loop Over Items').item.json.date2.amount }}\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1136,
+        352
+      ],
+      "id": "7cb7206c-f048-4c59-8f83-237cdd62455e",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "body.changes.create.task",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        352
+      ],
+      "id": "9b6e5d00-4c70-49bc-9745-85440a58d1ca",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Входная переменная из текущего item\nconst dateOpen = $json.start\nconst date2 = $json\n// Парсим дату и преобразуем в UTC\nconst date = new Date(dateOpen);\n\n// Получаем компоненты даты и времени в UTC\nconst year = date.getUTCFullYear();\nconst month = String(date.getUTCMonth() + 1).padStart(2, '0');\nconst day = String(date.getUTCDate()).padStart(2, '0');\nconst hours = String(date.getUTCHours()).padStart(2, '0');\nconst minutes = String(date.getUTCMinutes()).padStart(2, '0');\nconst seconds = String(date.getUTCSeconds()).padStart(2, '0');\n\n// Формируем строку в нужном формате\nconst formattedDate = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}Z`;\n\nreturn {\n  json: {\n    date_open_formatted: formattedDate,\n    date2:date2\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        352
+      ],
+      "id": "79343766-73f5-4ece-8ed6-e1f2a0b7b04d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        224,
+        352
+      ],
+      "id": "de1ed903-ad86-4f28-a5fd-9436568ae31c",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://accounts.pyrus.com/api/v4/auth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"login\": \"bot@dabc0bf0-40da-40d2-a1c0-d67f7d756ae1\",\n    \"security_key\": \"RAemjI119XkQCrMH~0GBZF75wLr1LUgu5-huCezpq2St6zAwPf9icr~1fR4ykYUu9Bxzh20F4waIppnCLUDtZ49mooY9qvdg\"\n}\n",
+        "options": {}
+      },
+      "id": "b8f5f3c4-723d-4beb-84cf-8e1f4e44f4f5",
+      "name": "Получаем Токен Пайруса2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        464,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.pyrus.com/v4/tasks/{{ $('Loop Over Items1').item.json.date2.task_id }}/comments",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer  {{ $json.access_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items1').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"field_updates\": [\n    {\n      \"id\": 7,\n      \"value\": {\n        \"item_id\": {{ $('Loop Over Items1').item.json.date2.item_id }}\n      }\n    },\n    {\n      \"id\": 1,\n      \"value\": {\n        \"item_id\": {{ $('Code in JavaScript1').item.json.date2.department_item_id }}\n      }\n    },\n    {\n      \"id\": 8,\n      \"value\": {\"id\": \"{{ $('Loop Over Items1').item.json.date2.employee_id }}\"}\n    },\n    {\n      \"id\": 5,\n      \"value\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\"\n    },\n    {\n      \"id\": 6,\n      \"value\": {{ $('Loop Over Items1').item.json.date2.amount }}\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        832,
+        640
+      ],
+      "id": "78ede8d1-0cef-48a5-a4ca-13cf8d48befe",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "body.changes.edit.task",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        608
+      ],
+      "id": "c4344ce6-f980-46ee-9f74-850c60ef6b51",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Входная переменная из текущего item\nconst dateOpen = $json.start\nconst date2 = $json\n// Парсим дату и преобразуем в UTC\nconst date = new Date(dateOpen);\n\n// Получаем компоненты даты и времени в UTC\nconst year = date.getUTCFullYear();\nconst month = String(date.getUTCMonth() + 1).padStart(2, '0');\nconst day = String(date.getUTCDate()).padStart(2, '0');\nconst hours = String(date.getUTCHours()).padStart(2, '0');\nconst minutes = String(date.getUTCMinutes()).padStart(2, '0');\nconst seconds = String(date.getUTCSeconds()).padStart(2, '0');\n\n// Формируем строку в нужном формате\nconst formattedDate = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}Z`;\n\nreturn {\n  json: {\n    date_open_formatted: formattedDate,\n    date2:date2\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        608
+      ],
+      "id": "6f310193-c3ba-4161-aa5e-cf8d01082779",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        224,
+        608
+      ],
+      "id": "ed2b12a3-722e-471a-b3d4-22ee3d5a3643",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://accounts.pyrus.com/api/v4/auth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"login\": \"bot@dabc0bf0-40da-40d2-a1c0-d67f7d756ae1\",\n    \"security_key\": \"RAemjI119XkQCrMH~0GBZF75wLr1LUgu5-huCezpq2St6zAwPf9icr~1fR4ykYUu9Bxzh20F4waIppnCLUDtZ49mooY9qvdg\"\n}\n",
+        "options": {}
+      },
+      "id": "1cbb1fff-7a2d-43d5-9cd8-09f3c5e0bc4e",
+      "name": "Получаем Токен Пайруса3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        464,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=https://api.pyrus.com/v4/tasks/{{ $('Loop Over Items2').item.json.task_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer  {{ $json.access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        736,
+        896
+      ],
+      "id": "9136559f-ac6e-4ca7-abc7-315b134ee0c7",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "body.changes.deleted.task",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        864
+      ],
+      "id": "b5c2593e-da56-4e54-818e-d142eaab636a",
+      "name": "Split Out2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        224,
+        864
+      ],
+      "id": "3a0e84a8-cb1f-446d-b742-bf903dd5c68e",
+      "name": "Loop Over Items2"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        608
+      ],
+      "id": "9e8be12a-33e7-4d98-af26-1418ae2ecbcf",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1248,
+        608
+      ],
+      "id": "f634e6c8-14a9-4701-bcb6-1559f359a29e",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.user_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "d3ceb4d2-bfe0-4ce2-bfa3-1d2fe1a4adb9"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9fc591ce-6c4c-42c2-ba89-c444b71ec09e",
+                    "leftValue": "={{ $json.user_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notExists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        208,
+        -560
+      ],
+      "id": "f0419b7f-01cb-4bcd-80b1-cdff77b86e7e",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "94014f8d-3242-4ae3-9177-65b6ee28640a",
+              "leftValue": "={{ $('Webhook').item.json.body.password }}",
+              "rightValue": "={{ $json.pass }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        16,
+        -416
+      ],
+      "id": "89d6aa90-ae8d-4cf8-b7f3-8cabab03e02b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "content": "## Авторизация по правам доступа",
+        "height": 384,
+        "width": 800
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -192,
+        -656
+      ],
+      "typeVersion": 1,
+      "id": "54849d40-286e-42df-8651-54afdb698504",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Получение: людей / справочника / тасков смен",
+        "height": 224,
+        "width": 640
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        80,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "eb6fe9de-abc8-4d64-8b0d-0f24beb2014f",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Создание / Редактирование / удаление смен по форме",
+        "height": 752,
+        "width": 1424
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -192,
+        304
+      ],
+      "typeVersion": 1,
+      "id": "ce6acbe1-35e6-4c1b-9e60-944ac85f254c",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6a2c46f4-e0d8-4813-b12e-ab5d5d09696c",
+              "leftValue": "={{ $('Loop Over Items').item.json.date2.item_id }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        352
+      ],
+      "id": "4eaca2bf-6bf5-4124-b32f-e7f64456ce8d",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pyrus.com/v4/tasks",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer  {{ $json.access_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"fields\": [\n    { \"id\": 8, \"value\": {\"id\": \"{{ $('Loop Over Items').item.json.date2.employee_id }}\"} },\n    { \"id\": 1, \"value\": { \"item_id\": {{ $('Code in JavaScript').item.json.date2.department_item_id }} } },\n    { \"id\": 5, \"value\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\" },\n    { \"id\": 6, \"value\": {{ $('Loop Over Items').item.json.date2.amount }} }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        912,
+        384
+      ],
+      "id": "f2748acf-d540-4dd7-ba64-7ee393f09729",
+      "name": "HTTP Request4"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6a2c46f4-e0d8-4813-b12e-ab5d5d09696c",
+              "leftValue": "={{ $('Loop Over Items1').item.json.date2.item_id }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        656
+      ],
+      "id": "f9db3e13-2a49-45b6-8e33-ae0e463519ff",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.pyrus.com/v4/tasks/{{ $('Loop Over Items1').item.json.date2.task_id }}/comments",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer  {{ $json.access_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items1').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"field_updates\": [\n    {\n      \"id\": 7,\n      \"value\": {\n        \"item_id\": null\n      }\n    },\n    {\n      \"id\": 1,\n      \"value\": {\n        \"item_id\": {{ $('Code in JavaScript1').item.json.date2.department_item_id }}\n      }\n    },\n    {\n      \"id\": 8,\n      \"value\": {\"id\": \"{{ $('Loop Over Items1').item.json.date2.employee_id }}\"}\n    },\n    {\n      \"id\": 5,\n      \"value\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\"\n    },\n    {\n      \"id\": 6,\n      \"value\": {{ $('Loop Over Items1').item.json.date2.amount }}\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1040,
+        736
+      ],
+      "id": "8ac98fe5-9c30-4ebd-b00f-ce5054f4467f",
+      "name": "HTTP Request6"
+    },
+    {
+      "parameters": {
+        "operation": "deleteRows",
+        "dataTableId": {
+          "__rl": true,
+          "value": "4bNL7Doi3OTc6oMU",
+          "mode": "list",
+          "cachedResultName": "pyrus-raspisanie",
+          "cachedResultUrl": "/projects/kDOBQSGqVIkeWgVV/datatables/4bNL7Doi3OTc6oMU"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "task_id",
+              "keyValue": "={{ $('Loop Over Items2').item.json.task_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        1040
+      ],
+      "id": "f940d613-e5b6-445d-8c90-67116026023a",
+      "name": "Delete row(s)"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"code\": \"200\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1392,
+        144
+      ],
+      "id": "d0b1cee0-7cc8-4416-aa13-28965aa36e79",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "fromEmail": "График работы PosService <support@posservice.pro>",
+        "toEmail": "={{ $json.body.email }}",
+        "subject": "=Код авторизации:",
+        "html": "=<!doctype html>\n<html lang=\"ru\">\n  <head>\n    <meta charset=\"utf-8\" />\n    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\" />\n    <meta name=\"x-apple-disable-message-reformatting\" />\n    <title>Код авторизации</title>\n    <style>\n      @media (prefers-color-scheme: dark) {\n        .bg { background: #0b1220 !important; }\n        .card { background: #0f1a30 !important; border-color: #233455 !important; }\n        .text { color: #e6edf7 !important; }\n        .muted { color: #a7b3c7 !important; }\n        .codeBox { background: #0b1428 !important; border-color: #2a3c62 !important; }\n        .codeInner { background:#0f1a30 !important; border-color:#2a3c62 !important; }\n        .codeValue { color:#dbe6ff !important; }\n      }\n      @media screen and (max-width: 600px) {\n        .container { width: 100% !important; }\n        .px { padding-left: 16px !important; padding-right: 16px !important; }\n        .codeValue { font-size: 34px !important; letter-spacing: 0.18em !important; }\n      }\n    </style>\n  </head>\n\n  <body class=\"bg\" style=\"margin:0; padding:0; background:#f4f7ff;\">\n    <div style=\"display:none; font-size:1px; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden;\">\n      {{ $json.body.code }} · Действителен 10 минут.\n    </div>\n\n    <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"background:#f4f7ff;\">\n      <tr>\n        <td align=\"center\" style=\"padding:28px 12px;\">\n          <table role=\"presentation\" class=\"container\" width=\"600\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:600px; max-width:600px;\">\n            <tr>\n              <td class=\"px\" style=\"padding:0 28px 14px 28px; font-family:Arial, Helvetica, sans-serif;\">\n                <div style=\"font-size:14px; color:#5b6b86;\">PosService</div>\n                <div style=\"font-size:22px; color:#0f1a2a; font-weight:700; margin-top:6px;\">Подтверждение входа</div>\n              </td>\n            </tr>\n\n            <tr>\n              <td class=\"card\" style=\"background:#ffffff; border:1px solid #e6ecff; border-radius:16px; overflow:hidden; box-shadow:0 10px 24px rgba(15,26,42,0.08);\">\n                <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">\n                  <tr>\n                    <td class=\"px\" style=\"padding:24px 28px 10px 28px; font-family:Arial, Helvetica, sans-serif;\">\n                      <div class=\"text\" style=\"color:#0f1a2a; font-size:16px; line-height:24px;\">\n                        Введите этот код, чтобы войти по почте.\n                      </div>\n                      <div class=\"muted\" style=\"color:#5b6b86; font-size:13px; line-height:20px; margin-top:6px;\">\n                        Код действует <b>10 минут</b>. Никому его не сообщайте.\n                      </div>\n                    </td>\n                  </tr>\n\n                  <tr>\n                    <td class=\"px\" style=\"padding:14px 28px 6px 28px;\">\n                      <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">\n                        <tr>\n                          <td class=\"codeBox\" style=\"background:#f2f6ff; border:1px solid #dbe6ff; border-radius:14px; padding:16px;\">\n                            <div class=\"muted\" style=\"font-family:Arial, Helvetica, sans-serif; color:#5b6b86; font-size:12px; line-height:18px; margin-bottom:8px;\">\n                              Код авторизации\n                            </div>\n\n                            <div class=\"codeInner\" style=\"background:#ffffff; border:1px solid #cfe0ff; border-radius:12px; padding:10px 12px; text-align:center;\">\n                              <div\n                                class=\"codeValue\"\n                                style=\"\n                                  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;\n                                  font-size:40px;\n                                  line-height:48px;\n                                  letter-spacing:0.22em;\n                                  font-weight:800;\n                                  color:#0b2a6f;\n                                  user-select:all;\n                                  -webkit-user-select:all;\n                                  -ms-user-select:all;\n                                \"\n                                aria-label=\"Код авторизации: {{ $json.body.code }}\"\n                              >\n                                {{ $json.body.code }}\n                              </div>\n                            </div>\n\n                            <div class=\"muted\" style=\"font-family:Arial, Helvetica, sans-serif; color:#5b6b86; font-size:12px; line-height:18px; margin-top:10px; text-align:center;\">\n                              На ПК: выделите код и нажмите <b>Ctrl+C</b> · На телефоне: нажмите и удерживайте → <b>Копировать</b>\n                            </div>\n                          </td>\n                        </tr>\n                      </table>\n                    </td>\n                  </tr>\n\n                  <tr>\n                    <td class=\"px\" style=\"padding:14px 28px 24px 28px; font-family:Arial, Helvetica, sans-serif;\">\n                      <div class=\"muted\" style=\"color:#5b6b86; font-size:12px; line-height:18px; text-align:center;\">\n                        Если вы не запрашивали вход, просто игнорируйте это письмо.\n                      </div>\n                    </td>\n                  </tr>\n\n                  <tr>\n                    <td style=\"padding:0 28px;\">\n                      <div style=\"height:1px; background:#edf1ff;\"></div>\n                    </td>\n                  </tr>\n\n                  <tr>\n                    <td class=\"px\" style=\"padding:16px 28px 22px 28px; font-family:Arial, Helvetica, sans-serif;\">\n                      <div class=\"muted\" style=\"color:#5b6b86; font-size:12px; line-height:18px;\">\n                        Это автоматическое письмо от «PosService». Пожалуйста, не отвечайте на него.\n                      </div>\n                      <div class=\"muted\" style=\"color:#5b6b86; font-size:12px; line-height:18px; margin-top:8px;\">\n                        © 2026 PosService\n                      </div>\n                    </td>\n                  </tr>\n\n                </table>\n              </td>\n            </tr>\n\n          </table>\n        </td>\n      </tr>\n    </table>\n  </body>\n</html>\n",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        992,
+        144
+      ],
+      "id": "fb3f032c-ccc1-42ab-802c-5b730ce99e44",
+      "name": "Send email",
+      "webhookId": "8f1a2797-8ae0-42e7-b45c-b5326531d632",
+      "credentials": {
+        "smtp": {
+          "id": "jXhDdMgVeBPYqQiO",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://accounts.pyrus.com/api/v4/auth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"login\": \"bot@dabc0bf0-40da-40d2-a1c0-d67f7d756ae1\",\n    \"security_key\": \"RAemjI119XkQCrMH~0GBZF75wLr1LUgu5-huCezpq2St6zAwPf9icr~1fR4ykYUu9Bxzh20F4waIppnCLUDtZ49mooY9qvdg\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        208,
+        1200
+      ],
+      "id": "e63e831b-79bd-4e46-be70-a9fa1b8d271c",
+      "name": "Pyrus: токен"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "pyrus-lunch"
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        432,
+        1200
+      ],
+      "id": "0aa86a75-e70d-494e-ade5-5895393b7f6a",
+      "name": "Обеды: все",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "4bNL7Doi3OTc6oMU",
+          "mode": "list",
+          "cachedResultName": "pyrus-raspisanie",
+          "cachedResultUrl": "/projects/kDOBQSGqVIkeWgVV/datatables/4bNL7Doi3OTc6oMU"
+        },
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "date_open",
+              "condition": "ilike",
+              "keyValue": "={{ $now.format('yyyy-MM-dd') }}"
+            },
+            {
+              "keyName": "date_open",
+              "condition": "ilike",
+              "keyValue": "={{ $now.minus(1, 'day').format('yyyy-MM-dd') }}"
+            },
+            {
+              "keyName": "date_close",
+              "condition": "ilike",
+              "keyValue": "={{ $now.format('yyyy-MM-dd') }}"
+            }
+          ]
+        },
+        "matchType": "anyCondition"
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        656,
+        1200
+      ],
+      "id": "5678bb7b-78f9-449e-966a-81fa0120135f",
+      "name": "Смены: таблица",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code-нода «Действия: логика» (режим «Run Once for All Items»).\n// Обрабатывает типы хуков: vacation_create, vacation_delete, schedule_swap, lunch_status, lunch_start, lunch_end.\n// Вход: тело запроса из «Webhook», токен из «Pyrus: токен», таблицы из «Обеды: все» (pyrus-lunch) и «Смены: таблица» (pyrus-raspisanie).\n// Выход: один item { status, body, lunchUpdates[], mangoSync }.\n\n// ---------- настройки ----------\nconst FORM_SCHEDULE = 2383802; // «График» (смены)\nconst FORM_VACATION = 2383799; // «Отпуск»\nconst F = { department: 1, person: 8, due: 5, amount: 6, template: 7 }; // поля формы смен\nconst V = { period: 1, person: 2 }; // поля формы отпусков\nconst LOCAL_OFFSET_MS = 180 * 60 * 1000; // UTC+3\n// Роли Pyrus → право редактирования (как config.auth.rolePermissions на сайте)\nconst ROLE_ALL = [1271289]; // редактируют все линии\nconst ROLE_BY_LINE = { L2: [1271289], OV: [1271290], OP: [1271291], L1: [], OU: [], AI: [] };\n// Подразделения (item_id справочника) → линия (как departments.byLine в config.json)\nconst LINE_BY_DEPT = { 167976424: 'L2', 174349984: 'OV', 170374055: 'OP', 168659098: 'OU' };\nconst MAX_VACATION_DAYS = 90;\nconst DAILY_LUNCH_BUDGET_MS = 60 * 60 * 1000; // суммарно 1 час обеда за смену-сутки\nconst MIN_LUNCH_SEGMENT_MS = 60 * 1000;\n\n// ---------- утилиты ----------\nconst now = Date.now();\nconst store = $getWorkflowStaticData('global');\nconst req = $('Webhook').first().json;\nconst body = req.body || {};\nconst type = String(body.type || '');\nconst userId = Number(body.user_id);\n\nconst ok = (data, extra = {}) => [{ json: { status: 200, body: data, lunchUpdates: [], mangoSync: false, ...extra } }];\nconst fail = (status, code, message) => [{ json: { status, body: { ok: false, error: { code, message } }, lunchUpdates: [], mangoSync: false } }];\n\nconst normName = (s) => String(s || '').toLowerCase().replace(/ё/g, 'е').split(/\\s+/).filter(Boolean).sort().join(' ');\nconst localDay = (ms) => new Date(ms + LOCAL_OFFSET_MS).toISOString().slice(0, 10);\n// «2026-10-01 09:00» (GMT+3) → мс\nconst parseLocal = (str) => {\n  const m = String(str || '').match(/^(\\d{4}-\\d{2}-\\d{2})[ T](\\d{2}:\\d{2})/);\n  return m ? new Date(`${m[1]}T${m[2]}:00+03:00`).getTime() : NaN;\n};\n\nconst http = (opts) => this.helpers.httpRequest({ json: true, ...opts });\nconst token = $('Pyrus: токен').first().json.access_token;\nasync function pyrus(method, path, payload) {\n  if (!token) throw Object.assign(new Error('Не удалось получить токен Pyrus'), { status: 502 });\n  const opts = { method, url: `https://api.pyrus.com${path}`, headers: { Authorization: `Bearer ${token}` } };\n  if (payload) opts.body = payload;\n  return http(opts);\n}\n\nasync function members() {\n  const c = store.membersCache;\n  if (c && c.at > now - 10 * 60e3) return c.list;\n  const r = await pyrus('GET', '/v4/members');\n  const list = (r.members || []).map((m) => ({ id: m.id, name: `${m.last_name || ''} ${m.first_name || ''}`.trim(), email: String(m.email || '').toLowerCase() }));\n  store.membersCache = { at: now, list };\n  return list;\n}\n\nasync function editableLines() {\n  let roles = store.rolesCache && store.rolesCache.at > now - 5 * 60e3 ? store.rolesCache.list : null;\n  if (!roles) {\n    const r = await pyrus('GET', '/v4/roles');\n    roles = (r.roles || []).filter((x) => !x.banned).map((x) => ({ id: x.id, members: x.member_ids || [] }));\n    store.rolesCache = { at: now, list: roles };\n  }\n  const mine = roles.filter((x) => x.members.includes(userId)).map((x) => Number(x.id));\n  const all = ROLE_ALL.some((r) => mine.includes(r));\n  const lines = new Set();\n  for (const [line, ids] of Object.entries(ROLE_BY_LINE)) if (all || ids.some((r) => mine.includes(r))) lines.add(line);\n  return { all, lines };\n}\n\nconst fieldOf = (task, id) => (task.fields || []).find((x) => x.id === id);\n\nasync function loadShift(id) {\n  const t = await pyrus('GET', `/v4/tasks/${id}`);\n  const task = t.task || t;\n  if (!task || task.form_id !== FORM_SCHEDULE) throw Object.assign(new Error('Задача не из формы графика'), { status: 403 });\n  return {\n    id: task.id,\n    person: Number(fieldOf(task, F.person)?.value?.id) || null,\n    line: LINE_BY_DEPT[fieldOf(task, F.department)?.value?.item_id] || null,\n    start: new Date(fieldOf(task, F.due)?.value || '').getTime(),\n  };\n}\n\n// ---------- обед ----------\nconst lunchRows = $('Обеды: все').all().map((i) => i.json).filter((r) => r && r.seg_id);\nconst scheduleRows = $('Смены: таблица').all().map((i) => i.json).filter((r) => r && r.date_open && r.date_close);\n\nasync function me() {\n  const m = (await members()).find((x) => x.id === userId);\n  return m || { id: userId, name: String(body.user_login || ''), email: String(body.user_login || '').toLowerCase() };\n}\n\n// Смена, которая идёт сейчас у сотрудника (по ФИО)\nfunction activeShiftOf(name) {\n  const n = normName(name);\n  return (\n    scheduleRows.find((r) => {\n      if (normName(r.name) !== n) return false;\n      return parseLocal(r.date_open) <= now && parseLocal(r.date_close) > now;\n    }) || null\n  );\n}\n\nconst todays = () =>\n  lunchRows.filter((r) => Number(r.member_id) === userId && r.status !== 'cancelled' && localDay(new Date(r.start_utc).getTime()) === localDay(now));\nconst openSegment = () => todays().find((r) => r.status === 'active' || r.status === 'scheduled') || null;\nfunction usedMs() {\n  return todays().reduce((sum, r) => {\n    const s = new Date(r.start_utc).getTime();\n    if (r.status === 'active') return sum + Math.max(0, now - s);\n    if (r.status === 'scheduled') return sum;\n    const e = r.ended_at ? new Date(r.ended_at).getTime() : new Date(r.end_utc).getTime();\n    return sum + Math.max(0, e - s);\n  }, 0);\n}\n\nfunction lunchState(name) {\n  const shift = activeShiftOf(name);\n  const row = openSegment();\n  const active = !!row && row.status === 'active';\n  const remainingMs = Math.max(0, DAILY_LUNCH_BUDGET_MS - usedMs());\n  return {\n    onShift: !!shift,\n    shiftEnd: shift ? new Date(parseLocal(shift.date_close)).toISOString() : null,\n    lunch: row\n      ? {\n          status: row.status,\n          start_utc: row.start_utc,\n          end_utc: row.end_utc,\n          overdue: false,\n          remainingSec: active ? Math.max(0, Math.round((new Date(row.end_utc).getTime() - now) / 1000)) : 0,\n        }\n      : null,\n    lunchMinutes: DAILY_LUNCH_BUDGET_MS / 60000,\n    budgetRemainingSec: Math.round(remainingMs / 1000),\n    canStart: !!shift && !row && remainingMs >= MIN_LUNCH_SEGMENT_MS,\n  };\n}\n\n// ---------- роутер ----------\ntry {\n  if (!Number.isInteger(userId) || userId <= 0) return fail(401, 'UNAUTHORIZED', 'Не передан user_id');\n\n  if (type === 'lunch_status') {\n    const u = await me();\n    return ok(lunchState(u.name));\n  }\n\n  if (type === 'lunch_start') {\n    const u = await me();\n    const st = lunchState(u.name);\n    if (st.lunch) return ok(st);\n    if (!st.onShift) return fail(400, 'NOT_ON_SHIFT', 'Сейчас у вас нет смены в линии');\n    if (!st.canStart) return fail(409, 'LUNCH_USED', 'Лимит обеда на сегодня исчерпан');\n    const shift = activeShiftOf(u.name);\n    if (!shift.phone_number) return fail(400, 'NO_PHONE', 'В расписании не указан телефонный номер сотрудника');\n    const shiftEndMs = parseLocal(shift.date_close);\n    let startAt = now;\n    if (body.start_at) {\n      const t = new Date(body.start_at).getTime();\n      if (Number.isNaN(t)) return fail(400, 'BAD_REQUEST', 'Некорректное время начала обеда');\n      if (t < now - 60e3) return fail(400, 'BAD_REQUEST', 'Время начала обеда уже прошло');\n      if (t >= shiftEndMs) return fail(400, 'BAD_REQUEST', 'Время начала обеда должно быть раньше конца смены');\n      startAt = Math.max(t, now);\n    }\n    const immediate = startAt <= now + 30e3;\n    const allot = Math.max(MIN_LUNCH_SEGMENT_MS, DAILY_LUNCH_BUDGET_MS - usedMs());\n    const row = {\n      seg_id: `${userId}-${now}`,\n      member_id: userId,\n      name: u.name,\n      phone_number: String(shift.phone_number),\n      start_utc: new Date(startAt).toISOString(),\n      end_utc: new Date(startAt + allot).toISOString(),\n      status: immediate ? 'active' : 'scheduled',\n      ended_at: '',\n    };\n    lunchRows.push(row);\n    return ok(lunchState(u.name), { lunchUpdates: [row], mangoSync: immediate });\n  }\n\n  if (type === 'lunch_end') {\n    const u = await me();\n    const row = openSegment();\n    if (!row) return ok(lunchState(u.name));\n    const wasActive = row.status === 'active';\n    const updated = {\n      ...row,\n      status: wasActive ? 'returned' : 'cancelled',\n      ended_at: new Date(now).toISOString(),\n    };\n    lunchRows.splice(lunchRows.indexOf(row), 1, updated);\n    return ok(lunchState(u.name), { lunchUpdates: [updated], mangoSync: wasActive });\n  }\n\n  const perms = await editableLines();\n\n  if (type === 'vacation_create') {\n    const line = String(body.line || '');\n    if (!perms.lines.has(line)) return fail(403, 'FORBIDDEN', 'Нет прав на редактирование этого подразделения');\n    const employeeId = Number(body.employee_id);\n    const days = Number(body.days);\n    if (!Number.isInteger(employeeId) || employeeId <= 0) return fail(400, 'BAD_REQUEST', 'Не указан сотрудник');\n    if (!Number.isInteger(days) || days < 1 || days > MAX_VACATION_DAYS) return fail(400, 'BAD_REQUEST', `Длительность отпуска — от 1 до ${MAX_VACATION_DAYS} дней`);\n    const startMs = new Date(body.start_utc || '').getTime();\n    if (Number.isNaN(startMs)) return fail(400, 'BAD_REQUEST', 'Некорректная дата начала отпуска');\n    const duration = Number(body.duration_minutes) || days * 1440;\n    const startIso = new Date(startMs).toISOString().replace(/\\.\\d{3}Z$/, 'Z');\n    const r = await pyrus('POST', '/v4/tasks', {\n      form_id: FORM_VACATION,\n      fields: [\n        { id: V.period, value: startIso, duration },\n        { id: V.person, value: { id: employeeId } },\n      ],\n    });\n    return ok({ task: (r && r.task) || null });\n  }\n\n  if (type === 'vacation_delete') {\n    const taskId = Number(body.task_id);\n    if (!Number.isInteger(taskId) || taskId <= 0) return fail(400, 'BAD_REQUEST', 'Не указан отпуск');\n    if (!perms.lines.size) return fail(403, 'FORBIDDEN', 'Нет прав на удаление отпуска');\n    const t = await pyrus('GET', `/v4/tasks/${taskId}`);\n    const task = t.task || t;\n    if (task.form_id !== FORM_VACATION) return fail(403, 'FORBIDDEN', 'Задача не из формы отпусков');\n    await pyrus('DELETE', `/v4/tasks/${taskId}`);\n    return ok({ ok: true, deletedId: taskId });\n  }\n\n  if (type === 'schedule_swap') {\n    const idA = Number(body.task_id);\n    const idB = body.target_task_id != null && body.target_task_id !== '' ? Number(body.target_task_id) : null;\n    const targetEmployee = Number(body.target_employee_id);\n    if (!Number.isInteger(idA) || idA <= 0) return fail(400, 'BAD_REQUEST', 'Не указана смена');\n    if (idB === idA) return fail(400, 'BAD_REQUEST', 'Выберите смену другого сотрудника');\n    if (idB == null && (!Number.isInteger(targetEmployee) || targetEmployee <= 0)) return fail(400, 'BAD_REQUEST', 'Не указан сотрудник');\n\n    const a = await loadShift(idA);\n    const b = idB != null ? await loadShift(idB) : null;\n    if (!a.person || Number.isNaN(a.start)) return fail(400, 'BAD_REQUEST', 'В смене не заполнены сотрудник или дата');\n    if (b && (!b.person || Number.isNaN(b.start))) return fail(400, 'BAD_REQUEST', 'В смене для обмена не заполнены сотрудник или дата');\n    if (b && b.line !== a.line) return fail(400, 'BAD_REQUEST', 'Обмен возможен только внутри одной линии');\n    const newPersonA = b ? b.person : targetEmployee;\n    if (newPersonA === a.person) return fail(400, 'BAD_REQUEST', 'Это смены одного сотрудника');\n\n    // Права: редактор линии — любые смены; сотрудник — только обмен/передача своей смены\n    const isEditor = perms.all || (a.line && perms.lines.has(a.line));\n    if (!isEditor && userId !== a.person && !(b && userId === b.person)) return fail(403, 'FORBIDDEN', 'Меняться можно только своими сменами');\n\n    const all = await members();\n    const nameOf = (id) => (all.find((x) => x.id === id) || {}).name || `#${id}`;\n    const reg = await pyrus('GET', `/v4/forms/${FORM_SCHEDULE}/register`);\n    const skip = new Set([a.id, b && b.id].filter(Boolean));\n    const busy = (personId, dayMs) =>\n      (reg.tasks || []).some((t) => {\n        if (skip.has(t.id)) return false;\n        if (Number(fieldOf(t, F.person)?.value?.id) !== personId) return false;\n        const s = new Date(fieldOf(t, F.due)?.value || '').getTime();\n        return !Number.isNaN(s) && localDay(s) === localDay(dayMs);\n      });\n    const fmtDay = (ms) => localDay(ms).split('-').reverse().join('.');\n    if (busy(newPersonA, a.start)) return fail(409, 'DUPLICATE', `У сотрудника ${nameOf(newPersonA)} уже есть смена ${fmtDay(a.start)}`);\n    if (b && busy(a.person, b.start)) return fail(409, 'DUPLICATE', `У сотрудника ${nameOf(a.person)} уже есть смена ${fmtDay(b.start)}`);\n\n    const actor = (await me()).name;\n    const note = b\n      ? `Обмен сменами: ${nameOf(a.person)} ${fmtDay(a.start)} ⇄ ${nameOf(b.person)} ${fmtDay(b.start)} (График смен, ${actor})`\n      : `Передача смены ${fmtDay(a.start)}: ${nameOf(a.person)} → ${nameOf(newPersonA)} (График смен, ${actor})`;\n    const setPerson = (taskId, personId) => pyrus('POST', `/v4/tasks/${taskId}/comments`, { text: note, field_updates: [{ id: F.person, value: { id: personId } }] });\n\n    const tasks = [];\n    const ra = await setPerson(a.id, newPersonA);\n    if (ra && ra.task) tasks.push(ra.task);\n    if (b) {\n      try {\n        const rb = await setPerson(b.id, a.person);\n        if (rb && rb.task) tasks.push(rb.task);\n      } catch (e) {\n        await setPerson(a.id, a.person).catch(() => {}); // откат первой половины\n        throw e;\n      }\n    }\n    const today = localDay(now);\n    return ok({ swapped: true, tasks, note }, { mangoSync: [a.start, b && b.start].some((ms) => ms && localDay(ms) === today) });\n  }\n\n  return fail(400, 'UNKNOWN_ACTION', `Неизвестный тип: ${type}`);\n} catch (e) {\n  return fail(e.status || 502, 'BACKEND_ERROR', e.message || 'Ошибка бэкенда');\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        1200
+      ],
+      "id": "2753f611-814a-47b9-bdfd-006f337e4c5f",
+      "name": "Действия: логика"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "responseCode": "={{ $json.status }}"
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1120,
+        1120
+      ],
+      "id": "e2aba627-ec75-4be3-becc-e5994b0bd7f0",
+      "name": "Ответ: действия"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "lunchUpdates",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        1300
+      ],
+      "id": "b14d4cd5-c6ce-4de5-abca-914b9c4a06c3",
+      "name": "Split Out lunchUpdates"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "pyrus-lunch"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "seg_id",
+              "keyValue": "={{ $json.seg_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "seg_id": "={{ $json.seg_id }}",
+            "member_id": "={{ $json.member_id }}",
+            "name": "={{ $json.name }}",
+            "phone_number": "={{ $json.phone_number }}",
+            "start_utc": "={{ $json.start_utc }}",
+            "end_utc": "={{ $json.end_utc }}",
+            "status": "={{ $json.status }}",
+            "ended_at": "={{ $json.ended_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "seg_id",
+              "displayName": "seg_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "member_id",
+              "displayName": "member_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phone_number",
+              "displayName": "phone_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "start_utc",
+              "displayName": "start_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "end_utc",
+              "displayName": "end_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ended_at",
+              "displayName": "ended_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        1300
+      ],
+      "id": "e981479c-23be-41d0-b6b5-e98da62c77ed",
+      "name": "Обед: запись"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0458807b-2d23-4c00-b854-c87dede0a465",
+              "leftValue": "={{ $json.mangoSync }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        1480
+      ],
+      "id": "098c6951-1f8a-4015-aa7d-a46a6834feab",
+      "name": "Нужна синхронизация Манго"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://quumahienot.beget.app/webhook/mango/sync",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1344,
+        1480
+      ],
+      "id": "d648f586-8452-4094-8339-fdab32d1bf8f",
+      "name": "Манго: пересобрать группы",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code-нода «Собрать ответ сохранения» (Run Once for All Items): превращает результаты Pyrus в { tasks, deletedIds, errors }.\nconst agg = $input.first().json;\nconst items = Array.isArray(agg.data) ? agg.data : [];\nconst tasks = [];\nconst deletedIds = [];\nfor (const it of items) {\n  if (it && it.task && it.task.id != null && it.task.form_id != null) tasks.push(it.task);\n}\ntry {\n  for (const i of $('Split Out2').all()) if (i.json && i.json.task_id != null) deletedIds.push(Number(i.json.task_id));\n} catch (e) {\n  // ветка удаления не запускалась\n}\nreturn [{ json: { data: items, tasks, deletedIds } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        760
+      ],
+      "id": "a756428c-98f2-4549-8e0e-a6ee67f20af9",
+      "name": "Собрать ответ сохранения"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Получаем Токен Пайруса",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split Out2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pyrus: токен",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Получаем Токен Пайруса": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Доступ есть1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Получаем Токен Пайруса1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Получаем Токен Пайруса1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Получаем Токен Пайруса2": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Получаем Токен Пайруса2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Получаем Токен Пайруса3": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Delete row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Получаем Токен Пайруса3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Собрать ответ сохранения",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Доступ есть",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Пользователь не найден",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Доступа НЕТ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request4": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request6": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send email": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pyrus: токен": {
+      "main": [
+        [
+          {
+            "node": "Обеды: все",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Обеды: все": {
+      "main": [
+        [
+          {
+            "node": "Смены: таблица",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Смены: таблица": {
+      "main": [
+        [
+          {
+            "node": "Действия: логика",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Действия: логика": {
+      "main": [
+        [
+          {
+            "node": "Ответ: действия",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split Out lunchUpdates",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Нужна синхронизация Манго",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out lunchUpdates": {
+      "main": [
+        [
+          {
+            "node": "Обед: запись",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Нужна синхронизация Манго": {
+      "main": [
+        [
+          {
+            "node": "Манго: пересобрать группы",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Собрать ответ сохранения": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "3d30e47e-1901-4eda-b5c8-f3e2a2fa1d70",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9a6e7962b6bf9c09b7bb21193c1935e26d407a0af9e06b83f3f01dee52651989"
+  },
+  "nodeGroups": [],
+  "id": "8mlQexYsWDYNeNND",
+  "tags": []
+}

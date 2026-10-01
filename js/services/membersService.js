@@ -47,6 +47,19 @@ export function createMembersService({ pyrusClient, ttlMs = DEFAULT_MEMBERS_TTL_
     );
   }
 
+  // Роли Pyrus: [{ id, member_ids, banned }] — по ним определяем состав вкладок (config.departments.byRole)
+  async function getRoles({ force } = {}) {
+    return cached(
+      "pyrus:roles",
+      { ttlMs: DEFAULT_MEMBER_DETAIL_TTL_MS, force },
+      async () => {
+        const raw = await pyrusClient.pyrusRequest("/v4/roles", { method: "GET" });
+        const data = unwrapPyrusData(raw);
+        return Array.isArray(data?.roles) ? data.roles : [];
+      }
+    );
+  }
+
   async function getMembersIndex({ force } = {}) {
     return cached(
       "pyrus:members:index",
@@ -73,5 +86,5 @@ export function createMembersService({ pyrusClient, ttlMs = DEFAULT_MEMBERS_TTL_
     );
   }
 
-  return { getMembers, getMembersIndex, getMemberDetails, extractMembersFromPyrusData };
+  return { getMembers, getRoles, getMembersIndex, getMemberDetails, extractMembersFromPyrusData };
 }
