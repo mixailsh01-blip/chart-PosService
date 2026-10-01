@@ -210,7 +210,7 @@
                 },
                 "conditions": [
                   {
-                    "id": "951524a9-fa1d-4a30-86d1-d6c2e5750c6e",
+                    "id": "f4da0440-7ef7-48d6-9c98-ac5ef1b79d1b",
                     "leftValue": "vacation_create",
                     "rightValue": "={{ $json.body.type }}",
                     "operator": {
@@ -220,7 +220,7 @@
                     }
                   },
                   {
-                    "id": "5757203b-ef26-485c-9165-d3b274a015b3",
+                    "id": "a3efd4df-a097-4f50-8907-484bf09350fb",
                     "leftValue": "vacation_delete",
                     "rightValue": "={{ $json.body.type }}",
                     "operator": {
@@ -230,7 +230,7 @@
                     }
                   },
                   {
-                    "id": "4edf7d68-78de-45bd-9bc8-68b8310f40a0",
+                    "id": "4bb2085c-cac9-40d9-ad18-2d1daae3eca5",
                     "leftValue": "schedule_swap",
                     "rightValue": "={{ $json.body.type }}",
                     "operator": {
@@ -240,7 +240,7 @@
                     }
                   },
                   {
-                    "id": "4eba8d18-115d-468f-ba0e-f973fd227803",
+                    "id": "573c1f04-69f1-457d-9b42-99a84365ecb1",
                     "leftValue": "lunch_status",
                     "rightValue": "={{ $json.body.type }}",
                     "operator": {
@@ -250,7 +250,7 @@
                     }
                   },
                   {
-                    "id": "e292ef39-df7c-4889-b17a-da37620248c4",
+                    "id": "65bf312a-ef50-47da-89b3-5827ac853fda",
                     "leftValue": "lunch_start",
                     "rightValue": "={{ $json.body.type }}",
                     "operator": {
@@ -260,7 +260,7 @@
                     }
                   },
                   {
-                    "id": "8d78fe07-d703-4e3f-bafa-afa3ad4a44c6",
+                    "id": "26fbbc9b-fcbf-41fb-b778-6a414a499718",
                     "leftValue": "lunch_end",
                     "rightValue": "={{ $json.body.type }}",
                     "operator": {
@@ -402,7 +402,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"fields\": [\n    {\n      \"id\": 7,\n      \"value\": {\n        \"item_id\": {{ JSON.stringify($('Loop Over Items').item.json.date2.item_id ?? null) }}\n      }\n    },\n    {\n      \"id\": 1,\n      \"value\": {\n        \"item_id\": {{ JSON.stringify($('Code in JavaScript').item.json.date2.department_item_id ?? null) }}\n      }\n    },\n    {\n      \"id\": 8,\n      \"value\": {\"id\": \"{{ $('Loop Over Items').item.json.date2.employee_id }}\"}\n    },\n    {\n      \"id\": 5,\n      \"value\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\"\n    },\n    {\n      \"id\": 6,\n      \"value\": {{ $('Loop Over Items').item.json.date2.amount }}\n    }\n  ]\n}",
+        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"fields\": [\n    {\n      \"id\": 7,\n      \"value\": {\n        \"item_id\": {{ JSON.stringify($('Loop Over Items').item.json.date2.item_id ?? null) }}\n      }\n    },\n    {\n      \"id\": 1,\n      \"value\": {\n        \"item_id\": {{ JSON.stringify(Number($('Code in JavaScript').item.json.date2.department_item_id) || ({L2:174347209,L1:174347208,OV:174347211,OU:174347216,AI:174347217,OP:174347212}[(($('Webhook').first().json.body||{}).meta||{}).line] ?? null)) }}\n      }\n    },\n    {\n      \"id\": 8,\n      \"value\": {\"id\": \"{{ $('Loop Over Items').item.json.date2.employee_id }}\"}\n    },\n    {\n      \"id\": 5,\n      \"value\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\"\n    },\n    {\n      \"id\": 6,\n      \"value\": {{ $('Loop Over Items').item.json.date2.amount }}\n    }\n  ]\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -488,7 +488,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items1').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"field_updates\": [\n    {\n      \"id\": 7,\n      \"value\": {\n        \"item_id\": {{ JSON.stringify($('Loop Over Items1').item.json.date2.item_id ?? null) }}\n      }\n    },\n    {\n      \"id\": 1,\n      \"value\": {\n        \"item_id\": {{ JSON.stringify($('Code in JavaScript1').item.json.date2.department_item_id ?? null) }}\n      }\n    },\n    {\n      \"id\": 8,\n      \"value\": {\"id\": \"{{ $('Loop Over Items1').item.json.date2.employee_id }}\"}\n    },\n    {\n      \"id\": 5,\n      \"value\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\"\n    },\n    {\n      \"id\": 6,\n      \"value\": {{ $('Loop Over Items1').item.json.date2.amount }}\n    }\n  ]\n}",
+        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items1').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"field_updates\": [\n    {\n      \"id\": 7,\n      \"value\": {\n        \"item_id\": {{ JSON.stringify($('Loop Over Items1').item.json.date2.item_id ?? null) }}\n      }\n    },\n    {\n      \"id\": 1,\n      \"value\": {\n        \"item_id\": {{ JSON.stringify(Number($('Code in JavaScript1').item.json.date2.department_item_id) || ({L2:174347209,L1:174347208,OV:174347211,OU:174347216,AI:174347217,OP:174347212}[(($('Webhook').first().json.body||{}).meta||{}).line] ?? null)) }}\n      }\n    },\n    {\n      \"id\": 8,\n      \"value\": {\"id\": \"{{ $('Loop Over Items1').item.json.date2.employee_id }}\"}\n    },\n    {\n      \"id\": 5,\n      \"value\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\"\n    },\n    {\n      \"id\": 6,\n      \"value\": {{ $('Loop Over Items1').item.json.date2.amount }}\n    }\n  ]\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -793,7 +793,7 @@
           },
           "conditions": [
             {
-              "id": "3c2c6149-6b94-40f0-aa87-e40ed678170c",
+              "id": "cd65da5f-d446-4894-8655-5d16b4587626",
               "leftValue": "={{ !!$('Loop Over Items').item.json.date2.item_id }}",
               "rightValue": true,
               "operator": {
@@ -831,7 +831,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"fields\": [\n    { \"id\": 8, \"value\": {\"id\": \"{{ $('Loop Over Items').item.json.date2.employee_id }}\"} },\n    { \"id\": 1, \"value\": { \"item_id\": {{ JSON.stringify($('Code in JavaScript').item.json.date2.department_item_id ?? null) }} } },\n    { \"id\": 5, \"value\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\" },\n    { \"id\": 6, \"value\": {{ $('Loop Over Items').item.json.date2.amount }} }\n  ]\n}",
+        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"fields\": [\n    { \"id\": 8, \"value\": {\"id\": \"{{ $('Loop Over Items').item.json.date2.employee_id }}\"} },\n    { \"id\": 1, \"value\": { \"item_id\": {{ JSON.stringify(Number($('Code in JavaScript').item.json.date2.department_item_id) || ({L2:174347209,L1:174347208,OV:174347211,OU:174347216,AI:174347217,OP:174347212}[(($('Webhook').first().json.body||{}).meta||{}).line] ?? null)) }} } },\n    { \"id\": 5, \"value\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\" },\n    { \"id\": 6, \"value\": {{ $('Loop Over Items').item.json.date2.amount }} }\n  ]\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -854,7 +854,7 @@
           },
           "conditions": [
             {
-              "id": "10be87c3-e724-41dd-958b-bad5afeda499",
+              "id": "750ff23d-7be7-4e62-9afb-8ad1cd4da973",
               "leftValue": "={{ !!$('Loop Over Items1').item.json.date2.item_id }}",
               "rightValue": true,
               "operator": {
@@ -892,7 +892,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items1').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"field_updates\": [\n    {\n      \"id\": 7,\n      \"value\": {\n        \"item_id\": null\n      }\n    },\n    {\n      \"id\": 1,\n      \"value\": {\n        \"item_id\": {{ JSON.stringify($('Code in JavaScript1').item.json.date2.department_item_id ?? null) }}\n      }\n    },\n    {\n      \"id\": 8,\n      \"value\": {\"id\": \"{{ $('Loop Over Items1').item.json.date2.employee_id }}\"}\n    },\n    {\n      \"id\": 5,\n      \"value\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\"\n    },\n    {\n      \"id\": 6,\n      \"value\": {{ $('Loop Over Items1').item.json.date2.amount }}\n    }\n  ]\n}",
+        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items1').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"field_updates\": [\n    {\n      \"id\": 7,\n      \"value\": {\n        \"item_id\": null\n      }\n    },\n    {\n      \"id\": 1,\n      \"value\": {\n        \"item_id\": {{ JSON.stringify(Number($('Code in JavaScript1').item.json.date2.department_item_id) || ({L2:174347209,L1:174347208,OV:174347211,OU:174347216,AI:174347217,OP:174347212}[(($('Webhook').first().json.body||{}).meta||{}).line] ?? null)) }}\n      }\n    },\n    {\n      \"id\": 8,\n      \"value\": {\"id\": \"{{ $('Loop Over Items1').item.json.date2.employee_id }}\"}\n    },\n    {\n      \"id\": 5,\n      \"value\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\"\n    },\n    {\n      \"id\": 6,\n      \"value\": {{ $('Loop Over Items1').item.json.date2.amount }}\n    }\n  ]\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -991,7 +991,7 @@
         208,
         1200
       ],
-      "id": "eef5abc7-2b66-434a-bdd3-8bc5a301e404",
+      "id": "df7ccd72-3cfe-46b3-b667-d894a8b8dde8",
       "name": "Pyrus: токен"
     },
     {
@@ -1010,7 +1010,7 @@
         432,
         1200
       ],
-      "id": "243fd038-39ac-45cd-a200-1b5ef83da418",
+      "id": "e88482ec-b083-48e1-ba3b-6f6b59b3d406",
       "name": "Обеды: все",
       "alwaysOutputData": true
     },
@@ -1052,7 +1052,7 @@
         656,
         1200
       ],
-      "id": "8e3c65b9-1b36-4aa5-ba35-2c1fcd968a95",
+      "id": "54891a55-61bf-4623-9e38-83771e540273",
       "name": "Смены: таблица",
       "alwaysOutputData": true
     },
@@ -1066,7 +1066,7 @@
         880,
         1200
       ],
-      "id": "05af37da-e3ef-4753-9f66-7d9117c4d72e",
+      "id": "83d53a38-5e6d-4468-876b-1ce00d6342d3",
       "name": "Действия: логика"
     },
     {
@@ -1083,7 +1083,7 @@
         1120,
         1120
       ],
-      "id": "168c9f24-e058-407e-860e-c92b176d3d2e",
+      "id": "56974aa0-d42d-44f3-9414-2ca81b02f66b",
       "name": "Ответ: действия"
     },
     {
@@ -1097,7 +1097,7 @@
         1120,
         1300
       ],
-      "id": "5c3794db-6fb4-4839-a503-95b1b30999a4",
+      "id": "0b39a577-c004-40ed-8ed3-bdb347ee2472",
       "name": "Split Out lunchUpdates"
     },
     {
@@ -1212,7 +1212,7 @@
         1344,
         1300
       ],
-      "id": "e74de2cb-fbce-4571-8cde-efbdcb1f3ae6",
+      "id": "2f040d16-f63f-49f3-ae9c-b99636ed83ff",
       "name": "Обед: запись"
     },
     {
@@ -1226,7 +1226,7 @@
           },
           "conditions": [
             {
-              "id": "cc300130-aaf9-4e63-8bda-97613b2eccdd",
+              "id": "35f81471-ffc0-499a-a82d-d0b6742e6c9a",
               "leftValue": "={{ $json.mangoSync }}",
               "rightValue": true,
               "operator": {
@@ -1246,7 +1246,7 @@
         1120,
         1480
       ],
-      "id": "6995a8f0-1329-4bf7-b703-3522ecbe38ce",
+      "id": "1c0a0448-157b-4a69-8aee-fba81a4304f5",
       "name": "Нужна синхронизация Манго"
     },
     {
@@ -1266,7 +1266,7 @@
         1344,
         1480
       ],
-      "id": "dc3b2d8a-8d2e-42dc-af58-5d3dc79d8390",
+      "id": "70d4a87a-bc97-4e81-9252-02422676be99",
       "name": "Манго: пересобрать группы",
       "onError": "continueRegularOutput"
     },
@@ -1280,7 +1280,7 @@
         1248,
         760
       ],
-      "id": "4ec8b4e8-0dce-4326-9914-c75e2b6a3f8e",
+      "id": "dfe094ae-2b70-463b-947c-39291bb4fed7",
       "name": "Собрать ответ сохранения"
     },
     {
@@ -1293,7 +1293,7 @@
         1472,
         760
       ],
-      "id": "96ed8142-55a2-47e9-9fe6-c7ebdde955b2",
+      "id": "2bf35f21-11f1-4a3f-9ae5-92f1ae5ed421",
       "name": "Затронут ли сегодня"
     },
     {
@@ -1307,7 +1307,7 @@
           },
           "conditions": [
             {
-              "id": "01d49618-74de-48f9-b3d5-ccaa116aa9c3",
+              "id": "5e198dea-262f-4b55-8e65-821033806e6d",
               "leftValue": "={{ $json.mangoSync }}",
               "rightValue": true,
               "operator": {
@@ -1327,7 +1327,7 @@
         1696,
         760
       ],
-      "id": "6b53c708-d0fe-43c8-821d-e5e3c331e888",
+      "id": "15755d4d-43b2-4b75-9845-3942d70ea42e",
       "name": "Нужна синхронизация (сохранение)"
     },
     {
@@ -1345,7 +1345,7 @@
         704,
         144
       ],
-      "id": "373ad5ba-1090-4048-8e80-cf40c502e915",
+      "id": "08674949-e392-42fd-8992-67c6334966c6",
       "name": "Pyrus: токен (вход)",
       "onError": "continueRegularOutput"
     },
@@ -1359,7 +1359,7 @@
         992,
         288
       ],
-      "id": "53da054e-ac00-434e-bc4f-fe72f1d67b0c",
+      "id": "2cdd4444-4aba-43cc-9a22-976de3dca583",
       "name": "Pyrus: дублировать вход",
       "onError": "continueRegularOutput"
     }
