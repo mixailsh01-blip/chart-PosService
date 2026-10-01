@@ -1738,7 +1738,7 @@
         -300,
         1680
       ],
-      "id": "c2df95d1-0916-44c8-9d96-84bd96a95245",
+      "id": "bcdd8c2b-b69c-4704-95a4-d689c5c5d7c0",
       "name": "Обеды: сейчас",
       "alwaysOutputData": true
     },
@@ -1755,16 +1755,16 @@
         -1000,
         1780
       ],
-      "id": "3de15c1b-005c-42ab-9b6f-92f9f975b4af",
+      "id": "7a22448b-c46c-4052-b8ad-b24c96fc85b2",
       "name": "Вебхук: пересобрать группы",
-      "webhookId": "f3d5a211-986c-43fe-9d2c-0adc5de367f7"
+      "webhookId": "7cf878f9-7185-44cd-ad48-b2f943e1295d"
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "8d8b1ba9-a33a-4517-a651-88c55c596369",
+              "id": "f1670606-1e51-4782-b60c-64f4b7f0a61f",
               "name": "timestamp",
               "value": "={{ $now.toISO() }}",
               "type": "string"
@@ -1779,8 +1779,24 @@
         -740,
         1780
       ],
-      "id": "7bcd8428-5c33-4aef-bbac-62b714933b6d",
+      "id": "277ddecb-3d20-4bf0-afc8-d7635bafcd03",
       "name": "Время запуска"
+    },
+    {
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": "={{ Number($json.body.delay_sec) || 0 }}",
+        "unit": "seconds"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -870,
+        1780
+      ],
+      "id": "e613cee1-faa6-4631-bc0b-b52845de553f",
+      "name": "Пауза (если нужна)",
+      "webhookId": "a51baf9f-8ab1-46fd-b8eb-cf28eee0fc7e"
     },
     {
       "parameters": {
@@ -1799,7 +1815,7 @@
         -1000,
         1980
       ],
-      "id": "c3626654-cdad-4179-9877-a1dfc8897cce",
+      "id": "1168336e-1a22-425d-91dd-48f1757eed2d",
       "name": "Таймер обедов (1 мин)"
     },
     {
@@ -1831,7 +1847,7 @@
         -780,
         1980
       ],
-      "id": "3fae1146-8494-4fb4-919a-4e098cbbd820",
+      "id": "d14b3776-741f-412e-b816-851032842926",
       "name": "Обеды: открытые",
       "alwaysOutputData": true
     },
@@ -1845,7 +1861,7 @@
         -560,
         1980
       ],
-      "id": "b254b557-1821-40d2-ac97-fc6794dee33e",
+      "id": "089e0d87-19bf-4201-a9a2-89f5acb698b3",
       "name": "Таймер: что изменить"
     },
     {
@@ -1960,7 +1976,7 @@
         -340,
         1980
       ],
-      "id": "001f638b-3ff3-4236-8fe8-5cf9359aa183",
+      "id": "900a6bab-62bb-44a8-8d55-15755a33dc28",
       "name": "Обед: обновить статус"
     },
     {
@@ -1974,7 +1990,7 @@
         -120,
         1980
       ],
-      "id": "8d9076c5-afeb-4c90-8768-50dd346d66d0",
+      "id": "28184aa0-e7bf-4d9e-a416-137772e70c94",
       "name": "Склеить в один запуск"
     },
     {
@@ -1982,7 +1998,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "3aed8c6f-7716-4709-9f04-e660e21440fa",
+              "id": "3c43d28a-4f4c-4002-b2f8-f01057bb1d01",
               "name": "timestamp",
               "value": "={{ $now.toISO() }}",
               "type": "string"
@@ -1997,7 +2013,7 @@
         100,
         1980
       ],
-      "id": "46070a01-567e-4961-bfdc-921670bd1e0a",
+      "id": "a2f56546-6857-4ac5-b0c1-31107cce7f81",
       "name": "Время запуска (таймер)"
     }
   ],
@@ -2572,6 +2588,17 @@
       ]
     },
     "Вебхук: пересобрать группы": {
+      "main": [
+        [
+          {
+            "node": "Пауза (если нужна)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Пауза (если нужна)": {
       "main": [
         [
           {

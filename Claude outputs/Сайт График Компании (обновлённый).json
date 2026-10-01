@@ -210,7 +210,7 @@
                 },
                 "conditions": [
                   {
-                    "id": "7769f613-08f6-4fe7-89ea-39dec76bd2f9",
+                    "id": "951524a9-fa1d-4a30-86d1-d6c2e5750c6e",
                     "leftValue": "vacation_create",
                     "rightValue": "={{ $json.body.type }}",
                     "operator": {
@@ -220,7 +220,7 @@
                     }
                   },
                   {
-                    "id": "ea18d8e0-1b75-4a13-ab4d-711bba93b8f2",
+                    "id": "5757203b-ef26-485c-9165-d3b274a015b3",
                     "leftValue": "vacation_delete",
                     "rightValue": "={{ $json.body.type }}",
                     "operator": {
@@ -230,7 +230,7 @@
                     }
                   },
                   {
-                    "id": "fbd7a2aa-6338-4cb5-b1f7-2897c2ab31bb",
+                    "id": "4edf7d68-78de-45bd-9bc8-68b8310f40a0",
                     "leftValue": "schedule_swap",
                     "rightValue": "={{ $json.body.type }}",
                     "operator": {
@@ -240,7 +240,7 @@
                     }
                   },
                   {
-                    "id": "fbd54390-8ef1-4118-9d5e-3486b59e291d",
+                    "id": "4eba8d18-115d-468f-ba0e-f973fd227803",
                     "leftValue": "lunch_status",
                     "rightValue": "={{ $json.body.type }}",
                     "operator": {
@@ -250,7 +250,7 @@
                     }
                   },
                   {
-                    "id": "78f5d331-8afe-4b49-ab7b-2b1d59f5ed64",
+                    "id": "e292ef39-df7c-4889-b17a-da37620248c4",
                     "leftValue": "lunch_start",
                     "rightValue": "={{ $json.body.type }}",
                     "operator": {
@@ -260,7 +260,7 @@
                     }
                   },
                   {
-                    "id": "690da85a-6e1b-4e75-b99c-a01f0eed1dad",
+                    "id": "8d78fe07-d703-4e3f-bafa-afa3ad4a44c6",
                     "leftValue": "lunch_end",
                     "rightValue": "={{ $json.body.type }}",
                     "operator": {
@@ -402,7 +402,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"fields\": [\n    {\n      \"id\": 7,\n      \"value\": {\n        \"item_id\": {{ $('Loop Over Items').item.json.date2.item_id }}\n      }\n    },\n    {\n      \"id\": 1,\n      \"value\": {\n        \"item_id\": {{ $('Code in JavaScript').item.json.date2.department_item_id }}\n      }\n    },\n    {\n      \"id\": 8,\n      \"value\": {\"id\": \"{{ $('Loop Over Items').item.json.date2.employee_id }}\"}\n    },\n    {\n      \"id\": 5,\n      \"value\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\"\n    },\n    {\n      \"id\": 6,\n      \"value\": {{ $('Loop Over Items').item.json.date2.amount }}\n    }\n  ]\n}",
+        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"fields\": [\n    {\n      \"id\": 7,\n      \"value\": {\n        \"item_id\": {{ JSON.stringify($('Loop Over Items').item.json.date2.item_id ?? null) }}\n      }\n    },\n    {\n      \"id\": 1,\n      \"value\": {\n        \"item_id\": {{ JSON.stringify($('Code in JavaScript').item.json.date2.department_item_id ?? null) }}\n      }\n    },\n    {\n      \"id\": 8,\n      \"value\": {\"id\": \"{{ $('Loop Over Items').item.json.date2.employee_id }}\"}\n    },\n    {\n      \"id\": 5,\n      \"value\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\"\n    },\n    {\n      \"id\": 6,\n      \"value\": {{ $('Loop Over Items').item.json.date2.amount }}\n    }\n  ]\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -488,7 +488,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items1').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"field_updates\": [\n    {\n      \"id\": 7,\n      \"value\": {\n        \"item_id\": {{ $('Loop Over Items1').item.json.date2.item_id }}\n      }\n    },\n    {\n      \"id\": 1,\n      \"value\": {\n        \"item_id\": {{ $('Code in JavaScript1').item.json.date2.department_item_id }}\n      }\n    },\n    {\n      \"id\": 8,\n      \"value\": {\"id\": \"{{ $('Loop Over Items1').item.json.date2.employee_id }}\"}\n    },\n    {\n      \"id\": 5,\n      \"value\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\"\n    },\n    {\n      \"id\": 6,\n      \"value\": {{ $('Loop Over Items1').item.json.date2.amount }}\n    }\n  ]\n}",
+        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items1').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"field_updates\": [\n    {\n      \"id\": 7,\n      \"value\": {\n        \"item_id\": {{ JSON.stringify($('Loop Over Items1').item.json.date2.item_id ?? null) }}\n      }\n    },\n    {\n      \"id\": 1,\n      \"value\": {\n        \"item_id\": {{ JSON.stringify($('Code in JavaScript1').item.json.date2.department_item_id ?? null) }}\n      }\n    },\n    {\n      \"id\": 8,\n      \"value\": {\"id\": \"{{ $('Loop Over Items1').item.json.date2.employee_id }}\"}\n    },\n    {\n      \"id\": 5,\n      \"value\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\"\n    },\n    {\n      \"id\": 6,\n      \"value\": {{ $('Loop Over Items1').item.json.date2.amount }}\n    }\n  ]\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -793,12 +793,12 @@
           },
           "conditions": [
             {
-              "id": "6a2c46f4-e0d8-4813-b12e-ab5d5d09696c",
-              "leftValue": "={{ $('Loop Over Items').item.json.date2.item_id }}",
-              "rightValue": "=",
+              "id": "3c2c6149-6b94-40f0-aa87-e40ed678170c",
+              "leftValue": "={{ !!$('Loop Over Items').item.json.date2.item_id }}",
+              "rightValue": true,
               "operator": {
-                "type": "string",
-                "operation": "notEquals"
+                "type": "boolean",
+                "operation": "equals"
               }
             }
           ],
@@ -831,7 +831,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"fields\": [\n    { \"id\": 8, \"value\": {\"id\": \"{{ $('Loop Over Items').item.json.date2.employee_id }}\"} },\n    { \"id\": 1, \"value\": { \"item_id\": {{ $('Code in JavaScript').item.json.date2.department_item_id }} } },\n    { \"id\": 5, \"value\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\" },\n    { \"id\": 6, \"value\": {{ $('Loop Over Items').item.json.date2.amount }} }\n  ]\n}",
+        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"fields\": [\n    { \"id\": 8, \"value\": {\"id\": \"{{ $('Loop Over Items').item.json.date2.employee_id }}\"} },\n    { \"id\": 1, \"value\": { \"item_id\": {{ JSON.stringify($('Code in JavaScript').item.json.date2.department_item_id ?? null) }} } },\n    { \"id\": 5, \"value\": \"{{ $('Loop Over Items').item.json.date_open_formatted }}\" },\n    { \"id\": 6, \"value\": {{ $('Loop Over Items').item.json.date2.amount }} }\n  ]\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -854,12 +854,12 @@
           },
           "conditions": [
             {
-              "id": "6a2c46f4-e0d8-4813-b12e-ab5d5d09696c",
-              "leftValue": "={{ $('Loop Over Items1').item.json.date2.item_id }}",
-              "rightValue": "=",
+              "id": "10be87c3-e724-41dd-958b-bad5afeda499",
+              "leftValue": "={{ !!$('Loop Over Items1').item.json.date2.item_id }}",
+              "rightValue": true,
               "operator": {
-                "type": "string",
-                "operation": "notEquals"
+                "type": "boolean",
+                "operation": "equals"
               }
             }
           ],
@@ -892,7 +892,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items1').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"field_updates\": [\n    {\n      \"id\": 7,\n      \"value\": {\n        \"item_id\": null\n      }\n    },\n    {\n      \"id\": 1,\n      \"value\": {\n        \"item_id\": {{ $('Code in JavaScript1').item.json.date2.department_item_id }}\n      }\n    },\n    {\n      \"id\": 8,\n      \"value\": {\"id\": \"{{ $('Loop Over Items1').item.json.date2.employee_id }}\"}\n    },\n    {\n      \"id\": 5,\n      \"value\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\"\n    },\n    {\n      \"id\": 6,\n      \"value\": {{ $('Loop Over Items1').item.json.date2.amount }}\n    }\n  ]\n}",
+        "jsonBody": "={\n  \"due\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\",\n  \"duration\": \"{{ $('Loop Over Items1').item.json.date2.duration }}\",\n  \"form_id\": 2383802,\n  \"field_updates\": [\n    {\n      \"id\": 7,\n      \"value\": {\n        \"item_id\": null\n      }\n    },\n    {\n      \"id\": 1,\n      \"value\": {\n        \"item_id\": {{ JSON.stringify($('Code in JavaScript1').item.json.date2.department_item_id ?? null) }}\n      }\n    },\n    {\n      \"id\": 8,\n      \"value\": {\"id\": \"{{ $('Loop Over Items1').item.json.date2.employee_id }}\"}\n    },\n    {\n      \"id\": 5,\n      \"value\": \"{{ $('Loop Over Items1').item.json.date_open_formatted }}\"\n    },\n    {\n      \"id\": 6,\n      \"value\": {{ $('Loop Over Items1').item.json.date2.amount }}\n    }\n  ]\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -991,7 +991,7 @@
         208,
         1200
       ],
-      "id": "c3d40c93-cf2c-4a48-a4de-f19f71edfd21",
+      "id": "eef5abc7-2b66-434a-bdd3-8bc5a301e404",
       "name": "Pyrus: токен"
     },
     {
@@ -1010,7 +1010,7 @@
         432,
         1200
       ],
-      "id": "f11ecc99-135e-47ad-8d8d-ad290e7ffbd1",
+      "id": "243fd038-39ac-45cd-a200-1b5ef83da418",
       "name": "Обеды: все",
       "alwaysOutputData": true
     },
@@ -1052,13 +1052,13 @@
         656,
         1200
       ],
-      "id": "13d88309-e1e3-4f5e-bcce-c3c6237dfc40",
+      "id": "8e3c65b9-1b36-4aa5-ba35-2c1fcd968a95",
       "name": "Смены: таблица",
       "alwaysOutputData": true
     },
     {
       "parameters": {
-        "jsCode": "// Code-нода «Действия: логика» (режим «Run Once for All Items»).\n// Обрабатывает типы хуков: vacation_create, vacation_delete, schedule_swap, lunch_status, lunch_start, lunch_end.\n// Вход: тело запроса из «Webhook», токен из «Pyrus: токен», таблицы из «Обеды: все» (pyrus-lunch) и «Смены: таблица» (pyrus-raspisanie).\n// Выход: один item { status, body, lunchUpdates[], mangoSync }.\n\n// ---------- настройки ----------\nconst FORM_SCHEDULE = 2383802; // «График» (смены)\nconst FORM_VACATION = 2383799; // «Отпуск»\nconst F = { department: 1, person: 8, due: 5, amount: 6, template: 7 }; // поля формы смен\nconst V = { period: 1, person: 2 }; // поля формы отпусков\nconst LOCAL_OFFSET_MS = 180 * 60 * 1000; // UTC+3\n// Роли Pyrus → право редактирования (как config.auth.rolePermissions на сайте)\nconst ROLE_ALL = [1271289]; // редактируют все линии\nconst ROLE_BY_LINE = { L2: [1271289], OV: [1271290], OP: [1271291], L1: [], OU: [], AI: [] };\n// Подразделения (item_id справочника) → линия (как departments.byLine в config.json)\nconst LINE_BY_DEPT = { 167976424: 'L2', 174349984: 'OV', 170374055: 'OP', 168659098: 'OU' };\nconst MAX_VACATION_DAYS = 90;\nconst DAILY_LUNCH_BUDGET_MS = 60 * 60 * 1000; // суммарно 1 час обеда за смену-сутки\nconst MIN_LUNCH_SEGMENT_MS = 60 * 1000;\n\n// ---------- утилиты ----------\nconst now = Date.now();\nconst store = $getWorkflowStaticData('global');\nconst req = $('Webhook').first().json;\nconst body = req.body || {};\nconst type = String(body.type || '');\nconst userId = Number(body.user_id);\n\nconst ok = (data, extra = {}) => [{ json: { status: 200, body: data, lunchUpdates: [], mangoSync: false, ...extra } }];\nconst fail = (status, code, message) => [{ json: { status, body: { ok: false, error: { code, message } }, lunchUpdates: [], mangoSync: false } }];\n\nconst normName = (s) => String(s || '').toLowerCase().replace(/ё/g, 'е').split(/\\s+/).filter(Boolean).sort().join(' ');\nconst localDay = (ms) => new Date(ms + LOCAL_OFFSET_MS).toISOString().slice(0, 10);\n// «2026-10-01 09:00» (GMT+3) → мс\nconst parseLocal = (str) => {\n  const m = String(str || '').match(/^(\\d{4}-\\d{2}-\\d{2})[ T](\\d{2}:\\d{2})/);\n  return m ? new Date(`${m[1]}T${m[2]}:00+03:00`).getTime() : NaN;\n};\n\nconst http = (opts) => this.helpers.httpRequest({ json: true, ...opts });\nconst token = $('Pyrus: токен').first().json.access_token;\nasync function pyrus(method, path, payload) {\n  if (!token) throw Object.assign(new Error('Не удалось получить токен Pyrus'), { status: 502 });\n  const opts = { method, url: `https://api.pyrus.com${path}`, headers: { Authorization: `Bearer ${token}` } };\n  if (payload) opts.body = payload;\n  return http(opts);\n}\n\nasync function members() {\n  const c = store.membersCache;\n  if (c && c.at > now - 10 * 60e3) return c.list;\n  const r = await pyrus('GET', '/v4/members');\n  const list = (r.members || []).map((m) => ({ id: m.id, name: `${m.last_name || ''} ${m.first_name || ''}`.trim(), email: String(m.email || '').toLowerCase() }));\n  store.membersCache = { at: now, list };\n  return list;\n}\n\nasync function editableLines() {\n  let roles = store.rolesCache && store.rolesCache.at > now - 5 * 60e3 ? store.rolesCache.list : null;\n  if (!roles) {\n    const r = await pyrus('GET', '/v4/roles');\n    roles = (r.roles || []).filter((x) => !x.banned).map((x) => ({ id: x.id, members: x.member_ids || [] }));\n    store.rolesCache = { at: now, list: roles };\n  }\n  const mine = roles.filter((x) => x.members.includes(userId)).map((x) => Number(x.id));\n  const all = ROLE_ALL.some((r) => mine.includes(r));\n  const lines = new Set();\n  for (const [line, ids] of Object.entries(ROLE_BY_LINE)) if (all || ids.some((r) => mine.includes(r))) lines.add(line);\n  return { all, lines };\n}\n\nconst fieldOf = (task, id) => (task.fields || []).find((x) => x.id === id);\n\nasync function loadShift(id) {\n  const t = await pyrus('GET', `/v4/tasks/${id}`);\n  const task = t.task || t;\n  if (!task || task.form_id !== FORM_SCHEDULE) throw Object.assign(new Error('Задача не из формы графика'), { status: 403 });\n  return {\n    id: task.id,\n    person: Number(fieldOf(task, F.person)?.value?.id) || null,\n    line: LINE_BY_DEPT[fieldOf(task, F.department)?.value?.item_id] || null,\n    start: new Date(fieldOf(task, F.due)?.value || '').getTime(),\n  };\n}\n\n// ---------- обед ----------\nconst lunchRows = $('Обеды: все').all().map((i) => i.json).filter((r) => r && r.seg_id);\nconst scheduleRows = $('Смены: таблица').all().map((i) => i.json).filter((r) => r && r.date_open && r.date_close);\n\nasync function me() {\n  const m = (await members()).find((x) => x.id === userId);\n  return m || { id: userId, name: String(body.user_login || ''), email: String(body.user_login || '').toLowerCase() };\n}\n\n// Смена, которая идёт сейчас у сотрудника (по ФИО)\nfunction activeShiftOf(name) {\n  const n = normName(name);\n  return (\n    scheduleRows.find((r) => {\n      if (normName(r.name) !== n) return false;\n      return parseLocal(r.date_open) <= now && parseLocal(r.date_close) > now;\n    }) || null\n  );\n}\n\nconst todays = () =>\n  lunchRows.filter((r) => Number(r.member_id) === userId && r.status !== 'cancelled' && localDay(new Date(r.start_utc).getTime()) === localDay(now));\nconst openSegment = () => todays().find((r) => r.status === 'active' || r.status === 'scheduled') || null;\nfunction usedMs() {\n  return todays().reduce((sum, r) => {\n    const s = new Date(r.start_utc).getTime();\n    if (r.status === 'active') return sum + Math.max(0, now - s);\n    if (r.status === 'scheduled') return sum;\n    const e = r.ended_at ? new Date(r.ended_at).getTime() : new Date(r.end_utc).getTime();\n    return sum + Math.max(0, e - s);\n  }, 0);\n}\n\nfunction lunchState(name) {\n  const shift = activeShiftOf(name);\n  const row = openSegment();\n  const active = !!row && row.status === 'active';\n  const remainingMs = Math.max(0, DAILY_LUNCH_BUDGET_MS - usedMs());\n  return {\n    onShift: !!shift,\n    shiftEnd: shift ? new Date(parseLocal(shift.date_close)).toISOString() : null,\n    lunch: row\n      ? {\n          status: row.status,\n          start_utc: row.start_utc,\n          end_utc: row.end_utc,\n          overdue: false,\n          remainingSec: active ? Math.max(0, Math.round((new Date(row.end_utc).getTime() - now) / 1000)) : 0,\n        }\n      : null,\n    lunchMinutes: DAILY_LUNCH_BUDGET_MS / 60000,\n    budgetRemainingSec: Math.round(remainingMs / 1000),\n    canStart: !!shift && !row && remainingMs >= MIN_LUNCH_SEGMENT_MS,\n  };\n}\n\n// ---------- роутер ----------\ntry {\n  if (!Number.isInteger(userId) || userId <= 0) return fail(401, 'UNAUTHORIZED', 'Не передан user_id');\n\n  if (type === 'lunch_status') {\n    const u = await me();\n    return ok(lunchState(u.name));\n  }\n\n  if (type === 'lunch_start') {\n    const u = await me();\n    const st = lunchState(u.name);\n    if (st.lunch) return ok(st);\n    if (!st.onShift) return fail(400, 'NOT_ON_SHIFT', 'Сейчас у вас нет смены в линии');\n    if (!st.canStart) return fail(409, 'LUNCH_USED', 'Лимит обеда на сегодня исчерпан');\n    const shift = activeShiftOf(u.name);\n    if (!shift.phone_number) return fail(400, 'NO_PHONE', 'В расписании не указан телефонный номер сотрудника');\n    const shiftEndMs = parseLocal(shift.date_close);\n    let startAt = now;\n    if (body.start_at) {\n      const t = new Date(body.start_at).getTime();\n      if (Number.isNaN(t)) return fail(400, 'BAD_REQUEST', 'Некорректное время начала обеда');\n      if (t < now - 60e3) return fail(400, 'BAD_REQUEST', 'Время начала обеда уже прошло');\n      if (t >= shiftEndMs) return fail(400, 'BAD_REQUEST', 'Время начала обеда должно быть раньше конца смены');\n      startAt = Math.max(t, now);\n    }\n    const immediate = startAt <= now + 30e3;\n    const allot = Math.max(MIN_LUNCH_SEGMENT_MS, DAILY_LUNCH_BUDGET_MS - usedMs());\n    const row = {\n      seg_id: `${userId}-${now}`,\n      member_id: userId,\n      name: u.name,\n      phone_number: String(shift.phone_number),\n      start_utc: new Date(startAt).toISOString(),\n      end_utc: new Date(startAt + allot).toISOString(),\n      status: immediate ? 'active' : 'scheduled',\n      ended_at: '',\n    };\n    lunchRows.push(row);\n    return ok(lunchState(u.name), { lunchUpdates: [row], mangoSync: immediate });\n  }\n\n  if (type === 'lunch_end') {\n    const u = await me();\n    const row = openSegment();\n    if (!row) return ok(lunchState(u.name));\n    const wasActive = row.status === 'active';\n    const updated = {\n      ...row,\n      status: wasActive ? 'returned' : 'cancelled',\n      ended_at: new Date(now).toISOString(),\n    };\n    lunchRows.splice(lunchRows.indexOf(row), 1, updated);\n    return ok(lunchState(u.name), { lunchUpdates: [updated], mangoSync: wasActive });\n  }\n\n  const perms = await editableLines();\n\n  if (type === 'vacation_create') {\n    const line = String(body.line || '');\n    if (!perms.lines.has(line)) return fail(403, 'FORBIDDEN', 'Нет прав на редактирование этого подразделения');\n    const employeeId = Number(body.employee_id);\n    const days = Number(body.days);\n    if (!Number.isInteger(employeeId) || employeeId <= 0) return fail(400, 'BAD_REQUEST', 'Не указан сотрудник');\n    if (!Number.isInteger(days) || days < 1 || days > MAX_VACATION_DAYS) return fail(400, 'BAD_REQUEST', `Длительность отпуска — от 1 до ${MAX_VACATION_DAYS} дней`);\n    const startMs = new Date(body.start_utc || '').getTime();\n    if (Number.isNaN(startMs)) return fail(400, 'BAD_REQUEST', 'Некорректная дата начала отпуска');\n    const duration = Number(body.duration_minutes) || days * 1440;\n    const startIso = new Date(startMs).toISOString().replace(/\\.\\d{3}Z$/, 'Z');\n    const r = await pyrus('POST', '/v4/tasks', {\n      form_id: FORM_VACATION,\n      fields: [\n        { id: V.period, value: startIso, duration },\n        { id: V.person, value: { id: employeeId } },\n      ],\n    });\n    return ok({ task: (r && r.task) || null });\n  }\n\n  if (type === 'vacation_delete') {\n    const taskId = Number(body.task_id);\n    if (!Number.isInteger(taskId) || taskId <= 0) return fail(400, 'BAD_REQUEST', 'Не указан отпуск');\n    if (!perms.lines.size) return fail(403, 'FORBIDDEN', 'Нет прав на удаление отпуска');\n    const t = await pyrus('GET', `/v4/tasks/${taskId}`);\n    const task = t.task || t;\n    if (task.form_id !== FORM_VACATION) return fail(403, 'FORBIDDEN', 'Задача не из формы отпусков');\n    await pyrus('DELETE', `/v4/tasks/${taskId}`);\n    return ok({ ok: true, deletedId: taskId });\n  }\n\n  if (type === 'schedule_swap') {\n    const idA = Number(body.task_id);\n    const idB = body.target_task_id != null && body.target_task_id !== '' ? Number(body.target_task_id) : null;\n    const targetEmployee = Number(body.target_employee_id);\n    if (!Number.isInteger(idA) || idA <= 0) return fail(400, 'BAD_REQUEST', 'Не указана смена');\n    if (idB === idA) return fail(400, 'BAD_REQUEST', 'Выберите смену другого сотрудника');\n    if (idB == null && (!Number.isInteger(targetEmployee) || targetEmployee <= 0)) return fail(400, 'BAD_REQUEST', 'Не указан сотрудник');\n\n    const a = await loadShift(idA);\n    const b = idB != null ? await loadShift(idB) : null;\n    if (!a.person || Number.isNaN(a.start)) return fail(400, 'BAD_REQUEST', 'В смене не заполнены сотрудник или дата');\n    if (b && (!b.person || Number.isNaN(b.start))) return fail(400, 'BAD_REQUEST', 'В смене для обмена не заполнены сотрудник или дата');\n    if (b && b.line !== a.line) return fail(400, 'BAD_REQUEST', 'Обмен возможен только внутри одной линии');\n    const newPersonA = b ? b.person : targetEmployee;\n    if (newPersonA === a.person) return fail(400, 'BAD_REQUEST', 'Это смены одного сотрудника');\n\n    // Права: редактор линии — любые смены; сотрудник — только обмен/передача своей смены\n    const isEditor = perms.all || (a.line && perms.lines.has(a.line));\n    if (!isEditor && userId !== a.person && !(b && userId === b.person)) return fail(403, 'FORBIDDEN', 'Меняться можно только своими сменами');\n\n    const all = await members();\n    const nameOf = (id) => (all.find((x) => x.id === id) || {}).name || `#${id}`;\n    const reg = await pyrus('GET', `/v4/forms/${FORM_SCHEDULE}/register`);\n    const skip = new Set([a.id, b && b.id].filter(Boolean));\n    const busy = (personId, dayMs) =>\n      (reg.tasks || []).some((t) => {\n        if (skip.has(t.id)) return false;\n        if (Number(fieldOf(t, F.person)?.value?.id) !== personId) return false;\n        const s = new Date(fieldOf(t, F.due)?.value || '').getTime();\n        return !Number.isNaN(s) && localDay(s) === localDay(dayMs);\n      });\n    const fmtDay = (ms) => localDay(ms).split('-').reverse().join('.');\n    if (busy(newPersonA, a.start)) return fail(409, 'DUPLICATE', `У сотрудника ${nameOf(newPersonA)} уже есть смена ${fmtDay(a.start)}`);\n    if (b && busy(a.person, b.start)) return fail(409, 'DUPLICATE', `У сотрудника ${nameOf(a.person)} уже есть смена ${fmtDay(b.start)}`);\n\n    const actor = (await me()).name;\n    const note = b\n      ? `Обмен сменами: ${nameOf(a.person)} ${fmtDay(a.start)} ⇄ ${nameOf(b.person)} ${fmtDay(b.start)} (График смен, ${actor})`\n      : `Передача смены ${fmtDay(a.start)}: ${nameOf(a.person)} → ${nameOf(newPersonA)} (График смен, ${actor})`;\n    const setPerson = (taskId, personId) => pyrus('POST', `/v4/tasks/${taskId}/comments`, { text: note, field_updates: [{ id: F.person, value: { id: personId } }] });\n\n    const tasks = [];\n    const ra = await setPerson(a.id, newPersonA);\n    if (ra && ra.task) tasks.push(ra.task);\n    if (b) {\n      try {\n        const rb = await setPerson(b.id, a.person);\n        if (rb && rb.task) tasks.push(rb.task);\n      } catch (e) {\n        await setPerson(a.id, a.person).catch(() => {}); // откат первой половины\n        throw e;\n      }\n    }\n    const today = localDay(now);\n    return ok({ swapped: true, tasks, note }, { mangoSync: [a.start, b && b.start].some((ms) => ms && localDay(ms) === today) });\n  }\n\n  return fail(400, 'UNKNOWN_ACTION', `Неизвестный тип: ${type}`);\n} catch (e) {\n  return fail(e.status || 502, 'BACKEND_ERROR', e.message || 'Ошибка бэкенда');\n}\n"
+        "jsCode": "// Code-нода «Действия: логика» (режим «Run Once for All Items»).\n// Обрабатывает типы хуков: vacation_create, vacation_delete, schedule_swap, lunch_status, lunch_start, lunch_end.\n// Вход: тело запроса из «Webhook», токен из «Pyrus: токен», таблицы из «Обеды: все» (pyrus-lunch) и «Смены: таблица» (pyrus-raspisanie).\n// Выход: один item { status, body, lunchUpdates[], mangoSync }.\n\n// ---------- настройки ----------\nconst FORM_SCHEDULE = 2383802; // «График» (смены)\nconst FORM_VACATION = 2383799; // «Отпуск»\nconst F = { department: 1, person: 8, due: 5, amount: 6, template: 7 }; // поля формы смен\nconst V = { period: 1, person: 2 }; // поля формы отпусков\nconst LOCAL_OFFSET_MS = 180 * 60 * 1000; // UTC+3\n// Роли Pyrus → право редактирования (как config.auth.rolePermissions на сайте)\nconst ROLE_ALL = [1271289]; // редактируют все линии\nconst ROLE_BY_LINE = { L2: [1271289], OV: [1271290], OP: [1271291], L1: [], OU: [], AI: [] };\n// Подразделения (item_id справочника) → линия (как departments.byLine в config.json)\nconst LINE_BY_DEPT = { 167976424: 'L2', 174349984: 'OV', 170374055: 'OP', 168659098: 'OU' };\nconst MAX_VACATION_DAYS = 90;\nconst DAILY_LUNCH_BUDGET_MS = 60 * 60 * 1000; // суммарно 1 час обеда за смену-сутки\nconst MIN_LUNCH_SEGMENT_MS = 60 * 1000;\n\n// ---------- утилиты ----------\nconst now = Date.now();\nconst store = $getWorkflowStaticData('global');\nconst req = $('Webhook').first().json;\nconst body = req.body || {};\nconst type = String(body.type || '');\nconst userId = Number(body.user_id);\n\nconst ok = (data, extra = {}) => [{ json: { status: 200, body: data, lunchUpdates: [], mangoSync: false, mangoDelay: 0, ...extra } }];\nconst fail = (status, code, message) => [{ json: { status, body: { ok: false, error: { code, message } }, lunchUpdates: [], mangoSync: false } }];\n\nconst normName = (s) => String(s || '').toLowerCase().replace(/ё/g, 'е').split(/\\s+/).filter(Boolean).sort().join(' ');\nconst localDay = (ms) => new Date(ms + LOCAL_OFFSET_MS).toISOString().slice(0, 10);\n// «2026-10-01 09:00» (GMT+3) → мс\nconst parseLocal = (str) => {\n  const m = String(str || '').match(/^(\\d{4}-\\d{2}-\\d{2})[ T](\\d{2}:\\d{2})/);\n  return m ? new Date(`${m[1]}T${m[2]}:00+03:00`).getTime() : NaN;\n};\n\nconst http = (opts) => this.helpers.httpRequest({ json: true, ...opts });\nconst token = $('Pyrus: токен').first().json.access_token;\nasync function pyrus(method, path, payload) {\n  if (!token) throw Object.assign(new Error('Не удалось получить токен Pyrus'), { status: 502 });\n  const opts = { method, url: `https://api.pyrus.com${path}`, headers: { Authorization: `Bearer ${token}` } };\n  if (payload) opts.body = payload;\n  return http(opts);\n}\n\nasync function members() {\n  const c = store.membersCache;\n  if (c && c.at > now - 10 * 60e3) return c.list;\n  const r = await pyrus('GET', '/v4/members');\n  const list = (r.members || []).map((m) => ({ id: m.id, name: `${m.last_name || ''} ${m.first_name || ''}`.trim(), email: String(m.email || '').toLowerCase() }));\n  store.membersCache = { at: now, list };\n  return list;\n}\n\nasync function editableLines() {\n  let roles = store.rolesCache && store.rolesCache.at > now - 5 * 60e3 ? store.rolesCache.list : null;\n  if (!roles) {\n    const r = await pyrus('GET', '/v4/roles');\n    roles = (r.roles || []).filter((x) => !x.banned).map((x) => ({ id: x.id, members: x.member_ids || [] }));\n    store.rolesCache = { at: now, list: roles };\n  }\n  const mine = roles.filter((x) => x.members.includes(userId)).map((x) => Number(x.id));\n  const all = ROLE_ALL.some((r) => mine.includes(r));\n  const lines = new Set();\n  for (const [line, ids] of Object.entries(ROLE_BY_LINE)) if (all || ids.some((r) => mine.includes(r))) lines.add(line);\n  return { all, lines };\n}\n\nconst fieldOf = (task, id) => (task.fields || []).find((x) => x.id === id);\n\nasync function loadShift(id) {\n  const t = await pyrus('GET', `/v4/tasks/${id}`);\n  const task = t.task || t;\n  if (!task || task.form_id !== FORM_SCHEDULE) throw Object.assign(new Error('Задача не из формы графика'), { status: 403 });\n  return {\n    id: task.id,\n    person: Number(fieldOf(task, F.person)?.value?.id) || null,\n    line: LINE_BY_DEPT[fieldOf(task, F.department)?.value?.item_id] || null,\n    start: new Date(fieldOf(task, F.due)?.value || '').getTime(),\n  };\n}\n\n// ---------- обед ----------\nconst lunchRows = $('Обеды: все').all().map((i) => i.json).filter((r) => r && r.seg_id);\nconst scheduleRows = $('Смены: таблица').all().map((i) => i.json).filter((r) => r && r.date_open && r.date_close);\n\nasync function me() {\n  const m = (await members()).find((x) => x.id === userId);\n  return m || { id: userId, name: String(body.user_login || ''), email: String(body.user_login || '').toLowerCase() };\n}\n\n// Смена, которая идёт сейчас у сотрудника (по ФИО)\nfunction activeShiftOf(name) {\n  const n = normName(name);\n  return (\n    scheduleRows.find((r) => {\n      if (normName(r.name) !== n) return false;\n      return parseLocal(r.date_open) <= now && parseLocal(r.date_close) > now;\n    }) || null\n  );\n}\n\nconst todays = () =>\n  lunchRows.filter((r) => Number(r.member_id) === userId && r.status !== 'cancelled' && localDay(new Date(r.start_utc).getTime()) === localDay(now));\nconst openSegment = () => todays().find((r) => r.status === 'active' || r.status === 'scheduled') || null;\nfunction usedMs() {\n  return todays().reduce((sum, r) => {\n    const s = new Date(r.start_utc).getTime();\n    if (r.status === 'active') return sum + Math.max(0, now - s);\n    if (r.status === 'scheduled') return sum;\n    const e = r.ended_at ? new Date(r.ended_at).getTime() : new Date(r.end_utc).getTime();\n    return sum + Math.max(0, e - s);\n  }, 0);\n}\n\nfunction lunchState(name) {\n  const shift = activeShiftOf(name);\n  const row = openSegment();\n  const active = !!row && row.status === 'active';\n  const remainingMs = Math.max(0, DAILY_LUNCH_BUDGET_MS - usedMs());\n  return {\n    onShift: !!shift,\n    shiftEnd: shift ? new Date(parseLocal(shift.date_close)).toISOString() : null,\n    lunch: row\n      ? {\n          status: row.status,\n          start_utc: row.start_utc,\n          end_utc: row.end_utc,\n          overdue: false,\n          remainingSec: active ? Math.max(0, Math.round((new Date(row.end_utc).getTime() - now) / 1000)) : 0,\n        }\n      : null,\n    lunchMinutes: DAILY_LUNCH_BUDGET_MS / 60000,\n    budgetRemainingSec: Math.round(remainingMs / 1000),\n    canStart: !!shift && !row && remainingMs >= MIN_LUNCH_SEGMENT_MS,\n  };\n}\n\n// ---------- роутер ----------\ntry {\n  if (!Number.isInteger(userId) || userId <= 0) return fail(401, 'UNAUTHORIZED', 'Не передан user_id');\n\n  if (type === 'lunch_status') {\n    const u = await me();\n    return ok(lunchState(u.name));\n  }\n\n  if (type === 'lunch_start') {\n    const u = await me();\n    const st = lunchState(u.name);\n    if (st.lunch) return ok(st);\n    if (!st.onShift) return fail(400, 'NOT_ON_SHIFT', 'Сейчас у вас нет смены в линии');\n    if (!st.canStart) return fail(409, 'LUNCH_USED', 'Лимит обеда на сегодня исчерпан');\n    const shift = activeShiftOf(u.name);\n    if (!shift.phone_number) return fail(400, 'NO_PHONE', 'В расписании не указан телефонный номер сотрудника');\n    const shiftEndMs = parseLocal(shift.date_close);\n    let startAt = now;\n    if (body.start_at) {\n      const t = new Date(body.start_at).getTime();\n      if (Number.isNaN(t)) return fail(400, 'BAD_REQUEST', 'Некорректное время начала обеда');\n      if (t < now - 60e3) return fail(400, 'BAD_REQUEST', 'Время начала обеда уже прошло');\n      if (t >= shiftEndMs) return fail(400, 'BAD_REQUEST', 'Время начала обеда должно быть раньше конца смены');\n      startAt = Math.max(t, now);\n    }\n    const immediate = startAt <= now + 30e3;\n    const allot = Math.max(MIN_LUNCH_SEGMENT_MS, DAILY_LUNCH_BUDGET_MS - usedMs());\n    const row = {\n      seg_id: `${userId}-${now}`,\n      member_id: userId,\n      name: u.name,\n      phone_number: String(shift.phone_number),\n      start_utc: new Date(startAt).toISOString(),\n      end_utc: new Date(startAt + allot).toISOString(),\n      status: immediate ? 'active' : 'scheduled',\n      ended_at: '',\n    };\n    lunchRows.push(row);\n    return ok(lunchState(u.name), { lunchUpdates: [row], mangoSync: immediate });\n  }\n\n  if (type === 'lunch_end') {\n    const u = await me();\n    const row = openSegment();\n    if (!row) return ok(lunchState(u.name));\n    const wasActive = row.status === 'active';\n    const updated = {\n      ...row,\n      status: wasActive ? 'returned' : 'cancelled',\n      ended_at: new Date(now).toISOString(),\n    };\n    lunchRows.splice(lunchRows.indexOf(row), 1, updated);\n    return ok(lunchState(u.name), { lunchUpdates: [updated], mangoSync: wasActive });\n  }\n\n  const perms = await editableLines();\n\n  if (type === 'vacation_create') {\n    const line = String(body.line || '');\n    if (!perms.lines.has(line)) return fail(403, 'FORBIDDEN', 'Нет прав на редактирование этого подразделения');\n    const employeeId = Number(body.employee_id);\n    const days = Number(body.days);\n    if (!Number.isInteger(employeeId) || employeeId <= 0) return fail(400, 'BAD_REQUEST', 'Не указан сотрудник');\n    if (!Number.isInteger(days) || days < 1 || days > MAX_VACATION_DAYS) return fail(400, 'BAD_REQUEST', `Длительность отпуска — от 1 до ${MAX_VACATION_DAYS} дней`);\n    const startMs = new Date(body.start_utc || '').getTime();\n    if (Number.isNaN(startMs)) return fail(400, 'BAD_REQUEST', 'Некорректная дата начала отпуска');\n    const duration = Number(body.duration_minutes) || days * 1440;\n    const startIso = new Date(startMs).toISOString().replace(/\\.\\d{3}Z$/, 'Z');\n    const r = await pyrus('POST', '/v4/tasks', {\n      form_id: FORM_VACATION,\n      fields: [\n        { id: V.period, value: startIso, duration },\n        { id: V.person, value: { id: employeeId } },\n      ],\n    });\n    return ok({ task: (r && r.task) || null });\n  }\n\n  if (type === 'vacation_delete') {\n    const taskId = Number(body.task_id);\n    if (!Number.isInteger(taskId) || taskId <= 0) return fail(400, 'BAD_REQUEST', 'Не указан отпуск');\n    if (!perms.lines.size) return fail(403, 'FORBIDDEN', 'Нет прав на удаление отпуска');\n    const t = await pyrus('GET', `/v4/tasks/${taskId}`);\n    const task = t.task || t;\n    if (task.form_id !== FORM_VACATION) return fail(403, 'FORBIDDEN', 'Задача не из формы отпусков');\n    await pyrus('DELETE', `/v4/tasks/${taskId}`);\n    return ok({ ok: true, deletedId: taskId });\n  }\n\n  if (type === 'schedule_swap') {\n    const idA = Number(body.task_id);\n    const idB = body.target_task_id != null && body.target_task_id !== '' ? Number(body.target_task_id) : null;\n    const targetEmployee = Number(body.target_employee_id);\n    if (!Number.isInteger(idA) || idA <= 0) return fail(400, 'BAD_REQUEST', 'Не указана смена');\n    if (idB === idA) return fail(400, 'BAD_REQUEST', 'Выберите смену другого сотрудника');\n    if (idB == null && (!Number.isInteger(targetEmployee) || targetEmployee <= 0)) return fail(400, 'BAD_REQUEST', 'Не указан сотрудник');\n\n    const a = await loadShift(idA);\n    const b = idB != null ? await loadShift(idB) : null;\n    if (!a.person || Number.isNaN(a.start)) return fail(400, 'BAD_REQUEST', 'В смене не заполнены сотрудник или дата');\n    if (b && (!b.person || Number.isNaN(b.start))) return fail(400, 'BAD_REQUEST', 'В смене для обмена не заполнены сотрудник или дата');\n    if (b && b.line !== a.line) return fail(400, 'BAD_REQUEST', 'Обмен возможен только внутри одной линии');\n    const newPersonA = b ? b.person : targetEmployee;\n    if (newPersonA === a.person) return fail(400, 'BAD_REQUEST', 'Это смены одного сотрудника');\n\n    // Права: редактор линии — любые смены; сотрудник — только обмен/передача своей смены\n    const isEditor = perms.all || (a.line && perms.lines.has(a.line));\n    if (!isEditor && userId !== a.person && !(b && userId === b.person)) return fail(403, 'FORBIDDEN', 'Меняться можно только своими сменами');\n\n    const all = await members();\n    const nameOf = (id) => (all.find((x) => x.id === id) || {}).name || `#${id}`;\n    const reg = await pyrus('GET', `/v4/forms/${FORM_SCHEDULE}/register`);\n    const skip = new Set([a.id, b && b.id].filter(Boolean));\n    const busy = (personId, dayMs) =>\n      (reg.tasks || []).some((t) => {\n        if (skip.has(t.id)) return false;\n        if (Number(fieldOf(t, F.person)?.value?.id) !== personId) return false;\n        const s = new Date(fieldOf(t, F.due)?.value || '').getTime();\n        return !Number.isNaN(s) && localDay(s) === localDay(dayMs);\n      });\n    const fmtDay = (ms) => localDay(ms).split('-').reverse().join('.');\n    if (busy(newPersonA, a.start)) return fail(409, 'DUPLICATE', `У сотрудника ${nameOf(newPersonA)} уже есть смена ${fmtDay(a.start)}`);\n    if (b && busy(a.person, b.start)) return fail(409, 'DUPLICATE', `У сотрудника ${nameOf(a.person)} уже есть смена ${fmtDay(b.start)}`);\n\n    const actor = (await me()).name;\n    const note = b\n      ? `Обмен сменами: ${nameOf(a.person)} ${fmtDay(a.start)} ⇄ ${nameOf(b.person)} ${fmtDay(b.start)} (График смен, ${actor})`\n      : `Передача смены ${fmtDay(a.start)}: ${nameOf(a.person)} → ${nameOf(newPersonA)} (График смен, ${actor})`;\n    const setPerson = (taskId, personId) => pyrus('POST', `/v4/tasks/${taskId}/comments`, { text: note, field_updates: [{ id: F.person, value: { id: personId } }] });\n\n    const tasks = [];\n    const ra = await setPerson(a.id, newPersonA);\n    if (ra && ra.task) tasks.push(ra.task);\n    if (b) {\n      try {\n        const rb = await setPerson(b.id, a.person);\n        if (rb && rb.task) tasks.push(rb.task);\n      } catch (e) {\n        await setPerson(a.id, a.person).catch(() => {}); // откат первой половины\n        throw e;\n      }\n    }\n    const today = localDay(now);\n    return ok({ swapped: true, tasks, note }, { mangoSync: [a.start, b && b.start].some((ms) => ms && localDay(ms) === today), mangoDelay: 15 });\n  }\n\n  return fail(400, 'UNKNOWN_ACTION', `Неизвестный тип: ${type}`);\n} catch (e) {\n  return fail(e.status || 502, 'BACKEND_ERROR', e.message || 'Ошибка бэкенда');\n}\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1066,7 +1066,7 @@
         880,
         1200
       ],
-      "id": "88660f8b-fb45-4a4b-806a-9b8f289c5b57",
+      "id": "05af37da-e3ef-4753-9f66-7d9117c4d72e",
       "name": "Действия: логика"
     },
     {
@@ -1083,7 +1083,7 @@
         1120,
         1120
       ],
-      "id": "a0d5f543-d3b0-4e39-958a-3ff2a3217c39",
+      "id": "168c9f24-e058-407e-860e-c92b176d3d2e",
       "name": "Ответ: действия"
     },
     {
@@ -1097,7 +1097,7 @@
         1120,
         1300
       ],
-      "id": "cf53dc1e-66b9-46d1-9bd6-61fe23fdd1a3",
+      "id": "5c3794db-6fb4-4839-a503-95b1b30999a4",
       "name": "Split Out lunchUpdates"
     },
     {
@@ -1212,7 +1212,7 @@
         1344,
         1300
       ],
-      "id": "dca2b68e-ee8c-4f8a-9995-941637a65bd2",
+      "id": "e74de2cb-fbce-4571-8cde-efbdcb1f3ae6",
       "name": "Обед: запись"
     },
     {
@@ -1226,7 +1226,7 @@
           },
           "conditions": [
             {
-              "id": "7efbf80c-1b17-4330-95a3-bb33614ede4d",
+              "id": "cc300130-aaf9-4e63-8bda-97613b2eccdd",
               "leftValue": "={{ $json.mangoSync }}",
               "rightValue": true,
               "operator": {
@@ -1246,13 +1246,16 @@
         1120,
         1480
       ],
-      "id": "15cad210-d6e8-4de5-b04f-61479fdd18c3",
+      "id": "6995a8f0-1329-4bf7-b703-3522ecbe38ce",
       "name": "Нужна синхронизация Манго"
     },
     {
       "parameters": {
         "method": "POST",
         "url": "https://quumahienot.beget.app/webhook/mango/sync",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ delay_sec: $json.mangoDelay || 0 }) }}",
         "options": {
           "timeout": 5000
         }
@@ -1263,7 +1266,7 @@
         1344,
         1480
       ],
-      "id": "4bdc7761-1ecd-4632-96a3-369c232a2197",
+      "id": "dc3b2d8a-8d2e-42dc-af58-5d3dc79d8390",
       "name": "Манго: пересобрать группы",
       "onError": "continueRegularOutput"
     },
@@ -1277,8 +1280,55 @@
         1248,
         760
       ],
-      "id": "186a8684-8b2c-4350-8940-4aa17c07ffd3",
+      "id": "4ec8b4e8-0dce-4326-9914-c75e2b6a3f8e",
       "name": "Собрать ответ сохранения"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code-нода «Затронут ли сегодняшний день» (Run Once for All Items): после сохранения графика решаем,\n// нужно ли сразу пересобрать группы Манго. Удаления и правки считаем всегда значимыми (старая дата неизвестна).\nconst ch = ($('Webhook').first().json.body || {}).changes || {};\nconst todayLocal = new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10); // UTC+3\nconst dayOf = (iso) => (iso ? new Date(new Date(iso).getTime() + 3 * 3600e3).toISOString().slice(0, 10) : '');\nconst created = (ch.create && ch.create.task) || [];\nconst edited = (ch.edit && ch.edit.task) || [];\nconst deleted = (ch.deleted && ch.deleted.task) || [];\nconst touches =\n  deleted.length > 0 ||\n  edited.length > 0 ||\n  created.some((t) => dayOf(t.start) === todayLocal);\nreturn [{ json: { mangoSync: touches, mangoDelay: 15 } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        760
+      ],
+      "id": "96ed8142-55a2-47e9-9fe6-c7ebdde955b2",
+      "name": "Затронут ли сегодня"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "01d49618-74de-48f9-b3d5-ccaa116aa9c3",
+              "leftValue": "={{ $json.mangoSync }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1696,
+        760
+      ],
+      "id": "6b53c708-d0fe-43c8-821d-e5e3c331e888",
+      "name": "Нужна синхронизация (сохранение)"
     },
     {
       "parameters": {
@@ -1295,7 +1345,7 @@
         704,
         144
       ],
-      "id": "08f3491d-62cc-44c6-b103-959d82630000",
+      "id": "373ad5ba-1090-4048-8e80-cf40c502e915",
       "name": "Pyrus: токен (вход)",
       "onError": "continueRegularOutput"
     },
@@ -1309,7 +1359,7 @@
         992,
         288
       ],
-      "id": "cd490f00-45ec-4b62-8a41-f60bf5acfcd4",
+      "id": "53da054e-ac00-434e-bc4f-fe72f1d67b0c",
       "name": "Pyrus: дублировать вход",
       "onError": "continueRegularOutput"
     }
@@ -1802,6 +1852,33 @@
         [
           {
             "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Затронут ли сегодня",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Затронут ли сегодня": {
+      "main": [
+        [
+          {
+            "node": "Нужна синхронизация (сохранение)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Нужна синхронизация (сохранение)": {
+      "main": [
+        [
+          {
+            "node": "Манго: пересобрать группы",
             "type": "main",
             "index": 0
           }

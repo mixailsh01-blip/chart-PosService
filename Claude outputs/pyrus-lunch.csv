@@ -1,0 +1,2 @@
+seg_id,member_id,name,phone_number,start_utc,end_utc,status,ended_at
+example-1,1,Пример Пример,000,2026-01-01T00:00:00.000Z,2026-01-01T01:00:00.000Z,returned,2026-01-01T00:30:00.000Z

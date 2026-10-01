@@ -2786,7 +2786,12 @@ function buildPyrusChangesPayload(lineToSave = null) {
       const baseRow = baseRowByEmployee[row.employeeId];
 
       const employee = state.employeesByLine.ALL.find((e) => e.id === row.employeeId) || null;
-      const departmentItemId = employee ? resolvePyrusLineItemIdByDepartmentId(employee.departmentId) : null;
+      // Отдел по department_id сотрудника; если он не из списка (например, добавлен во вкладку по роли Pyrus) —
+  // берём отдел той вкладки, в которой правим график
+  const departmentItemId =
+        (employee ? resolvePyrusLineItemIdByDepartmentId(employee.departmentId) : null) ??
+        PYRUS_LINE_ITEM_ID[line] ??
+        null;
 
       currentSched.days.forEach((day, idx) => {
         const baseShift = baseRow ? baseRow.shiftsByDay[idx] || null : null;
