@@ -3828,3 +3828,26 @@ body.swap-mode .app-toast {
     z-index: 30;
   }
 }
+
+/* =====================================================================
+   Насыщенная цветовая гамма смен и читаемая легенда
+   ===================================================================== */
+/* Светлая тема: тёмный текст на цветной плашке */
+:root[data-theme="light"] { --pill-text: #0b1f2a; }
+:root[data-theme="light"] .shift-pill { text-shadow: none; }
+:root[data-theme="dark"] .shift-pill,
+body.dark-theme .shift-pill { text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35); font-weight: 600; }
+
+/* Цвет плашки на всю клетку — «заливка» заметнее */
+.shift-pill { border-width: 1.5px; }
+
+/* Легенда: крупные плотные образцы, названия читаются */
+.shift-legend { border-width: 1.5px; }
+.shift-legend-color {
+  width: 28px;
+  height: 18px;
+  border-radius: 5px;
+  border-width: 1.5px;
+  flex: 0 0 auto;
+}
+.shift-legend-item { font-size: 13px; }

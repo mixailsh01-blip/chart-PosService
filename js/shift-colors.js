@@ -8,23 +8,24 @@ const colorState = {
   templateMetaById: new Map(),
 };
 
-function generateColorForIndex(index, saturation = 64, lightness = 54, isDark = false) {
+function generateColorForIndex(index, saturation = 78, lightness = 52, isDark = false) {
   const goldenRatioConjugate = 0.618033988749895;
-  const hue = Math.round((index * goldenRatioConjugate * 360) % 360);
+  const hue = Math.round((index * goldenRatioConjugate * 360 + 200) % 360);
 
-  const adjSaturation = isDark ? Math.min(saturation + 6, 76) : saturation;
-  const adjLightness = isDark ? Math.min(lightness + 6, 70) : lightness;
+  const adjSaturation = isDark ? Math.min(saturation + 8, 90) : saturation;
+  const adjLightness = isDark ? Math.min(lightness + 4, 62) : Math.max(lightness - 8, 40);
 
   return { hue, saturation: adjSaturation, lightness: adjLightness };
 }
 
 function createCSSVariablesForColor(hsl, isDark = false) {
-  const bgOpacity = isDark ? 0.2 : 0.14;
-  const borderOpacity = isDark ? 0.55 : 0.48;
+  // Плотная заливка и яркая рамка — смены хорошо различаются на любом фоне
+  const bgOpacity = isDark ? 0.5 : 0.36;
+  const borderOpacity = 1;
 
   return {
     bg: `hsla(${hsl.hue}, ${hsl.saturation}%, ${hsl.lightness}%, ${bgOpacity})`,
-    border: `hsla(${hsl.hue}, ${hsl.saturation}%, ${hsl.lightness}%, ${borderOpacity})`,
+    border: `hsla(${hsl.hue}, ${hsl.saturation}%, ${isDark ? hsl.lightness + 8 : hsl.lightness - 4}%, ${borderOpacity})`,
   };
 }
 
@@ -63,7 +64,7 @@ function rebuildColors() {
 
       if (meta.isSpecial) return;
 
-      const colorHSL = generateColorForIndex(colorIndex++, 64, 54, isDark);
+      const colorHSL = generateColorForIndex(colorIndex++, 78, 52, isDark);
       const cssVars = createCSSVariablesForColor(colorHSL, isDark);
 
       cssRules.push(`
@@ -109,56 +110,62 @@ function renderColorLegend(currentLine) {
   const legendContent = document.getElementById('shift-legend-content');
   if (!legendContent) return;
 
-  const templates = currentLine ? colorState.templatesByLine[currentLine] || [] : [];
-  const hasTemplates = templates.length > 0;
-
   legendContent.innerHTML = '';
 
-  if (!hasTemplates) {
-    legendContent.innerHTML = '<div class="muted">Нет шаблонов смен для этой линии.</div>';
+  // Для конкретной линии — её шаблоны; для «ВСЕ» (и если у линии нет шаблонов) — все линии, где они есть
+  const own = currentLine && currentLine !== 'ALL' ? colorState.templatesByLine[currentLine] || [] : [];
+  const lines = own.length
+    ? [currentLine]
+    : Object.keys(colorState.templatesByLine || {}).filter(
+        (k) => k !== 'ALL' && (colorState.templatesByLine[k] || []).length
+      );
+
+  if (!lines.length) {
+    legendContent.innerHTML = '<div class="muted">Нет шаблонов смен.</div>';
     return;
   }
 
-  const group = document.createElement('div');
-  group.className = 'shift-legend-group';
+  lines.forEach((line) => {
+    const templates = colorState.templatesByLine[line] || [];
+    const group = document.createElement('div');
+    group.className = 'shift-legend-group';
 
-  const title = document.createElement('div');
-  title.className = 'shift-legend-group-title';
-  title.textContent = `Линия ${currentLine}`;
-  group.appendChild(title);
+    const title = document.createElement('div');
+    title.className = 'shift-legend-group-title';
+    title.textContent = `Линия ${line}`;
+    group.appendChild(title);
 
-  const items = document.createElement('div');
-  items.className = 'shift-legend-items';
+    const items = document.createElement('div');
+    items.className = 'shift-legend-items';
 
-  templates.forEach((template) => {
-    const item = document.createElement('div');
-    item.className = 'shift-legend-item';
+    templates.forEach((template) => {
+      const item = document.createElement('div');
+      item.className = 'shift-legend-item';
 
-    const color = document.createElement('div');
-    color.className = 'shift-legend-color';
+      const color = document.createElement('div');
+      color.className = 'shift-legend-color';
 
-    if (template.specialShortLabel) {
-      color.classList.add('special');
-    } else {
-      const className = getTemplateClass(currentLine, template.id);
-      if (className) {
-        color.classList.add(className);
+      if (template.specialShortLabel) {
+        color.classList.add('special');
+      } else {
+        const className = getTemplateClass(line, template.id);
+        if (className) color.classList.add(className);
       }
-    }
 
-    const label = document.createElement('span');
-    const timeLabel = template.timeRange
-      ? ` (${template.timeRange.start}–${template.timeRange.end})`
-      : '';
-    label.textContent = `${template.name}${timeLabel}`;
+      const label = document.createElement('span');
+      const timeLabel = template.timeRange
+        ? ` (${template.timeRange.start}–${template.timeRange.end})`
+        : '';
+      label.textContent = `${template.name}${timeLabel}`;
 
-    item.appendChild(color);
-    item.appendChild(label);
-    items.appendChild(item);
+      item.appendChild(color);
+      item.appendChild(label);
+      items.appendChild(item);
+    });
+
+    group.appendChild(items);
+    legendContent.appendChild(group);
   });
-
-  group.appendChild(items);
-  legendContent.appendChild(group);
 }
 
 function initialize(templatesByLine, theme = 'dark') {
