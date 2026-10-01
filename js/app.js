@@ -164,6 +164,7 @@ const state = {
     scheduleLoadError: null, // последняя ошибка загрузки графика (пока показан кэш)
     quickPanelBound: false,
   },
+  swap: null, // обмен сменами: выбранная первая смена { line, employeeId, employeeName, day, year, monthIndex, shift }
   quickMode: {
     enabled: false,
     deleteMode: false, // в «Шаблоне смены» выбрано «Удалить»: клик по ячейке стирает смену/отпуск
@@ -776,6 +777,9 @@ const profileDropdownBackdropEl = $("#profile-dropdown-backdrop");
 const profileUserNameEl = $("#profile-user-name");
 const profileAvatarImgEl = $("#profile-avatar-img");
 const profileAvatarInitialsEl = $("#profile-avatar-initials");
+const lunchWidgetEl = $("#lunch-widget");
+const btnLunchEl = $("#btn-lunch");
+const lunchTimerEl = $("#lunch-timer");
 const currentMonthLabelEl = $("#current-month-label");
 
 const lineTabsEl = $("#line-tabs");
@@ -939,6 +943,7 @@ async function init() {
   bindTopBarButtons();
   bindHistoryControls();
   createShiftPopover();
+  createLunchPopover();
   createEmployeeFilterPopover();
   createMonthPickerPopover();
   renderChangeLog();
@@ -1071,7 +1076,7 @@ function renderMonthPicker() {
       state.monthMeta.monthIndex = index;
       updateMonthLabel();
       closeMonthPickerPopover();
-      reloadScheduleForCurrentMonth();
+      reloadScheduleForCurrentMonth({ showCached: true });
     });
     monthPickerGridEl.appendChild(btn);
   });
@@ -2208,6 +2213,8 @@ function bindTopBarButtons() {
   });
 
   btnLogoutEl?.addEventListener("click", () => {
+    cancelSwap();
+    stopLunchWidget();
     clearAuthCache();
     state.auth.user = null;
     state.auth.roles = null;
@@ -2225,7 +2232,7 @@ btnPrevMonthEl.addEventListener("click", () => {
     state.monthMeta.year = date.getUTCFullYear();
     state.monthMeta.monthIndex = date.getUTCMonth();
     updateMonthLabel();
-    reloadScheduleForCurrentMonth();
+    reloadScheduleForCurrentMonth({ showCached: true });
   });
 
   btnNextMonthEl.addEventListener("click", () => {
@@ -2235,7 +2242,7 @@ btnPrevMonthEl.addEventListener("click", () => {
     state.monthMeta.year = date.getUTCFullYear();
     state.monthMeta.monthIndex = date.getUTCMonth();
     updateMonthLabel();
-    reloadScheduleForCurrentMonth();
+    reloadScheduleForCurrentMonth({ showCached: true });
   });
 
   updateLineToggleUI();
@@ -2799,6 +2806,8 @@ async function saveLineToPyrus(currentLine) {
     const monthKey = getMonthKey(year, monthIndex);
     scheduleService.invalidateMonthSchedule(monthKey);
     await reloadScheduleForCurrentMonth();
+    // Сохранённая смена могла начаться прямо сейчас — не ждать до минуты опроса
+    refreshLunchStatusSoon();
   } catch (err) {
     console.error("saveLineToPyrus error", err);
     throw err;
@@ -3023,6 +3032,12 @@ async function confirmAndDeleteVacation(row, vac) {
 }
 
 function handleShiftCellClick({ line, row, day, dayIndex, shift, cellEl }) {
+  // Режим обмена: клик выбирает вторую смену (или свободный день другого сотрудника)
+  if (state.swap) {
+    handleSwapTargetClick({ line, row, day, shift });
+    return;
+  }
+
   // Вкладка «ВСЕ»: обычного редактирования нет, но себе можно назначить отпуск
   // (режим доступен, только когда линия определяется однозначно, см. getOwnEditableLineKey).
   // Чужие строки во «ВСЕ» остаются только для просмотра.
@@ -3161,11 +3176,470 @@ function handleShiftCellClick({ line, row, day, dayIndex, shift, cellEl }) {
   );
 }
 
+// Кто делает запрос: n8n сверяет права по роли этого сотрудника в Pyrus
+function actorPayload() {
+  return { user_id: getOwnEmployeeId(), user_login: state.auth.user?.login || "" };
+}
+
+// -----------------------------
+// Обмен сменами
+// -----------------------------
+// Меняется только поле «Сотрудник» у двух задач Pyrus (или у одной — передача смены на свободный день
+// другого сотрудника). Новых задач нет, поэтому нет и дублей; проверку «две смены в один день» делает n8n.
+
+let swapBannerEl = null;
+let swapKeydownHandler = null;
+
+function formatSwapDate(year, monthIndex, day) {
+  return `${String(day).padStart(2, "0")}.${String(monthIndex + 1).padStart(2, "0")}`;
+}
+
+function describeSwapShift(shift) {
+  return shift?.startLocal && shift?.endLocal ? ` (${shift.startLocal}–${shift.endLocal})` : "";
+}
+
+// Обмен доступен для сохранённой в Pyrus смены: редактору её подразделения — для любой,
+// сотруднику — только для своей.
+function canStartSwap(line, employeeId, shift) {
+  if (!shift || shift.taskId == null) return false;
+  const shiftLine = resolveShiftLine(line, employeeId);
+  return (shiftLine != null && canEditLine(shiftLine)) || isOwnEmployeeId(employeeId);
+}
+
+// Линия смены. Во вкладке «ВСЕ» своей линии у смены нет — берём линию, где состоит сотрудник
+// и где у пользователя есть права на редактирование (иначе первую, где он состоит).
+function resolveShiftLine(line, employeeId) {
+  if (line && line !== "ALL") return line;
+  const lines = LINE_KEYS.filter((key) =>
+    (state.employeesByLine[key] || []).some((e) => Number(e.id) === Number(employeeId))
+  );
+  return lines.find((key) => canEditLine(key)) || lines[0] || null;
+}
+
+function renderSwapBanner() {
+  const source = state.swap;
+  if (!source) {
+    swapBannerEl?.classList.add("hidden");
+    document.body.classList.remove("swap-mode");
+    return;
+  }
+  if (!swapBannerEl) {
+    swapBannerEl = document.createElement("div");
+    swapBannerEl.className = "swap-banner";
+    swapBannerEl.setAttribute("role", "status");
+    document.body.appendChild(swapBannerEl);
+  }
+  const date = formatSwapDate(source.year, source.monthIndex, source.day);
+  swapBannerEl.innerHTML = `
+    <div class="swap-banner-text">
+      <b>🔁 Обмен:</b> ${escapeHtml(source.employeeName)}, ${date}${escapeHtml(describeSwapShift(source.shift))}.
+      <span class="swap-banner-hint">Выберите смену другого сотрудника или его свободный день ${date} — чтобы передать смену.</span>
+    </div>
+    <button type="button" class="btn toggle" id="btn-swap-cancel">Отмена</button>
+  `;
+  swapBannerEl.querySelector("#btn-swap-cancel").addEventListener("click", cancelSwap);
+  swapBannerEl.classList.remove("hidden");
+  document.body.classList.add("swap-mode");
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
+
+function beginSwap({ line, employeeId, employeeName, day, shift }) {
+  closeShiftPopover();
+  if (autoSave.running || autoSave.timer || linesWithPendingChanges().length) {
+    alert("Сначала сохраните изменения в Pyrus, потом меняйтесь сменами.");
+    return;
+  }
+  const { year, monthIndex } = state.monthMeta;
+  state.swap = { line: resolveShiftLine(line, employeeId), employeeId, employeeName, day, year, monthIndex, shift };
+  renderSwapBanner();
+  if (!swapKeydownHandler) {
+    swapKeydownHandler = (e) => {
+      if (e.key === "Escape" && state.swap) cancelSwap();
+    };
+    document.addEventListener("keydown", swapKeydownHandler);
+  }
+}
+
+function cancelSwap() {
+  state.swap = null;
+  renderSwapBanner();
+}
+
+async function handleSwapTargetClick({ row, day, shift }) {
+  const source = state.swap;
+  if (!source) return;
+  if (Number(row.employeeId) === Number(source.employeeId)) {
+    showAppToast("Выберите смену другого сотрудника");
+    return;
+  }
+  const { year, monthIndex } = state.monthMeta;
+  const sourceLabel = `${source.employeeName} ${formatSwapDate(source.year, source.monthIndex, source.day)}${describeSwapShift(source.shift)}`;
+  const targetDate = formatSwapDate(year, monthIndex, day);
+
+  let payload;
+  let question;
+  if (shift) {
+    if (shift.taskId == null) {
+      showAppToast("Эта смена ещё не сохранена в Pyrus");
+      return;
+    }
+    const targetLine = resolveShiftLine(state.ui.currentLine, row.employeeId);
+    if (targetLine && source.line && targetLine !== source.line) {
+      showAppToast("Обмен возможен только внутри одной линии");
+      return;
+    }
+    payload = { task_id: source.shift.taskId, target_task_id: shift.taskId };
+    question = `Поменять смены?\n\n${sourceLabel}\n⇄\n${row.employeeName} ${targetDate}${describeSwapShift(shift)}`;
+  } else {
+    if (year !== source.year || monthIndex !== source.monthIndex || day !== source.day) {
+      showAppToast(`Чтобы передать смену, выберите свободный день ${formatSwapDate(source.year, source.monthIndex, source.day)}`);
+      return;
+    }
+    payload = { task_id: source.shift.taskId, target_employee_id: row.employeeId };
+    question = `Передать смену?\n\n${sourceLabel}\n→ ${row.employeeName}`;
+  }
+  if (!confirm(question)) return;
+
+  document.body.classList.add("swap-busy");
+  try {
+    const result = await graphClient.callGraphApi("schedule_swap", { ...payload, ...actorPayload() });
+    scheduleService.applySaveResult({ tasks: result?.tasks || [] });
+    cancelSwap();
+    await reloadScheduleForCurrentMonth();
+    refreshLunchStatus();
+    showAppToast(shift ? "Смены обменяны" : "Смена передана");
+  } catch (err) {
+    alert(`Не удалось поменяться сменами: ${err.message || err}`);
+  } finally {
+    document.body.classList.remove("swap-busy");
+  }
+}
+
+// -----------------------------
+// Обед: кнопка и таймер в шапке
+// -----------------------------
+// Сотрудник на смене уходит на обед: бэкенд убирает его из группы Манго, через час возвращает сам
+// (не вернулся сам — письмо руководителю). Кнопка видна, только когда сейчас идёт смена в линии.
+// Обед можно начать сразу или запланировать на более позднее время той же смены (lunch.start принимает
+// необязательный start_at) — тогда до наступления времени сотрудник остаётся в группе Манго как обычно.
+
+const LUNCH_POLL_MS = 60_000;
+const lunchUi = { status: null, endsAt: 0, tick: null, poll: null, refreshAfterEnd: null, busy: false, unsupported: false };
+
+function formatCountdown(totalSec) {
+  const sec = Math.max(0, Math.round(totalSec));
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+// HH:MM локального времени (UTC+смещение из конфига) из ISO UTC.
+function isoToLocalHHMM(iso) {
+  if (!iso) return "";
+  const ms = new Date(iso).getTime() + TIMEZONE_OFFSET_MIN * 60000;
+  if (Number.isNaN(ms)) return "";
+  const d = new Date(ms);
+  return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+}
+
+// HH:MM локального времени -> ISO UTC. Если получившийся момент больше чем на 6 часов в прошлом —
+// считаем, что это следующие сутки (для ночных смен через полночь).
+function localHHMMToIso(hhmm, referenceMs = Date.now()) {
+  const min = parseTimeToMinutes(hhmm);
+  if (min == null) return null;
+  const offsetMs = TIMEZONE_OFFSET_MIN * 60000;
+  const nowLocal = new Date(referenceMs + offsetMs);
+  let candidateMs =
+    Date.UTC(nowLocal.getUTCFullYear(), nowLocal.getUTCMonth(), nowLocal.getUTCDate(), Math.floor(min / 60), min % 60) -
+    offsetMs;
+  if (candidateMs < referenceMs - 6 * 3600e3) candidateMs += 24 * 3600e3;
+  return new Date(candidateMs).toISOString();
+}
+
+function renderLunchWidget() {
+  if (!lunchWidgetEl || !btnLunchEl || !lunchTimerEl) return;
+  const st = lunchUi.status;
+  const lunch = st?.lunch || null;
+  const active = lunch?.status === "active";
+  const scheduled = lunch?.status === "scheduled";
+  const visible = !lunchUi.unsupported && Boolean(st) && (st.onShift || Boolean(lunch));
+  lunchWidgetEl.classList.toggle("hidden", !visible);
+  lunchWidgetEl.classList.toggle("active", visible && active);
+  if (!visible) return;
+
+  if (active) {
+    const left = (lunchUi.endsAt - Date.now()) / 1000;
+    const over = left <= 0;
+    lunchTimerEl.textContent = over ? "🍽 Время вышло" : `🍽 ${formatCountdown(left)}`;
+    lunchTimerEl.title = over ? "Возвращаем в линию…" : "До автоматического возврата в линию";
+    lunchTimerEl.classList.remove("hidden");
+    lunchTimerEl.classList.toggle("overdue", over);
+    btnLunchEl.textContent = "↩ В линию";
+    btnLunchEl.title = "Закончить обед и вернуться в группу Манго";
+    btnLunchEl.disabled = lunchUi.busy;
+    return;
+  }
+
+  if (scheduled) {
+    lunchTimerEl.textContent = `🍽 с ${isoToLocalHHMM(lunch.start_utc)}`;
+    lunchTimerEl.title = "Запланированный обед";
+    lunchTimerEl.classList.remove("hidden", "overdue");
+    btnLunchEl.textContent = "✕ Отменить";
+    btnLunchEl.title = "Отменить запланированный обед";
+    btnLunchEl.disabled = lunchUi.busy;
+    return;
+  }
+
+  // Нет открытого захода: можно уйти снова, пока не исчерпан суточный лимит (заходов может быть несколько)
+  const remainMin = Math.floor(Number(st.budgetRemainingSec || 0) / 60);
+  const usedSome = remainMin < (st.lunchMinutes || 60);
+  if (usedSome && remainMin > 0) {
+    lunchTimerEl.textContent = `⏳ осталось ${remainMin} мин`;
+    lunchTimerEl.title = "Остаток суточного лимита на обед";
+    lunchTimerEl.classList.remove("hidden", "overdue");
+  } else {
+    lunchTimerEl.classList.add("hidden");
+  }
+  btnLunchEl.textContent = "🍽 Обед";
+  btnLunchEl.disabled = lunchUi.busy || !st.canStart;
+  btnLunchEl.title = st.canStart
+    ? `Уйти на обед — сразу или по расписанию (осталось ${remainMin} мин из ${st.lunchMinutes || 60})`
+    : "Лимит обеда на сегодня исчерпан";
+}
+
+function applyLunchStatus(status) {
+  lunchUi.status = status || null;
+  const lunch = status?.lunch;
+  const active = lunch?.status === "active";
+  const scheduled = lunch?.status === "scheduled";
+  if (active) lunchUi.endsAt = Date.now() + Number(lunch.remainingSec || 0) * 1000;
+
+  if (active && !lunchUi.tick) {
+    lunchUi.tick = setInterval(() => {
+      renderLunchWidget();
+      // Время вышло: бэкенд вернёт в линию в течение минуты — после этого обновим статус
+      if (Date.now() >= lunchUi.endsAt && !lunchUi.refreshAfterEnd) {
+        lunchUi.refreshAfterEnd = setTimeout(() => {
+          lunchUi.refreshAfterEnd = null;
+          refreshLunchStatus();
+        }, 70_000);
+      }
+    }, 1000);
+  } else if (!active && lunchUi.tick) {
+    clearInterval(lunchUi.tick);
+    lunchUi.tick = null;
+  }
+
+  if (lunchUi.refreshAfterEnd) {
+    clearTimeout(lunchUi.refreshAfterEnd);
+    lunchUi.refreshAfterEnd = null;
+  }
+  // Запланированный обед начнётся сам (таймер n8n проверяет раз в минуту) — обновим статус вскоре после
+  if (scheduled) {
+    const untilStartMs = new Date(lunch.start_utc).getTime() - Date.now();
+    if (untilStartMs > 0 && untilStartMs < 3600e3) {
+      lunchUi.refreshAfterEnd = setTimeout(() => {
+        lunchUi.refreshAfterEnd = null;
+        refreshLunchStatus();
+      }, untilStartMs + 65_000);
+    }
+  }
+
+  renderLunchWidget();
+}
+
+async function refreshLunchStatus() {
+  if (getOwnEmployeeId() == null || lunchUi.unsupported) return;
+  try {
+    applyLunchStatus(await graphClient.callGraphApi("lunch_status", actorPayload()));
+  } catch (err) {
+    // n8n без обедов (тип хука не обработан) — просто не показываем кнопку
+    if (err?.code === "UNKNOWN_ACTION" || err?.status === 404) {
+      lunchUi.unsupported = true;
+      renderLunchWidget();
+    } else {
+      console.warn("lunch.status недоступен", err);
+    }
+  }
+}
+
+let lunchBurstTimers = [];
+function refreshLunchStatusSoon() {
+  lunchBurstTimers.forEach(clearTimeout);
+  lunchBurstTimers = [];
+  refreshLunchStatus();
+  if (lunchUi.status?.onShift) return;
+  for (const ms of [4000, 9000, 16000, 28000]) {
+    lunchBurstTimers.push(
+      setTimeout(() => {
+        if (!lunchUi.status?.onShift) refreshLunchStatus();
+      }, ms)
+    );
+  }
+}
+
+function handleLunchVisibility() {
+  if (document.visibilityState === "visible") refreshLunchStatus();
+}
+
+function startLunchWidget() {
+  refreshLunchStatus();
+  if (!lunchUi.poll) {
+    lunchUi.poll = setInterval(refreshLunchStatus, LUNCH_POLL_MS);
+    document.addEventListener("visibilitychange", handleLunchVisibility);
+  }
+}
+
+function stopLunchWidget() {
+  if (lunchUi.poll) clearInterval(lunchUi.poll);
+  if (lunchUi.tick) clearInterval(lunchUi.tick);
+  if (lunchUi.refreshAfterEnd) clearTimeout(lunchUi.refreshAfterEnd);
+  lunchUi.poll = null;
+  lunchUi.tick = null;
+  lunchUi.refreshAfterEnd = null;
+  lunchUi.status = null;
+  closeLunchPopover();
+  renderLunchWidget();
+  document.removeEventListener("visibilitychange", handleLunchVisibility);
+}
+
+async function startLunch(startAtIso) {
+  if (lunchUi.busy) return;
+  lunchUi.busy = true;
+  renderLunchWidget();
+  try {
+    const status = await graphClient.callGraphApi("lunch_start", { ...(startAtIso ? { start_at: startAtIso } : {}), ...actorPayload() });
+    applyLunchStatus(status);
+    showAppToast(
+      status?.lunch?.status === "scheduled"
+        ? `Обед запланирован на ${isoToLocalHHMM(status.lunch.start_utc)}`
+        : "Приятного аппетита! Вы убраны из линии на время обеда"
+    );
+  } catch (err) {
+    alert(err.message || String(err));
+    refreshLunchStatus();
+  } finally {
+    lunchUi.busy = false;
+    renderLunchWidget();
+  }
+}
+
+async function endOrCancelLunch() {
+  if (lunchUi.busy) return;
+  const status = lunchUi.status?.lunch?.status;
+  lunchUi.busy = true;
+  renderLunchWidget();
+  try {
+    const result = await graphClient.callGraphApi("lunch_end", actorPayload());
+    applyLunchStatus(result);
+    if (status === "scheduled") {
+      showAppToast("Обед отменён");
+    } else {
+      const remainMin = Math.floor(Number(result?.budgetRemainingSec || 0) / 60);
+      showAppToast(remainMin > 0 ? `Вы снова в линии. Осталось ${remainMin} мин обеда на сегодня` : "Вы снова в линии. Обед на сегодня закончен");
+    }
+  } catch (err) {
+    alert(err.message || String(err));
+    refreshLunchStatus();
+  } finally {
+    lunchUi.busy = false;
+    renderLunchWidget();
+  }
+}
+
+// -----------------------------
+// Поповер «Обед»: выбор «сейчас» или отложенного времени начала
+// -----------------------------
+
+let lunchPopoverEl = null;
+let lunchPopoverBackdropEl = null;
+let lunchPopoverKeydownHandler = null;
+
+function createLunchPopover() {
+  if (lunchPopoverEl) return;
+  lunchPopoverBackdropEl = document.createElement("div");
+  lunchPopoverBackdropEl.className = "lunch-popover-backdrop hidden";
+  lunchPopoverEl = document.createElement("div");
+  lunchPopoverEl.className = "lunch-popover hidden";
+  lunchPopoverBackdropEl.addEventListener("click", () => closeLunchPopover());
+  document.body.appendChild(lunchPopoverBackdropEl);
+  document.body.appendChild(lunchPopoverEl);
+}
+
+function closeLunchPopover() {
+  if (!lunchPopoverEl) return;
+  lunchPopoverEl.classList.add("hidden");
+  lunchPopoverBackdropEl?.classList.add("hidden");
+  if (lunchPopoverKeydownHandler) {
+    document.removeEventListener("keydown", lunchPopoverKeydownHandler);
+    lunchPopoverKeydownHandler = null;
+  }
+}
+
+function openLunchPopover() {
+  if (!lunchPopoverEl || !btnLunchEl) return;
+  const minutes = lunchUi.status?.lunchMinutes || 60;
+  const remainMin = Math.floor(Number(lunchUi.status?.budgetRemainingSec || 0) / 60);
+  const shiftEnd = lunchUi.status?.shiftEnd;
+  const nowLocal = isoToLocalHHMM(new Date().toISOString());
+  const maxLocal = shiftEnd ? isoToLocalHHMM(shiftEnd) : "";
+
+  lunchPopoverEl.innerHTML = `
+    <div class="lunch-popover-title">🍽 Обед — осталось ${remainMin} из ${minutes} мин сегодня</div>
+    <button type="button" class="btn primary full-width" id="lunch-start-now">Уйти сейчас</button>
+    <div class="lunch-popover-or">или запланировать на время этой смены:</div>
+    <div class="lunch-popover-row">
+      <input type="time" id="lunch-start-time" value="${nowLocal}" />
+      <button type="button" class="btn" id="lunch-start-later">Запланировать</button>
+    </div>
+    <div class="lunch-popover-note">${maxLocal ? `Смена идёт до ${maxLocal}.` : ""} Можно уходить и возвращаться сколько угодно раз — лимит общий на день.
+    Если не вернуться вовремя — вернём в линию сами и сообщим руководителю.</div>
+  `;
+
+  lunchPopoverBackdropEl.classList.remove("hidden");
+  lunchPopoverEl.classList.remove("hidden");
+  positionPopoverNear(lunchPopoverEl, btnLunchEl);
+
+  lunchPopoverEl.querySelector("#lunch-start-now").addEventListener("click", () => {
+    closeLunchPopover();
+    startLunch();
+  });
+  lunchPopoverEl.querySelector("#lunch-start-later").addEventListener("click", () => {
+    const value = lunchPopoverEl.querySelector("#lunch-start-time").value;
+    if (!value) return;
+    const iso = localHHMMToIso(value);
+    if (!iso) return;
+    closeLunchPopover();
+    startLunch(iso);
+  });
+
+  lunchPopoverKeydownHandler = (e) => {
+    if (e.key === "Escape") closeLunchPopover();
+  };
+  document.addEventListener("keydown", lunchPopoverKeydownHandler);
+}
+
+btnLunchEl?.addEventListener("click", () => {
+  if (lunchUi.busy) return;
+  setProfileDropdownOpen(false);
+  const status = lunchUi.status?.lunch?.status;
+  if (status === "active" || status === "scheduled") {
+    endOrCancelLunch();
+    return;
+  }
+  if (!lunchUi.status?.canStart) return;
+  openLunchPopover();
+});
+
 // -----------------------------
 // Загрузка данных
 // -----------------------------
 
 async function loadInitialData() {
+  startLunchWidget();
   try {
     const { year, monthIndex } = state.monthMeta;
     const hadCachedEmployees = loadCachedEmployees();
@@ -3422,9 +3896,84 @@ async function loadShiftsCatalog() {
 
 
 
-async function reloadScheduleForCurrentMonth() {
+// Переключение месяца: сразу показываем сохранённую копию месяца (если есть)
+// и индикатор загрузки, затем подтягиваем свежие данные.
+// Если загрузка не удалась, кэш остаётся на экране (сохранение заблокировано),
+// а запрос повторяется сам с нарастающей паузой.
+const SCHEDULE_RETRY_DELAYS_MS = [3000, 10000, 30000, 60000];
+const scheduleRetry = { timer: null, attempt: 0 };
+
+async function reloadScheduleForCurrentMonth({ showCached = false, isRetry = false } = {}) {
   const { year, monthIndex } = state.monthMeta;
   const monthKey = getMonthKey(year, monthIndex);
+  const isCurrentMonth = () =>
+    monthKey === getMonthKey(state.monthMeta.year, state.monthMeta.monthIndex);
+  clearTimeout(scheduleRetry.timer);
+  scheduleRetry.timer = null;
+  if (!isRetry) scheduleRetry.attempt = 0;
+  if (showCached) {
+    state.ui.scheduleLoadError = null;
+    loadCachedScheduleForMonth(year, monthIndex);
+  }
+  const container = document.querySelector(".schedule-container");
+  container?.classList.add("is-loading");
+  try {
+    await reloadScheduleForCurrentMonthInner();
+    if (isCurrentMonth()) {
+      if (!state.ui.isScheduleCached) {
+        state.ui.scheduleLoadError = null;
+        scheduleRetry.attempt = 0;
+        // Правки, сделанные пока шла загрузка, — отправить
+        if (linesWithPendingChanges().length) scheduleAutoSave(500);
+      } else {
+        // Запрос отработал без ошибки, но его результат не применили (например, устарел —
+        // его обогнал более новый запрос). Раньше на этом интерфейс замирал на «Данные
+        // загружаются…» навсегда: ни ошибки, ни повтора. Теперь тоже пробуем ещё раз.
+        const delay =
+          SCHEDULE_RETRY_DELAYS_MS[Math.min(scheduleRetry.attempt, SCHEDULE_RETRY_DELAYS_MS.length - 1)];
+        scheduleRetry.attempt += 1;
+        scheduleRetry.timer = setTimeout(
+          () => reloadScheduleForCurrentMonth({ isRetry: true }),
+          delay
+        );
+      }
+    }
+  } catch (err) {
+    console.error("Не удалось загрузить график", err);
+    if (isCurrentMonth()) {
+      state.ui.scheduleLoadError = err;
+      const delay =
+        SCHEDULE_RETRY_DELAYS_MS[Math.min(scheduleRetry.attempt, SCHEDULE_RETRY_DELAYS_MS.length - 1)];
+      scheduleRetry.attempt += 1;
+      scheduleRetry.timer = setTimeout(
+        () => reloadScheduleForCurrentMonth({ isRetry: true }),
+        delay
+      );
+    }
+  } finally {
+    if (isCurrentMonth()) {
+      container?.classList.remove("is-loading");
+      updateSaveButtonState();
+      updateQuickModeForLine();
+    }
+    prefetchAdjacentProdCalendars(year, monthIndex);
+  }
+}
+
+// Производственный календарь соседних месяцев — заранее, чтобы листание не ждало isdayoff.ru
+function prefetchAdjacentProdCalendars(year, monthIndex) {
+  for (const delta of [-1, 1]) {
+    const d = new Date(Date.UTC(year, monthIndex + delta, 1));
+    prodCalendarService.getProdCalendarForMonth(d.getUTCFullYear(), d.getUTCMonth()).catch(() => {});
+  }
+}
+
+async function reloadScheduleForCurrentMonthInner() {
+  const { year, monthIndex } = state.monthMeta;
+  const monthKey = getMonthKey(year, monthIndex);
+  // Календарь запрашиваем параллельно с графиком, а не после него
+  const prodCalendarPromise = prodCalendarService.getProdCalendarForMonth(year, monthIndex);
+  prodCalendarPromise.catch(() => {});
   const cachedVacations =
     typeof vacationsService.peekVacationsForMonth === "function"
       ? vacationsService.peekVacationsForMonth(monthKey)
@@ -3465,7 +4014,7 @@ async function reloadScheduleForCurrentMonth() {
 
   // Производственный календарь РФ: помесячно (isdayoff.ru), с кэшем и фолбеком на СБ/ВС
   try {
-    state.prodCalendar = await prodCalendarService.getProdCalendarForMonth(year, monthIndex);
+    state.prodCalendar = await prodCalendarPromise;
   } catch (e) {
     console.warn('Не удалось загрузить производственный календарь РФ, используем фолбек СБ/ВС', e);
     state.prodCalendar = null;
@@ -3648,6 +4197,13 @@ async function reloadScheduleForCurrentMonth() {
     });
 
     scheduleByLine[line] = { monthKey, days, rows };
+  }
+
+  // Отпуска обычно уже в кэше или почти готовы: даём им до 600 мс догнать, чтобы отрисовать
+  // график один раз, а не дважды (полная перерисовка таблицы — самая тяжёлая операция интерфейса).
+  if (!vacationsLoaded) {
+    await Promise.race([vacationsPromise, new Promise((resolve) => setTimeout(resolve, 600))]);
+    if (monthKey !== getMonthKey(state.monthMeta.year, state.monthMeta.monthIndex)) return;
   }
 
   state.originalScheduleByLine = deepClone(scheduleByLine);
@@ -4283,7 +4839,7 @@ function openVacationPopover(context, anchorEl) {
   });
 }
 function openShiftPopoverReadOnly(context, anchorEl) {
-  const { line, employeeName, day, shift } = context;
+  const { line, employeeId, employeeName, day, shift } = context;
   const { year, monthIndex } = state.monthMeta;
   
   const dateLabel = `${String(day).padStart(2, "0")}.${String(
@@ -4328,6 +4884,7 @@ function openShiftPopoverReadOnly(context, anchorEl) {
     </div>
 
     <div class="shift-popover-footer">
+      ${canStartSwap(line, employeeId, shift) ? '<button class="btn" type="button" id="shift-btn-swap" title="Поменяться сменой с другим сотрудником">🔁 Обмен</button>' : ""}
       <button class="btn" type="button" id="shift-btn-close-readonly">Закрыть</button>
     </div>
   `;
@@ -4352,6 +4909,9 @@ function openShiftPopoverReadOnly(context, anchorEl) {
   shiftPopoverEl
     .querySelector("#shift-btn-close-readonly")
     .addEventListener("click", closeShiftPopover);
+  shiftPopoverEl
+    .querySelector("#shift-btn-swap")
+    ?.addEventListener("click", () => beginSwap({ line, employeeId, employeeName, day, shift }));
 
   shiftPopoverKeydownHandler = (e) => {
     if (e.key === "Escape") closeShiftPopover();
@@ -4493,6 +5053,7 @@ function openShiftPopover(context, anchorEl) {
       <button class="btn danger" type="button" id="shift-btn-delete" ${
         hasShift ? "" : "disabled"
       }>Удалить</button>
+      ${canStartSwap(line, employeeId, shift) ? '<button class="btn" type="button" id="shift-btn-swap" title="Поменяться сменой с другим сотрудником">🔁 Обмен</button>' : ""}
       <button class="btn" type="button" id="shift-btn-cancel">${isMobileLayout() ? "Отмена" : "Готово"}</button>
       ${isMobileLayout() ? '<button class="btn primary" type="button" id="shift-btn-save">Сохранить</button>' : ""}
     </div>
@@ -4538,6 +5099,9 @@ function openShiftPopover(context, anchorEl) {
   shiftPopoverEl
     .querySelector("#shift-btn-cancel")
     .addEventListener("click", closeShiftPopover);
+  shiftPopoverEl
+    .querySelector("#shift-btn-swap")
+    ?.addEventListener("click", () => beginSwap({ line, employeeId, employeeName, day, shift }));
 
   const deleteBtn = shiftPopoverEl.querySelector("#shift-btn-delete");
   if (deleteBtn) {

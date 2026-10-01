@@ -133,6 +133,11 @@
               <div class="profile-dropdown-user">
                 <span id="profile-user-name" class="profile-user-name">—</span>
               </div>
+              <!-- Обед: пункт меню — виден, только когда идёт активная/запланированная смена -->
+              <div id="lunch-widget" class="lunch-widget hidden" aria-live="polite">
+                <button type="button" class="profile-dropdown-item" id="btn-lunch">🍽 Обед</button>
+                <span id="lunch-timer" class="lunch-timer hidden"></span>
+              </div>
               <button type="button" class="profile-dropdown-item" id="btn-theme-toggle">
                 🌙 Тема
               </button>
