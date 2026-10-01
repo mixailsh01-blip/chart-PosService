@@ -3759,3 +3759,72 @@ body.swap-mode .app-toast {
   box-shadow: inset 0 0 0 2px var(--danger);
   background: color-mix(in srgb, var(--danger) 22%, transparent);
 }
+
+/* =====================================================================
+   Размеры клеток как в SPRT-chart + устранение смещения таблицы (Safari)
+   ===================================================================== */
+/* Все строки одной высоты — с сменой и без */
+.schedule-table tbody td {
+  height: 42px;
+}
+
+@media (min-width: 769px) {
+  /* Высота блоков строго по содержимому: flex:1 + min-height:0 в Safari сжимал таблицу при первой отрисовке,
+     а потом она резко «вырастала». */
+  #main-screen:not(.clients-active) #schedule-view,
+  #main-screen:not(.clients-active) .schedule-container,
+  #main-screen:not(.clients-active) .schedule-scroll {
+    flex: 0 0 auto;
+    min-height: auto;
+  }
+  /* Горизонтальная полоса есть с первой отрисовки, вертикального скролла нет —
+     последняя строка не обрезается и не съезжает. */
+  #main-screen:not(.clients-active) .schedule-scroll {
+    overflow-x: scroll;
+    overflow-y: hidden;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Таблица по высоте содержимого; при большом числе строк прокручивается внутри */
+  #main-screen:not(.clients-active) #schedule-view,
+  #main-screen:not(.clients-active) .schedule-container {
+    flex: 0 1 auto;
+    min-height: 0;
+  }
+  /* Ячейка шире, чтобы «09:00» помещалось целиком */
+  :root {
+    --cell-size: 38px;
+  }
+  .schedule-table th.sticky-col,
+  .schedule-table td.sticky-col {
+    min-width: 112px;
+    max-width: 132px;
+  }
+  .schedule-table tbody td {
+    height: 38px;
+  }
+  /* Шапка прилипает к верху .schedule-scroll, а не на высоту панели страницы */
+  .schedule-table thead {
+    position: static;
+  }
+  .schedule-table thead tr:first-child th {
+    top: 0;
+    height: 30px;
+    box-sizing: border-box;
+  }
+  .schedule-table thead tr:nth-child(2) th {
+    top: 30px;
+    height: 24px;
+    box-sizing: border-box;
+  }
+  /* Колонка «Сотрудник» в шапке всегда поверх дат при горизонтальной прокрутке */
+  .schedule-table thead th.sticky-col {
+    position: sticky;
+    left: 0;
+    z-index: 40;
+  }
+  .schedule-table tbody td.sticky-col {
+    z-index: 30;
+  }
+}
