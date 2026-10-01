@@ -210,7 +210,7 @@
                 },
                 "conditions": [
                   {
-                    "id": "ee966ba8-e34b-4b7d-bf5c-706b7f96f9ae",
+                    "id": "7769f613-08f6-4fe7-89ea-39dec76bd2f9",
                     "leftValue": "vacation_create",
                     "rightValue": "={{ $json.body.type }}",
                     "operator": {
@@ -220,7 +220,7 @@
                     }
                   },
                   {
-                    "id": "d71510da-2f40-4c82-88c6-99ba6088f4c5",
+                    "id": "ea18d8e0-1b75-4a13-ab4d-711bba93b8f2",
                     "leftValue": "vacation_delete",
                     "rightValue": "={{ $json.body.type }}",
                     "operator": {
@@ -230,7 +230,7 @@
                     }
                   },
                   {
-                    "id": "f6ecc440-1462-451c-b7c5-b3ea543010c0",
+                    "id": "fbd7a2aa-6338-4cb5-b1f7-2897c2ab31bb",
                     "leftValue": "schedule_swap",
                     "rightValue": "={{ $json.body.type }}",
                     "operator": {
@@ -240,7 +240,7 @@
                     }
                   },
                   {
-                    "id": "fb83ff37-78dd-42ae-8995-fa40e3ee82c5",
+                    "id": "fbd54390-8ef1-4118-9d5e-3486b59e291d",
                     "leftValue": "lunch_status",
                     "rightValue": "={{ $json.body.type }}",
                     "operator": {
@@ -250,7 +250,7 @@
                     }
                   },
                   {
-                    "id": "89f8d021-1f4c-44bd-af9f-72ca513bc095",
+                    "id": "78f5d331-8afe-4b49-ab7b-2b1d59f5ed64",
                     "leftValue": "lunch_start",
                     "rightValue": "={{ $json.body.type }}",
                     "operator": {
@@ -260,7 +260,7 @@
                     }
                   },
                   {
-                    "id": "6246e2f3-996e-44a6-8a19-01640de7bc1d",
+                    "id": "690da85a-6e1b-4e75-b99c-a01f0eed1dad",
                     "leftValue": "lunch_end",
                     "rightValue": "={{ $json.body.type }}",
                     "operator": {
@@ -954,8 +954,8 @@
       "parameters": {
         "fromEmail": "График работы PosService <support@posservice.pro>",
         "toEmail": "={{ $json.body.email }}",
-        "subject": "=Код авторизации:",
-        "html": "=<!doctype html>\n<html lang=\"ru\">\n  <head>\n    <meta charset=\"utf-8\" />\n    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\" />\n    <meta name=\"x-apple-disable-message-reformatting\" />\n    <title>Код авторизации</title>\n    <style>\n      @media (prefers-color-scheme: dark) {\n        .bg { background: #0b1220 !important; }\n        .card { background: #0f1a30 !important; border-color: #233455 !important; }\n        .text { color: #e6edf7 !important; }\n        .muted { color: #a7b3c7 !important; }\n        .codeBox { background: #0b1428 !important; border-color: #2a3c62 !important; }\n        .codeInner { background:#0f1a30 !important; border-color:#2a3c62 !important; }\n        .codeValue { color:#dbe6ff !important; }\n      }\n      @media screen and (max-width: 600px) {\n        .container { width: 100% !important; }\n        .px { padding-left: 16px !important; padding-right: 16px !important; }\n        .codeValue { font-size: 34px !important; letter-spacing: 0.18em !important; }\n      }\n    </style>\n  </head>\n\n  <body class=\"bg\" style=\"margin:0; padding:0; background:#f4f7ff;\">\n    <div style=\"display:none; font-size:1px; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden;\">\n      {{ $json.body.code }} · Действителен 10 минут.\n    </div>\n\n    <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"background:#f4f7ff;\">\n      <tr>\n        <td align=\"center\" style=\"padding:28px 12px;\">\n          <table role=\"presentation\" class=\"container\" width=\"600\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:600px; max-width:600px;\">\n            <tr>\n              <td class=\"px\" style=\"padding:0 28px 14px 28px; font-family:Arial, Helvetica, sans-serif;\">\n                <div style=\"font-size:14px; color:#5b6b86;\">PosService</div>\n                <div style=\"font-size:22px; color:#0f1a2a; font-weight:700; margin-top:6px;\">Подтверждение входа</div>\n              </td>\n            </tr>\n\n            <tr>\n              <td class=\"card\" style=\"background:#ffffff; border:1px solid #e6ecff; border-radius:16px; overflow:hidden; box-shadow:0 10px 24px rgba(15,26,42,0.08);\">\n                <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">\n                  <tr>\n                    <td class=\"px\" style=\"padding:24px 28px 10px 28px; font-family:Arial, Helvetica, sans-serif;\">\n                      <div class=\"text\" style=\"color:#0f1a2a; font-size:16px; line-height:24px;\">\n                        Введите этот код, чтобы войти по почте.\n                      </div>\n                      <div class=\"muted\" style=\"color:#5b6b86; font-size:13px; line-height:20px; margin-top:6px;\">\n                        Код действует <b>10 минут</b>. Никому его не сообщайте.\n                      </div>\n                    </td>\n                  </tr>\n\n                  <tr>\n                    <td class=\"px\" style=\"padding:14px 28px 6px 28px;\">\n                      <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">\n                        <tr>\n                          <td class=\"codeBox\" style=\"background:#f2f6ff; border:1px solid #dbe6ff; border-radius:14px; padding:16px;\">\n                            <div class=\"muted\" style=\"font-family:Arial, Helvetica, sans-serif; color:#5b6b86; font-size:12px; line-height:18px; margin-bottom:8px;\">\n                              Код авторизации\n                            </div>\n\n                            <div class=\"codeInner\" style=\"background:#ffffff; border:1px solid #cfe0ff; border-radius:12px; padding:10px 12px; text-align:center;\">\n                              <div\n                                class=\"codeValue\"\n                                style=\"\n                                  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;\n                                  font-size:40px;\n                                  line-height:48px;\n                                  letter-spacing:0.22em;\n                                  font-weight:800;\n                                  color:#0b2a6f;\n                                  user-select:all;\n                                  -webkit-user-select:all;\n                                  -ms-user-select:all;\n                                \"\n                                aria-label=\"Код авторизации: {{ $json.body.code }}\"\n                              >\n                                {{ $json.body.code }}\n                              </div>\n                            </div>\n\n                            <div class=\"muted\" style=\"font-family:Arial, Helvetica, sans-serif; color:#5b6b86; font-size:12px; line-height:18px; margin-top:10px; text-align:center;\">\n                              На ПК: выделите код и нажмите <b>Ctrl+C</b> · На телефоне: нажмите и удерживайте → <b>Копировать</b>\n                            </div>\n                          </td>\n                        </tr>\n                      </table>\n                    </td>\n                  </tr>\n\n                  <tr>\n                    <td class=\"px\" style=\"padding:14px 28px 24px 28px; font-family:Arial, Helvetica, sans-serif;\">\n                      <div class=\"muted\" style=\"color:#5b6b86; font-size:12px; line-height:18px; text-align:center;\">\n                        Если вы не запрашивали вход, просто игнорируйте это письмо.\n                      </div>\n                    </td>\n                  </tr>\n\n                  <tr>\n                    <td style=\"padding:0 28px;\">\n                      <div style=\"height:1px; background:#edf1ff;\"></div>\n                    </td>\n                  </tr>\n\n                  <tr>\n                    <td class=\"px\" style=\"padding:16px 28px 22px 28px; font-family:Arial, Helvetica, sans-serif;\">\n                      <div class=\"muted\" style=\"color:#5b6b86; font-size:12px; line-height:18px;\">\n                        Это автоматическое письмо от «PosService». Пожалуйста, не отвечайте на него.\n                      </div>\n                      <div class=\"muted\" style=\"color:#5b6b86; font-size:12px; line-height:18px; margin-top:8px;\">\n                        © 2026 PosService\n                      </div>\n                    </td>\n                  </tr>\n\n                </table>\n              </td>\n            </tr>\n\n          </table>\n        </td>\n      </tr>\n    </table>\n  </body>\n</html>\n",
+        "subject": "=Вход в График работы PosService",
+        "html": "=<!doctype html>\n<html lang=\"ru\">\n<head>\n<meta charset=\"utf-8\" />\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\" />\n<meta name=\"color-scheme\" content=\"light dark\" />\n<meta name=\"supported-color-schemes\" content=\"light dark\" />\n<meta name=\"x-apple-disable-message-reformatting\" />\n<title>Вход в График работы PosService</title>\n<style>\n  @media (prefers-color-scheme: dark) {\n    .bg { background:#0b1220 !important; }\n    .card { background:#111c33 !important; border-color:#24365a !important; }\n    .t { color:#eaf0fb !important; }\n    .m { color:#9fb0cc !important; }\n    .codebox { background:#0b1428 !important; border-color:#2a3c62 !important; }\n    .code { color:#ffffff !important; }\n    .foot { border-color:#24365a !important; }\n  }\n  @media screen and (max-width:560px) {\n    .wrap { width:100% !important; }\n    .pad { padding-left:20px !important; padding-right:20px !important; }\n    .code { font-size:30px !important; letter-spacing:6px !important; }\n    .btn a { display:block !important; }\n  }\n</style>\n</head>\n<body class=\"bg\" style=\"margin:0;padding:0;background:#eef2f9;\">\n<div style=\"display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;\">\nНажмите «Войти в график» или введите код {{ $json.body.code }}. Действует 10 минут.\n</div>\n<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" class=\"bg\" style=\"background:#eef2f9;\">\n<tr><td align=\"center\" style=\"padding:32px 12px;\">\n  <table role=\"presentation\" class=\"wrap\" width=\"560\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:560px;max-width:560px;\">\n\n    <tr><td align=\"center\" style=\"padding:0 0 18px 0;font-family:Arial,Helvetica,sans-serif;\">\n      <table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\"><tr>\n        <td style=\"width:40px;height:40px;background:#1f3a8a;border-radius:10px;text-align:center;vertical-align:middle;font-size:20px;font-weight:700;color:#ffffff;font-family:Arial,Helvetica,sans-serif;\">P</td>\n        <td style=\"padding-left:12px;text-align:left;\">\n          <div class=\"t\" style=\"font-size:17px;font-weight:700;color:#0f1a2a;line-height:20px;\">PosService</div>\n          <div class=\"m\" style=\"font-size:12px;color:#5b6b86;line-height:16px;\">График работы</div>\n        </td>\n      </tr></table>\n    </td></tr>\n\n    <tr><td class=\"card\" style=\"background:#ffffff;border:1px solid #dfe6f5;border-radius:18px;overflow:hidden;box-shadow:0 12px 30px rgba(15,26,42,0.08);\">\n      <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">\n\n        <tr><td style=\"height:5px;line-height:5px;font-size:0;background:#2563eb;background-image:linear-gradient(90deg,#2563eb,#7c3aed);\">&nbsp;</td></tr>\n\n        <tr><td class=\"pad\" style=\"padding:30px 36px 6px 36px;font-family:Arial,Helvetica,sans-serif;\">\n          <div class=\"t\" style=\"font-size:22px;line-height:28px;font-weight:700;color:#0f1a2a;\">Здравствуйте, {{ String($json.body.first_name || 'коллега').replace(/[<>&\"']/g, '') }}!</div>\n          <div class=\"m\" style=\"font-size:15px;line-height:23px;color:#4a5a78;margin-top:8px;\">Вы запросили вход в график работы. Нажмите кнопку — и вы сразу окажетесь внутри, без ввода кода.</div>\n        </td></tr>\n\n        <tr><td class=\"pad btn\" align=\"center\" style=\"padding:22px 36px 10px 36px;\">\n          <table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" align=\"center\"><tr>\n            <td align=\"center\" bgcolor=\"#2563eb\" style=\"border-radius:12px;background:#2563eb;background-image:linear-gradient(90deg,#2563eb,#4f46e5);\">\n              <a href=\"{{ (String($json.body.login_url || '').startsWith('https://mixailsh01-blip.github.io/chart-PosService') ? $json.body.login_url : 'https://mixailsh01-blip.github.io/chart-PosService/') }}?li_email={{ encodeURIComponent($json.body.email) }}&li_code={{ encodeURIComponent($json.body.code) }}\" target=\"_blank\"\n                 style=\"display:inline-block;padding:15px 44px;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:12px;letter-spacing:0.2px;\">Войти в график &rarr;</a>\n            </td>\n          </tr></table>\n        </td></tr>\n\n        <tr><td class=\"pad\" align=\"center\" style=\"padding:2px 36px 4px 36px;font-family:Arial,Helvetica,sans-serif;\">\n          <div class=\"m\" style=\"font-size:12px;line-height:18px;color:#7a89a6;\">Ссылка сработает в том же браузере, где вы запрашивали вход.</div>\n        </td></tr>\n\n        <tr><td class=\"pad\" style=\"padding:22px 36px 4px 36px;font-family:Arial,Helvetica,sans-serif;\">\n          <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\"><tr>\n            <td width=\"32%\" class=\"foot\" style=\"width:32%;border-top:1px solid #e6ecf7;font-size:0;line-height:0;\">&nbsp;</td>\n            <td class=\"m\" style=\"padding:0 12px;font-size:12px;color:#7a89a6;white-space:nowrap;text-align:center;line-height:0;position:relative;top:0;\">или введите код вручную</td>\n            <td width=\"32%\" class=\"foot\" style=\"width:32%;border-top:1px solid #e6ecf7;font-size:0;line-height:0;\">&nbsp;</td>\n          </tr></table>\n        </td></tr>\n\n        <tr><td class=\"pad\" align=\"center\" style=\"padding:14px 36px 8px 36px;\">\n          <table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" align=\"center\"><tr>\n            <td class=\"codebox\" align=\"center\" style=\"background:#f3f6fd;border:1px solid #d9e2f5;border-radius:14px;padding:14px 26px;\">\n              <div class=\"code\" style=\"font-family:'SF Mono',Menlo,Consolas,'Courier New',monospace;font-size:36px;line-height:42px;font-weight:700;letter-spacing:9px;color:#0f1a2a;\">{{ $json.body.code }}</div>\n            </td>\n          </tr></table>\n          <div class=\"m\" style=\"font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#5b6b86;margin-top:12px;\">Код действителен 10 минут.</div>\n        </td></tr>\n\n        <tr><td class=\"pad\" style=\"padding:20px 36px 26px 36px;font-family:Arial,Helvetica,sans-serif;\">\n          <div class=\"m\" style=\"font-size:12px;line-height:18px;color:#7a89a6;text-align:center;\">Если вы не запрашивали вход — просто проигнорируйте это письмо, доступ не будет предоставлен.</div>\n        </td></tr>\n\n        <tr><td class=\"pad foot\" style=\"padding:14px 36px 20px 36px;border-top:1px solid #e6ecf7;font-family:Arial,Helvetica,sans-serif;\">\n          <div class=\"m\" style=\"font-size:12px;line-height:18px;color:#7a89a6;\">Это автоматическое письмо от PosService, отвечать на него не нужно.</div>\n        </td></tr>\n\n      </table>\n    </td></tr>\n\n    <tr><td align=\"center\" class=\"m\" style=\"padding:16px 0 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#8b99b3;\">&copy; 2026 PosService</td></tr>\n  </table>\n</td></tr>\n</table>\n</body>\n</html>\n",
         "options": {
           "appendAttribution": false
         }
@@ -991,7 +991,7 @@
         208,
         1200
       ],
-      "id": "e63e831b-79bd-4e46-be70-a9fa1b8d271c",
+      "id": "c3d40c93-cf2c-4a48-a4de-f19f71edfd21",
       "name": "Pyrus: токен"
     },
     {
@@ -1010,7 +1010,7 @@
         432,
         1200
       ],
-      "id": "0aa86a75-e70d-494e-ade5-5895393b7f6a",
+      "id": "f11ecc99-135e-47ad-8d8d-ad290e7ffbd1",
       "name": "Обеды: все",
       "alwaysOutputData": true
     },
@@ -1052,7 +1052,7 @@
         656,
         1200
       ],
-      "id": "5678bb7b-78f9-449e-966a-81fa0120135f",
+      "id": "13d88309-e1e3-4f5e-bcce-c3c6237dfc40",
       "name": "Смены: таблица",
       "alwaysOutputData": true
     },
@@ -1066,7 +1066,7 @@
         880,
         1200
       ],
-      "id": "2753f611-814a-47b9-bdfd-006f337e4c5f",
+      "id": "88660f8b-fb45-4a4b-806a-9b8f289c5b57",
       "name": "Действия: логика"
     },
     {
@@ -1083,7 +1083,7 @@
         1120,
         1120
       ],
-      "id": "e2aba627-ec75-4be3-becc-e5994b0bd7f0",
+      "id": "a0d5f543-d3b0-4e39-958a-3ff2a3217c39",
       "name": "Ответ: действия"
     },
     {
@@ -1097,7 +1097,7 @@
         1120,
         1300
       ],
-      "id": "b14d4cd5-c6ce-4de5-abca-914b9c4a06c3",
+      "id": "cf53dc1e-66b9-46d1-9bd6-61fe23fdd1a3",
       "name": "Split Out lunchUpdates"
     },
     {
@@ -1212,7 +1212,7 @@
         1344,
         1300
       ],
-      "id": "e981479c-23be-41d0-b6b5-e98da62c77ed",
+      "id": "dca2b68e-ee8c-4f8a-9995-941637a65bd2",
       "name": "Обед: запись"
     },
     {
@@ -1226,7 +1226,7 @@
           },
           "conditions": [
             {
-              "id": "0458807b-2d23-4c00-b854-c87dede0a465",
+              "id": "7efbf80c-1b17-4330-95a3-bb33614ede4d",
               "leftValue": "={{ $json.mangoSync }}",
               "rightValue": true,
               "operator": {
@@ -1246,7 +1246,7 @@
         1120,
         1480
       ],
-      "id": "098c6951-1f8a-4015-aa7d-a46a6834feab",
+      "id": "15cad210-d6e8-4de5-b04f-61479fdd18c3",
       "name": "Нужна синхронизация Манго"
     },
     {
@@ -1263,7 +1263,7 @@
         1344,
         1480
       ],
-      "id": "d648f586-8452-4094-8339-fdab32d1bf8f",
+      "id": "4bdc7761-1ecd-4632-96a3-369c232a2197",
       "name": "Манго: пересобрать группы",
       "onError": "continueRegularOutput"
     },
@@ -1277,8 +1277,41 @@
         1248,
         760
       ],
-      "id": "a756428c-98f2-4549-8e0e-a6ee67f20af9",
+      "id": "186a8684-8b2c-4350-8940-4aa17c07ffd3",
       "name": "Собрать ответ сохранения"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://accounts.pyrus.com/api/v4/auth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"login\": \"bot@dabc0bf0-40da-40d2-a1c0-d67f7d756ae1\",\n    \"security_key\": \"RAemjI119XkQCrMH~0GBZF75wLr1LUgu5-huCezpq2St6zAwPf9icr~1fR4ykYUu9Bxzh20F4waIppnCLUDtZ49mooY9qvdg\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        704,
+        144
+      ],
+      "id": "08f3491d-62cc-44c6-b103-959d82630000",
+      "name": "Pyrus: токен (вход)",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code-нода «Pyrus: дублировать вход» (Run Once for All Items).\n// Создаёт задачу на форме «Уведомления» (Тип = «Авторизация в графике», Почта, Пин-код, Сотрудник),\n// чтобы сотрудник видел код и кнопку «Войти» в Pyrus сразу, даже если письмо ушло в спам.\n// Ссылку собирает сама кнопка поля «Войти» формы (custom_url ...?li_email=${Почта}&li_code=${Пин-код}).\nconst FORM_ID = 2472720; // «Уведомления»\nconst F = { type: 2, email: 3, code: 4, employee: 6 };\nconst TYPE_NAME = 'авторизация в графике';\n\nconst body = $('Webhook').first().json.body || {};\nconst token = $('Pyrus: токен (вход)').first().json.access_token;\nconst email = String(body.email || '').trim();\nconst code = String(body.code || '').trim();\nif (!token || !email || !code) return [{ json: { skipped: true } }];\n\nconst call = (method, path, payload) =>\n  this.helpers.httpRequest({\n    json: true,\n    method,\n    url: `https://api.pyrus.com${path}`,\n    headers: { Authorization: `Bearer ${token}` },\n    ...(payload ? { body: payload } : {}),\n  });\n\ntry {\n  // choice_id типа «Авторизация в графике» берём из описания формы по названию\n  const form = await call('GET', `/v4/forms/${FORM_ID}`);\n  const findField = (fields, id) => {\n    for (const f of fields || []) {\n      if (f.id === id) return f;\n      const nested = findField((f.info && f.info.fields) || [], id);\n      if (nested) return nested;\n    }\n    return null;\n  };\n  const typeField = findField(form.fields, F.type);\n  const opt = ((typeField && typeField.info && typeField.info.options) || []).find(\n    (o) => String(o.choice_value || '').trim().toLowerCase() === TYPE_NAME\n  );\n\n  // id сотрудника: из запроса, иначе ищем по email\n  let memberId = Number(body.member_id) || null;\n  if (!memberId) {\n    const r = await call('GET', '/v4/members');\n    const m = (r.members || []).find((x) => String(x.email || '').trim().toLowerCase() === email.toLowerCase());\n    memberId = m ? m.id : null;\n  }\n\n  const fields = [\n    { id: F.email, value: email },\n    { id: F.code, value: code },\n  ];\n  if (opt) fields.unshift({ id: F.type, value: { choice_ids: [opt.choice_id] } });\n  if (memberId) fields.push({ id: F.employee, value: { id: memberId } });\n\n  const r = await call('POST', '/v4/tasks', { form_id: FORM_ID, fields });\n  return [{ json: { ok: true, task_id: r && r.task ? r.task.id : null, typeFound: !!opt } }];\n} catch (e) {\n  return [{ json: { ok: false, error: e.message } }];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        992,
+        288
+      ],
+      "id": "cd490f00-45ec-4b62-8a41-f60bf5acfcd4",
+      "name": "Pyrus: дублировать вход",
+      "onError": "continueRegularOutput"
     }
   ],
   "pinData": {},
@@ -1330,6 +1363,11 @@
         [
           {
             "node": "Send email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pyrus: токен (вход)",
             "type": "main",
             "index": 0
           }
@@ -1764,6 +1802,17 @@
         [
           {
             "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pyrus: токен (вход)": {
+      "main": [
+        [
+          {
+            "node": "Pyrus: дублировать вход",
             "type": "main",
             "index": 0
           }

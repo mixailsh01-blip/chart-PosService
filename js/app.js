@@ -939,6 +939,10 @@ async function init() {
     }
   }
 
+  if (!state.auth.user) {
+    await tryMagicLinkLogin();
+  }
+
   syncLoginBodyState();
   bindTopBarButtons();
   bindHistoryControls();
@@ -1408,6 +1412,69 @@ async function loadEmailAuthMembers() {
   }
 }
 
+// ---- Вход по ссылке из письма: ?li_email=...&li_code=... ----
+// Код генерируется в браузере, поэтому «вызов» сохраняем в localStorage на 10 минут:
+// ссылка работает в том же браузере, где запросили код. В другом браузере — вводим код вручную.
+const LOGIN_CHALLENGE_KEY = "sm_graph_login_challenge_v1";
+const LOGIN_CHALLENGE_TTL_MS = 10 * 60 * 1000;
+
+function saveLoginChallenge(email, code) {
+  try {
+    localStorage.setItem(
+      LOGIN_CHALLENGE_KEY,
+      JSON.stringify({ email: normalizeEmail(email), code: String(code), exp: Date.now() + LOGIN_CHALLENGE_TTL_MS })
+    );
+  } catch (e) {}
+}
+
+function readLoginChallenge() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LOGIN_CHALLENGE_KEY) || "null");
+    if (!raw || !raw.code || !raw.email || raw.exp < Date.now()) return null;
+    return raw;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function tryMagicLinkLogin() {
+  const params = new URLSearchParams(window.location.search);
+  const email = params.get("li_email");
+  const code = params.get("li_code");
+  if (!email || !code) return false;
+  const url = new URL(window.location.href);
+  url.searchParams.delete("li_email");
+  url.searchParams.delete("li_code");
+  window.history.replaceState({}, "", url.toString());
+
+  const normalized = normalizeEmail(email);
+  if (emailInputEl) emailInputEl.value = email;
+  const challenge = readLoginChallenge();
+  if (!challenge || challenge.email !== normalized || challenge.code !== String(code)) {
+    if (emailRequestErrorEl) {
+      emailRequestErrorEl.textContent = "Ссылка открыта в другом браузере или устарела — введите код из письма";
+    }
+    return false;
+  }
+  await loadEmailAuthMembers();
+  const member = emailAuthState.membersByEmail?.get(normalized);
+  if (!member) {
+    if (emailRequestErrorEl) emailRequestErrorEl.textContent = "Не удалось проверить email, попробуйте позже";
+    return false;
+  }
+  emailAuthState.member = member;
+  emailAuthState.currentCode = String(code);
+  emailAuthState.targetEmail = email;
+  if (emailTargetLabelEl) emailTargetLabelEl.textContent = email;
+  setEmailAuthStep("code");
+  String(code).split("").slice(0, otpInputs.length).forEach((digit, i) => {
+    if (otpInputs[i]) otpInputs[i].value = digit;
+  });
+  try { localStorage.removeItem(LOGIN_CHALLENGE_KEY); } catch (e) {}
+  emailVerifyButtonEl?.click();
+  return true;
+}
+
 function bindEmailAuth() {
   if (!emailInputEl) return;
   otpInputs.forEach((input) => {
@@ -1460,7 +1527,10 @@ function bindEmailAuth() {
         code,
         first_name: member.first_name || "",
         last_name: member.last_name || "",
+        member_id: member.id ?? null,
+        login_url: `${window.location.origin}${window.location.pathname}`,
       });
+      saveLoginChallenge(email, code);
     } catch (err) {
       if (emailRequestErrorEl) {
         emailRequestErrorEl.textContent = err?.message || "Не удалось отправить код";
