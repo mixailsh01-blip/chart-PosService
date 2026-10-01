@@ -469,7 +469,40 @@ function clearAllCacheAndCookies() {
   clearAllCookies();
 }
 
+// Последняя использованная почта — подставляется на экране входа (localStorage + cookie на случай очистки)
+const LAST_EMAIL_KEY = "pos_last_login_email_v1";
+
+function saveLastEmail(email) {
+  const value = String(email || "").trim();
+  if (!value) return;
+  try {
+    localStorage.setItem(LAST_EMAIL_KEY, value);
+  } catch (_) {}
+  try {
+    setCookie(LAST_EMAIL_KEY, value, 365);
+  } catch (_) {}
+}
+
+function readLastEmail() {
+  try {
+    const v = localStorage.getItem(LAST_EMAIL_KEY);
+    if (v) return v;
+  } catch (_) {}
+  try {
+    return (typeof getCookie === "function" && getCookie(LAST_EMAIL_KEY)) || "";
+  } catch (_) {
+    return "";
+  }
+}
+
+function applyLastEmailToLogin() {
+  if (!emailInputEl || emailInputEl.value) return;
+  const last = readLastEmail();
+  if (last) emailInputEl.value = last;
+}
+
 function saveAuthCache(login) {
+  saveLastEmail(login);
   // пароль не сохраняем
   const payload = {
     savedAt: Date.now(),
@@ -831,6 +864,7 @@ function syncLoginBodyState() {
 }
 
 function showLoginScreen() {
+  applyLastEmailToLogin();
   mainScreenEl?.classList.add("hidden");
   loginScreenEl?.classList.remove("hidden");
   syncLoginBodyState();
@@ -1477,6 +1511,7 @@ async function tryMagicLinkLogin() {
 
 function bindEmailAuth() {
   if (!emailInputEl) return;
+  applyLastEmailToLogin();
   otpInputs.forEach((input) => {
     input.addEventListener("input", handleOtpInput);
     input.addEventListener("keydown", handleOtpKeydown);
@@ -1531,6 +1566,7 @@ function bindEmailAuth() {
         login_url: `${window.location.origin}${window.location.pathname}`,
       });
       saveLoginChallenge(email, code);
+      saveLastEmail(email);
     } catch (err) {
       if (emailRequestErrorEl) {
         emailRequestErrorEl.textContent = err?.message || "Не удалось отправить код";
